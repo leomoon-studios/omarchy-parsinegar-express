@@ -24,12 +24,22 @@ assert.equal(strings.text('en', 'settings.title'), 'Settings');
 assert.equal(strings.text('fa', 'settings.title'), 'تنظیمات');
 assert.equal(strings.text('en', 'settings.language'), 'SHAPING PROFILE');
 assert.equal(strings.text('fa', 'settings.language'), 'نمایهٔ شکل‌دهی');
-assert.equal(strings.text('en', 'settings.languageLabel.Arabic'), 'Persian/Arabic');
-assert.equal(strings.text('fa', 'settings.languageLabel.Arabic'), 'پارسی/عربی');
-assert.equal(strings.text('en', 'settings.languageLabel.Kurdish'), 'Kurdish/Urdu');
-assert.equal(strings.text('fa', 'settings.languageLabel.Kurdish'), 'کردی/اردو');
-assert.equal(strings.text('en', 'settings.languageDescription.Arabic'), 'Uses standard Unicode letter forms for Persian and Arabic.');
-assert.ok(strings.text('fa', 'settings.languageDescription.Kurdish').includes('کردی و اردو'));
+assert.equal(strings.text('en', 'settings.profileLabel.standardPersianArabic'), 'Persian/Arabic');
+assert.equal(strings.text('fa', 'settings.profileLabel.standardPersianArabic'), 'پارسی/عربی');
+assert.equal(strings.text('en', 'settings.profileLabel.kurdishUrdu'), 'Kurdish/Urdu');
+assert.equal(strings.text('fa', 'settings.profileLabel.kurdishUrdu'), 'کردی/اردو');
+assert.equal(strings.text('en', 'settings.profileLabel.hebrew'), 'Hebrew');
+assert.equal(strings.text('fa', 'settings.profileLabel.hebrew'), 'عبری');
+assert.equal(strings.text('en', 'settings.profileDescription.standardPersianArabic'), 'Uses standard Unicode letter forms for Persian and Arabic.');
+assert.ok(strings.text('fa', 'settings.profileDescription.kurdishUrdu').includes('کردی و اردو'));
+assert.ok(strings.text('en', 'settings.profileDescription.hebrew').includes('bidi visual ordering only'));
+assert.ok(strings.text('fa', 'settings.profileDescription.hebrew').includes('عبری'));
+assert.equal(strings.text('en', 'toggle.reverse'), 'Apply bidi visual ordering');
+assert.equal(strings.text('fa', 'toggle.reverse'), 'اعمال ترتیب نمایشی دوجهته');
+for (const key of ['settings.hebrewNoticeTitle', 'settings.hebrewNoticeDescription']) {
+    assert.notEqual(strings.text('en', key), key, key + ' English');
+    assert.notEqual(strings.text('fa', key), key, key + ' Persian');
+}
 assert.equal(strings.text('fa', 'settings.deleteHarakat'), 'حذف اعراب');
 assert.equal(strings.text('fa', 'settings.shiftHarakat').startsWith('جابه‌جایی'), true);
 assert.equal(strings.text('fa', 'settings.group.sentences'), 'لیگچرهای عبارتی');

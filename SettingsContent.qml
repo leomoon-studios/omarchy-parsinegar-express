@@ -18,8 +18,8 @@ FocusScope {
     LayoutMirroring.childrenInherit: true
 
     function uiText(key) { return Strings.InterfaceStrings.text(controller.uiLanguage, key) }
-    function languageLabel(language) { return uiText("settings.languageLabel." + language) }
-    function languageDescription(language) { return uiText("settings.languageDescription." + language) }
+    function profileLabel(profile) { return uiText("settings.profileLabel." + profile) }
+    function profileDescription(profile) { return uiText("settings.profileDescription." + profile) }
     function groupLabel(group) { return uiText("settings.group." + group.id) }
 
     function groupById(id) {
@@ -140,24 +140,24 @@ FocusScope {
 
                 GridLayout {
                     width: parent.width
-                    columns: 2
+                    columns: 3
                     columnSpacing: Style.space(8)
                     Repeater {
-                        model: root.controller.reshaperMetadata.languages
+                        model: root.controller.reshaperMetadata.shapingProfiles
                         ActionButton {
-                            required property string modelData
+                            required property var modelData
                             Layout.fillWidth: true
                             Layout.preferredWidth: 1
-                            text: root.languageLabel(modelData)
-                            selected: root.controller.shapingProfile === root.controller.profileForLanguage(modelData)
-                            onClicked: root.controller.setShapingLanguage(modelData)
+                            text: root.profileLabel(modelData.id)
+                            selected: root.controller.shapingProfile === modelData.id
+                            onClicked: root.controller.setShapingProfile(modelData.id, true)
                         }
                     }
                 }
 
                 Text {
                     width: parent.width
-                    text: root.languageDescription(root.controller.baseOption("language"))
+                    text: root.profileDescription(root.controller.shapingProfile)
                     color: Qt.darker(root.foreground, 1.45)
                     font.family: root.fontFamily
                     font.pixelSize: Style.font.caption
@@ -183,8 +183,44 @@ FocusScope {
                     fontFamily: root.fontFamily
                     onClicked: if (root.controller.host) root.controller.host.reverseWords = !root.controller.host.reverseWords
                 }
+
+                Rectangle {
+                    width: parent.width
+                    implicitHeight: hebrewNotice.implicitHeight + Style.space(8) * 2
+                    visible: root.controller.hebrewProfile
+                    color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.05)
+                    border.color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.35)
+                    border.width: 1
+
+                    Column {
+                        id: hebrewNotice
+                        anchors.fill: parent
+                        anchors.margins: Style.space(8)
+                        spacing: Style.space(3)
+
+                        Text {
+                            width: parent.width
+                            text: root.uiText("settings.hebrewNoticeTitle")
+                            color: root.foreground
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.body
+                            font.bold: true
+                            wrapMode: Text.WordWrap
+                        }
+                        Text {
+                            width: parent.width
+                            text: root.uiText("settings.hebrewNoticeDescription")
+                            color: Qt.darker(root.foreground, 1.45)
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.caption
+                            wrapMode: Text.WordWrap
+                        }
+                    }
+                }
+
                 Ui.Toggle {
                     width: parent.width
+                    visible: !root.controller.hebrewProfile
                     label: root.uiText("toggle.video")
                     description: root.uiText("toggle.videoDescription")
                     checked: root.controller.host ? root.controller.host.videoStudioPro : false
@@ -198,6 +234,7 @@ FocusScope {
 
                 Ui.Toggle {
                     width: parent.width
+                    visible: !root.controller.hebrewProfile
                     label: root.uiText("settings.deleteHarakat")
                     description: root.uiText("settings.deleteHarakatDescription")
                     checked: root.controller.baseOption("deleteHarakat")
@@ -208,6 +245,7 @@ FocusScope {
                 }
                 Ui.Toggle {
                     width: parent.width
+                    visible: !root.controller.hebrewProfile
                     label: root.uiText("settings.shiftHarakat")
                     description: root.uiText("settings.shiftHarakatDescription")
                     checked: root.controller.baseOption("shiftHarakatPosition")
@@ -218,6 +256,7 @@ FocusScope {
                 }
                 Ui.Toggle {
                     width: parent.width
+                    visible: !root.controller.hebrewProfile
                     label: root.uiText("settings.deleteTatweel")
                     description: root.uiText("settings.deleteTatweelDescription")
                     checked: root.controller.baseOption("deleteTatweel")
@@ -228,6 +267,7 @@ FocusScope {
                 }
                 Ui.Toggle {
                     width: parent.width
+                    visible: !root.controller.hebrewProfile
                     label: root.uiText("settings.supportZWJ")
                     description: root.uiText("settings.supportZWJDescription")
                     checked: root.controller.baseOption("supportZWJ")
@@ -238,6 +278,7 @@ FocusScope {
                 }
                 Ui.Toggle {
                     width: parent.width
+                    visible: !root.controller.hebrewProfile
                     label: root.uiText("settings.unshapedIsolated")
                     description: root.uiText("settings.unshapedIsolatedDescription")
                     checked: root.controller.baseOption("useUnshapedInsteadOfIsolated")
@@ -248,6 +289,7 @@ FocusScope {
                 }
                 Ui.Toggle {
                     width: parent.width
+                    visible: !root.controller.hebrewProfile
                     label: root.uiText("settings.supportLigatures")
                     description: root.uiText("settings.supportLigaturesDescription")
                     checked: root.controller.baseOption("supportLigatures")
@@ -259,6 +301,7 @@ FocusScope {
 
                 Text {
                     width: parent.width
+                    visible: !root.controller.hebrewProfile
                     text: root.uiText("settings.namedLigatures")
                     color: Qt.darker(root.foreground, 1.45)
                     font.family: root.fontFamily
@@ -268,6 +311,7 @@ FocusScope {
 
                 Text {
                     width: parent.width
+                    visible: !root.controller.hebrewProfile
                     text: root.uiText("settings.fontNotice")
                     textFormat: Text.PlainText
                     color: Qt.darker(root.foreground, 1.45)
@@ -277,7 +321,7 @@ FocusScope {
                 }
 
                 Repeater {
-                    model: root.controller.reshaperMetadata.ligatureGroups
+                    model: root.controller.hebrewProfile ? [] : root.controller.reshaperMetadata.ligatureGroups
                     ActionButton {
                         required property var modelData
                         width: parent.width
@@ -289,6 +333,7 @@ FocusScope {
 
                 ActionButton {
                     width: parent.width
+                    visible: !root.controller.hebrewProfile
                     text: root.uiText("settings.reset")
                     onClicked: root.controller.resetReshaperSettings()
                 }

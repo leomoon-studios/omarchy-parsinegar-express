@@ -1,12 +1,14 @@
 # Omarchy ParsiNegar Express
 
-An Omarchy 4 shell plugin by LeoMoon Studios that prepares Persian text for applications that display its letters disconnected or in the wrong direction, such as some graphics, video-editing, and older applications.
+An Omarchy 4 shell plugin by LeoMoon Studios that prepares Persian and other supported right-to-left text for applications that display it disconnected or in the wrong direction, such as some graphics, video-editing, and older applications.
 
 **Unicode mode** converts the text into contextually shaped Unicode characters, joining letters into their appropriate forms and optionally rearranging them for right-to-left display. Use this mode when the destination application accepts Unicode but does not handle Persian shaping or text direction correctly. Use a Persian-capable Unicode font in that application.
 
-**Compatibility mode** converts the shaped text into a legacy character mapping for special Maryam-compatible fonts. Use this mode for older applications that cannot use the Unicode output. After pasting, select the appropriate Maryam font in the destination application; otherwise the text will appear as unrelated characters. Maryam fonts are not bundled with the plugin.
+The **Hebrew** shaping profile is Unicode-only. Hebrew does not require contextual letter shaping, so this profile bypasses JsParsiReshaper and uses JsBidi only to produce visual-order text. Enable **Apply bidi visual ordering** for destination applications that do not handle right-to-left layout; leave it disabled when the destination application already supports bidi. For SVG export, choose a font that includes Hebrew glyphs; the plugin warns about missing glyphs without blocking the export.
 
-Click **پ** in the bar, type or paste your text, choose a mode, and click **Convert** to copy the result. Expand **Export SVG** below Convert to save the converted text as font-specific vector curves; Unicode starts with bundled Vazirmatn, while Compatibility export requires choosing a Maryam-compatible font. **Reverse words** is enabled by default for visual ordering; the **RTL** and **LTR** buttons control the input box's alignment. The Settings view provides language, shaping, and all named ligature options; these are saved in `~/.config/leomoon-studios.omarchy-parsinegar-express/settings.json`, while draft text is never saved. The plugin UI uses bundled Vazirmatn, so no separate UI font installation is needed.
+**Compatibility mode** converts the shaped text into a legacy character mapping for special Maryam-compatible fonts. Use this mode for older applications that cannot use the Unicode output. After pasting, select the appropriate Maryam font in the destination application; otherwise the text will appear as unrelated characters. Maryam fonts are not bundled with the plugin, and this mode does not support Hebrew.
+
+Click **پ** in the bar, type or paste your text, choose a mode, and click **Convert** to copy the result. Expand **Export SVG** below Convert to save the converted text as font-specific vector curves; Unicode starts with bundled Vazirmatn, while Compatibility export requires choosing a Maryam-compatible font. **Apply bidi visual ordering** is enabled by default; the **RTL** and **LTR** buttons control only the input box's alignment. The Settings view provides interface language, shaping profiles, and applicable shaping and named-ligature options; these are saved in `~/.config/leomoon-studios.omarchy-parsinegar-express/settings.json`, while draft text is never saved. The plugin UI uses bundled Vazirmatn, so no separate UI font installation is needed.
 
 ## Preview
 
@@ -26,10 +28,12 @@ Click **پ** in the bar, type or paste your text, choose a mode, and click **Con
 
 - Contextual Persian text shaping and bidirectional reordering for applications with incomplete RTL support
 - Unicode mode for standard Persian-capable fonts
+- Hebrew Unicode support using bidi visual ordering without contextual reshaping
 - Compatibility mode for legacy applications using Maryam-compatible fonts
 - One-click conversion and clipboard copying
-- RTL and LTR controls, optional word-order reversal, and VideoStudio Pro conversion
-- Persian/Arabic and Kurdish/Urdu shaping profiles, plus configurable diacritics, tatweel, ZWJ, and named ligatures including the Rial sign
+- RTL and LTR input controls, optional bidi visual ordering, and VideoStudio Pro conversion
+- Persian/Arabic and Kurdish/Urdu contextual-shaping profiles, plus a Hebrew bidi-only profile
+- Configurable diacritics, tatweel, ZWJ, and named ligatures including the Rial sign for applicable shaping profiles
 - SVG curve export using the selected Unicode or compatibility font, with missing-glyph warnings
 - English and Persian interfaces with persistent settings
 - Lazy-loaded background processing with no activity while the menu is closed

@@ -84,6 +84,22 @@ assert.notEqual(left, explicitThin, 'the implicit variable-font instance must no
 const missingCombinedMarks = context.SvgCurveExporter.inspect('\uFC5E\uFC5F\uFC60\uFC61\uFC62', vazirmatn, {}, context.Typr, limits);
 assert.deepEqual(Array.from(missingCombinedMarks.missingGlyphs, item => item.label),
     ['U+FC5E', 'U+FC5F', 'U+FC60', 'U+FC61', 'U+FC62']);
+
+const hebrewSource = 'שלום 123';
+const hebrewText = context.ParsiNegar.convert(hebrewSource, 'unicode', {
+    shapingProfile: 'hebrew', reverseWords: true
+}, context.JsBidi, context.JsParsiReshaper);
+assert.equal(hebrewText, '123 םולש');
+assertCurveOnly(exportWith(hebrewText, vazirmatn));
+assert.ok(context.SvgCurveExporter.inspect(hebrewText, vazirmatn, {}, context.Typr, limits).missingGlyphs.length > 0,
+    'bundled Vazirmatn must report its missing Hebrew glyphs without blocking export');
+const hebrewFontPath = '/usr/share/fonts/TTF/OpenSans-Regular.ttf';
+if (fs.existsSync(hebrewFontPath)) {
+    const hebrewFont = bytes(hebrewFontPath);
+    assertCurveOnly(exportWith(hebrewText, hebrewFont));
+    assert.equal(context.SvgCurveExporter.inspect(hebrewText, hebrewFont, {}, context.Typr, limits).missingGlyphs.length, 0);
+}
+
 assertCurveOnly(exportWith(unicodeText + '🧬', vazirmatn));
 assert.deepEqual(Array.from(context.SvgCurveExporter.inspect(unicodeText + '🧬', vazirmatn, {}, context.Typr, limits).missingGlyphs,
     item => item.label), ['U+1F9EC']);

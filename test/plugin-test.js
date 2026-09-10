@@ -14,6 +14,7 @@ assert.equal(manifest.barWidget.allowMultiple, false);
 const panel = read('Panel.qml');
 const menu = read('MenuContent.qml');
 const settings = read('SettingsContent.qml');
+const readme = read('README.md');
 assert.ok(panel.includes('Ui.WidgetButton {'));
 assert.ok(panel.includes('Ui.KeyboardPanel {'));
 assert.ok(panel.includes('active: root.opened || root.filePickerActive'));
@@ -56,8 +57,8 @@ assert.ok(settings.includes('Ui.PanelToolTip {'));
 assert.ok(settings.includes('import "InterfaceStrings.js" as Strings'));
 assert.ok(menu.includes('import "InterfaceStrings.js" as Strings'));
 assert.ok(menu.includes('import "ResourceLimits.js" as Limits'));
-assert.ok(settings.includes('settings.languageDescription.'));
-assert.ok(settings.includes('settings.languageLabel.'));
+assert.ok(settings.includes('settings.profileDescription.'));
+assert.ok(settings.includes('settings.profileLabel.'));
 assert.ok(settings.includes('columns: 2'));
 assert.ok(settings.includes('root.controller.setUiLanguage(modelData)'));
 assert.ok(menu.includes('height: Style.space(180)'));
@@ -82,15 +83,23 @@ for (const key of ['deleteHarakat', 'shiftHarakat', 'deleteTatweel', 'supportZWJ
     assert.ok(settings.includes('settings.' + key), key);
 }
 assert.equal((settings.match(/Ui\.Toggle\s*\{/g) || []).length, 9);
-assert.ok(settings.includes('model: root.controller.reshaperMetadata.languages'));
+assert.ok(settings.includes('model: root.controller.reshaperMetadata.shapingProfiles'));
+assert.match(settings, /columns: 3[\s\S]*model: root\.controller\.reshaperMetadata\.shapingProfiles/);
 assert.ok(menu.includes('property string shapingProfile: "standardPersianArabic"'));
 assert.ok(menu.includes('readonly property bool hebrewProfile: shapingProfile === "hebrew"'));
 assert.ok(menu.includes('shapingProfile: shapingProfile'));
 assert.match(menu, /text: root\.uiText\("mode\.compatibility"\)[\s\S]*enabled: !root\.hebrewProfile/);
-assert.ok(settings.includes('root.controller.setShapingLanguage(modelData)'));
+assert.ok(settings.includes('root.controller.setShapingProfile(modelData.id, true)'));
+assert.ok(settings.includes('settings.hebrewNoticeTitle'));
+assert.ok(settings.includes('settings.hebrewNoticeDescription'));
+assert.equal((settings.match(/visible: !root\.controller\.hebrewProfile/g) || []).length, 10);
 assert.ok(panel.includes('property string shapingProfile: "standardPersianArabic"'));
-assert.ok(settings.includes('model: root.controller.reshaperMetadata.ligatureGroups'));
+assert.ok(settings.includes('model: root.controller.hebrewProfile ? [] : root.controller.reshaperMetadata.ligatureGroups'));
 assert.ok(settings.includes('root.controller.toggleLigature(modelData.name)'));
+assert.match(readme, /Hebrew[^\n]*Unicode-only/);
+assert.ok(readme.includes('bypasses JsParsiReshaper and uses JsBidi only'));
+assert.ok(readme.includes('this mode does not support Hebrew'));
+assert.ok(readme.includes('destination application already supports bidi'));
 for (const source of [panel, read('Typography.qml'), read('LetterBadge.qml')]) {
     assert.ok(!/\b(?:Timer|Process|FileView)\s*\{|Quickshell\.exec/.test(source));
 }
