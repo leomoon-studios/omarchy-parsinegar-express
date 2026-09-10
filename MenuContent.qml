@@ -8,6 +8,7 @@ import qs.Commons
 import "LibraryAdapter.js" as Conversion
 import "ReshaperSettings.js" as Settings
 import "InterfaceStrings.js" as Strings
+import "ResourceLimits.js" as Limits
 
 FocusScope {
     id: root
@@ -105,7 +106,9 @@ FocusScope {
     function convertForExport() {
         if (!settingsReady || !host || !host.opened || !typography || !typography.ready)
             throw new Error("Export is not ready")
-        return Conversion.convert(editor.text, host.conversionMode, conversionOptions())
+        Limits.ResourceLimits.assertTextLength(editor.text, Limits.ResourceLimits.values.maxSvgTextLength, "EXPORT_TEXT_TOO_LARGE")
+        var output = Conversion.convert(editor.text, host.conversionMode, conversionOptions())
+        return Limits.ResourceLimits.assertTextLength(output, Limits.ResourceLimits.values.maxSvgTextLength, "EXPORT_TEXT_TOO_LARGE")
     }
     function setExportStatus(message, isError, isWarning) {
         statusText = message
@@ -117,6 +120,7 @@ FocusScope {
         busy = true
         try {
             focusEditor()
+            Limits.ResourceLimits.assertTextLength(editor.text, Limits.ResourceLimits.values.maxConversionTextLength, "CONVERSION_TEXT_TOO_LARGE")
             var output = Conversion.convert(editor.text, host.conversionMode, conversionOptions())
             Quickshell.clipboardText = output
             statusError = false
@@ -125,7 +129,8 @@ FocusScope {
         } catch (error) {
             statusError = true
             statusWarning = false
-            statusText = uiText("status.failure") + error.message
+            statusText = error && error.code === "CONVERSION_TEXT_TOO_LARGE"
+                ? uiText("status.textTooLarge") : uiText("status.failure") + String(error && error.message || error)
         } finally {
             busy = false
         }

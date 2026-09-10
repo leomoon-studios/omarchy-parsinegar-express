@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell.Io
 import "SvgCurveAdapter.js" as Curves
+import "ResourceLimits.js" as Limits
 
 // Instantiate this component only in response to an explicit export action.
 Item {
@@ -31,13 +32,15 @@ Item {
         errorMessage = ""
         exportWarnings = []
         outputPath = localPath(destinationPath)
+        var bytes = null
         try {
+            Limits.ResourceLimits.assertTextLength(text, Limits.ResourceLimits.values.maxSvgTextLength, "EXPORT_TEXT_TOO_LARGE")
             fontFile.path = localPath(fontPath)
-            var bytes = fontFile.data()
+            bytes = fontFile.data()
+            Limits.ResourceLimits.assertFontBytes(bytes)
             exportWarnings = Curves.inspect(text, bytes, options || {}).missingGlyphs
             var svg = Curves.exportSvg(text, bytes, options || {})
-            fontFile.path = ""
-            bytes = null
+            Limits.ResourceLimits.assertSvgSize(svg)
             outputFile.path = outputPath
             outputFile.setText(svg)
             svg = ""
@@ -51,6 +54,9 @@ Item {
             errorMessage = String(error.message || error)
             failed(errorCode, errorMessage, error.details || [])
             return false
+        } finally {
+            fontFile.path = ""
+            bytes = null
         }
     }
 

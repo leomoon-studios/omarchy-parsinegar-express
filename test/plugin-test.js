@@ -55,6 +55,7 @@ assert.ok(settings.includes('import QtQuick.Controls'));
 assert.ok(settings.includes('Ui.PanelToolTip {'));
 assert.ok(settings.includes('import "InterfaceStrings.js" as Strings'));
 assert.ok(menu.includes('import "InterfaceStrings.js" as Strings'));
+assert.ok(menu.includes('import "ResourceLimits.js" as Limits'));
 assert.ok(settings.includes('settings.languageDescription.'));
 assert.ok(settings.includes('settings.languageLabel.'));
 assert.ok(settings.includes('columns: 2'));
@@ -88,7 +89,7 @@ for (const source of [panel, read('Typography.qml'), read('LetterBadge.qml')]) {
     assert.ok(!/\b(?:Timer|Process|FileView)\s*\{|Quickshell\.exec/.test(source));
 }
 for (const source of [menu, settings]) assert.ok(!/\bTimer\s*\{|Quickshell\.exec/.test(source));
-for (const file of ['LibraryAdapter.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'InterfaceStrings.js', 'SettingsContent.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
+for (const file of ['LibraryAdapter.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'InterfaceStrings.js', 'ResourceLimits.js', 'SettingsContent.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
     assert.ok(fs.statSync(path.join(root, file)).isFile(), file);
 }
 const curveController = read('SvgCurveExportController.qml');
@@ -96,11 +97,15 @@ assert.equal((curveController.match(/\bFileView\s*\{/g) || []).length, 2);
 assert.ok(curveController.includes('preload: false'));
 assert.ok(curveController.includes('watchChanges: false'));
 assert.ok(curveController.includes('function exportTo('));
+assert.ok(curveController.includes('Limits.ResourceLimits.assertFontBytes(bytes)'));
+assert.match(curveController, /finally\s*\{[\s\S]*fontFile\.path = ""[\s\S]*bytes = null/);
+assert.ok(curveController.indexOf('Limits.ResourceLimits.assertFontBytes(bytes)') < curveController.indexOf('Curves.inspect(text, bytes'));
 assert.ok(curveController.includes('Curves.inspect(text, bytes, options || {}).missingGlyphs'));
 assert.ok(curveController.includes('signal exported(string path, var warnings)'));
 assert.ok(curveController.includes('bytes = null'));
 assert.doesNotMatch(curveController, /\b(?:Timer|Process|Connections|WorkerScript)\s*\{|Quickshell\.exec|setInterval|setTimeout|fetch\s*\(/);
 const exportSection = read('ExportSection.qml');
+assert.ok(exportSection.includes('import "ResourceLimits.js" as Limits'));
 assert.ok(exportSection.includes('source: "SvgCurveExportController.qml"'));
 assert.ok(exportSection.includes('active: false'));
 assert.equal((exportSection.match(/\bProcess\s*\{/g) || []).length, 1);

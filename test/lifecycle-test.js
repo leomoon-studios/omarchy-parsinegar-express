@@ -45,6 +45,10 @@ const exportContext = vm.createContext({
     host: { opened: true, conversionMode: 'unicode', reverseWords: true, videoStudioPro: false },
     typography: { ready: true }, editor: { text: 'پارسی نگار' }, reshaperSettings: {},
     Quickshell: { clipboardText: 'unchanged' },
+    Limits: { ResourceLimits: { values: { maxSvgTextLength: 50000 }, assertTextLength(text, maximum) {
+        if (text.length > maximum) { const error = new Error('too large'); error.code = 'EXPORT_TEXT_TOO_LARGE'; throw error; }
+        return text;
+    } } },
     Conversion: { convert(text, mode) { exportCalls++; return mode + ':' + text; } }
 });
 vm.runInContext(exportFunctions, exportContext);
@@ -52,6 +56,11 @@ assert.equal(exportContext.convertForExport(), 'unicode:پارسی نگار');
 assert.equal(exportCalls, 1);
 assert.equal(exportContext.editor.text, 'پارسی نگار');
 assert.equal(exportContext.Quickshell.clipboardText, 'unchanged');
+exportContext.editor.text = 'پ'.repeat(50001);
+assert.throws(() => exportContext.convertForExport(), error => error.code === 'EXPORT_TEXT_TOO_LARGE');
+assert.equal(exportCalls, 1, 'oversized export text must be rejected before conversion');
+assert.equal(exportContext.Quickshell.clipboardText, 'unchanged');
+exportContext.editor.text = 'پارسی نگار';
 exportContext.host.opened = false;
 assert.throws(() => exportContext.convertForExport(), /Export is not ready/);
 const handler = menu.slice(menu.indexOf('    function convertAndCopy()'), menu.indexOf('    Keys.onEscapePressed'));
@@ -59,8 +68,16 @@ let calls = 0;
 const context = vm.createContext({
     busy: false, settingsReady: false, exportSection: { exportBusy: false }, host: { opened: true, conversionMode: 'unicode', reverseWords: true, videoStudioPro: false },
     typography: { ready: true }, editor: { text: 'سلام\nدنیا' }, reshaperSettings: {},
-    statusError: false, statusText: '', uiText(key) { return key === 'status.failure' ? 'Conversion failed: ' : 'Converted and copied.'; }, focusEditor() {}, conversionOptions() { return {}; },
+    statusError: false, statusText: '', uiText(key) {
+        if (key === 'status.failure') return 'Conversion failed: ';
+        if (key === 'status.textTooLarge') return 'Conversion is limited.';
+        return 'Converted and copied.';
+    }, focusEditor() {}, conversionOptions() { return {}; },
     Quickshell: { clipboardText: 'untouched' },
+    Limits: { ResourceLimits: { values: { maxConversionTextLength: 250000 }, assertTextLength(text, maximum) {
+        if (text.length > maximum) { const error = new Error('too large'); error.code = 'CONVERSION_TEXT_TOO_LARGE'; throw error; }
+        return text;
+    } } },
     Conversion: { convert(text) { calls++; return text + '\nconverted'; } }
 });
 vm.runInContext(handler, context);
@@ -84,6 +101,12 @@ assert.equal(calls, 1);
 assert.equal(context.Quickshell.clipboardText, 'سلام\nدنیا\nconverted');
 assert.equal(context.editor.text, 'سلام\nدنیا');
 assert.equal(context.busy, false);
+context.editor.text = 'پ'.repeat(250001);
+context.convertAndCopy();
+assert.equal(calls, 1, 'oversized text must be rejected before conversion');
+assert.equal(context.Quickshell.clipboardText, 'سلام\nدنیا\nconverted');
+assert.equal(context.statusText, 'Conversion is limited.');
+context.editor.text = 'سلام\nدنیا';
 context.Conversion.convert = () => { throw new Error('test failure'); };
 context.convertAndCopy();
 assert.equal(context.busy, false);

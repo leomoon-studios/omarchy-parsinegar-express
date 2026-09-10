@@ -6,6 +6,7 @@ import Quickshell.Io
 import qs.Ui as Ui
 import qs.Commons
 import "InterfaceStrings.js" as Strings
+import "ResourceLimits.js" as Limits
 
 Column {
     id: root
@@ -69,17 +70,26 @@ Column {
         var height = positiveValue(heightField, undefined, true)
         if (width !== undefined) bounds.width = width
         if (height !== undefined) bounds.height = height
-        return {
+        var result = {
             fontSize: positiveValue(fontSizeField, 48, false),
             lineSpacing: positiveValue(lineSpacingField, 1.2, false),
             alignment: alignment,
             bounds: bounds
         }
+        var limits = Limits.ResourceLimits.values
+        if (result.fontSize > limits.maxFontSize || result.lineSpacing > limits.maxLineSpacing ||
+            bounds.padding > limits.maxPadding || (bounds.width !== undefined && bounds.width > limits.maxDimension) ||
+            (bounds.height !== undefined && bounds.height > limits.maxDimension)) throw new Error("INVALID_OPTION")
+        return result
     }
     function reportError(code, message, details) {
         var key = "export.error.generic"
         if (code === "INVALID_OPTION") key = "export.error.invalidOption"
         else if (code === "INVALID_FONT" || code === "INVALID_FONT_INDEX" || code === "MISSING_ENGINE") key = "export.error.invalidFont"
+        else if (code === "EXPORT_TEXT_TOO_LARGE") key = "export.error.textTooLarge"
+        else if (code === "FONT_TOO_LARGE") key = "export.error.fontTooLarge"
+        else if (code === "SVG_TOO_LARGE") key = "export.error.svgTooLarge"
+        else if (code === "INVALID_DIMENSIONS") key = "export.error.dimensions"
         else if (code === "MISSING_GLYPHS") key = "export.error.missingGlyphs"
         else if (code === "BOUNDS_TOO_SMALL") key = "export.error.bounds"
         else if (code === "UNSUPPORTED_GLYPH" || code === "INVALID_OUTLINE") key = "export.error.unsupportedGlyph"
@@ -158,9 +168,13 @@ Column {
             controller.setExportStatus(uiText("export.error.fontRequired"), true)
             return
         }
-        try { exportOptions() }
+        try {
+            Limits.ResourceLimits.assertTextLength(controller.sourceText, Limits.ResourceLimits.values.maxSvgTextLength, "EXPORT_TEXT_TOO_LARGE")
+            exportOptions()
+        }
         catch (error) {
-            controller.setExportStatus(uiText("export.error.invalidOption"), true)
+            controller.setExportStatus(uiText(error && error.code === "EXPORT_TEXT_TOO_LARGE"
+                ? "export.error.textTooLarge" : "export.error.invalidOption"), true)
             return
         }
         openPicker("destination")
@@ -172,7 +186,8 @@ Column {
             pendingOptions = exportOptions()
             exportLoader.active = true
         } catch (error) {
-            controller.setExportStatus(uiText("export.error.generic"), true)
+            controller.setExportStatus(uiText(error && error.code === "EXPORT_TEXT_TOO_LARGE"
+                ? "export.error.textTooLarge" : "export.error.generic"), true)
             cleanupExport()
         }
     }

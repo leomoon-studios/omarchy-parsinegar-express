@@ -12,12 +12,19 @@ var SvgCurveExporter = (function () {
         throw error;
     }
 
-    function finiteNumber(value, fallback, name, allowZero) {
+    function finiteNumber(value, fallback, name, allowZero, maximum) {
         if (value === undefined || value === null) return fallback;
         var number = Number(value);
-        if (!isFinite(number) || (allowZero ? number < 0 : number <= 0))
-            fail("INVALID_OPTION", name + " must be a " + (allowZero ? "non-negative" : "positive") + " number");
+        if (!isFinite(number) || (allowZero ? number < 0 : number <= 0) || number > maximum)
+            fail("INVALID_OPTION", name + " must be a " + (allowZero ? "non-negative" : "positive") + " number no greater than " + maximum);
         return number;
+    }
+
+    function requireLimits(limits) {
+        if (!limits || !limits.values || typeof limits.assertTextLength !== "function" ||
+            typeof limits.assertFontBytes !== "function" || typeof limits.assertSvgSize !== "function")
+            fail("MISSING_LIMITS", "Resource limits are required");
+        return limits;
     }
 
     function fontBuffer(bytes) {
@@ -62,7 +69,11 @@ var SvgCurveExporter = (function () {
         var selectedIndex = fontIndex === null ? defaultFontIndex(fonts || []) : fontIndex;
         if (!fonts || !fonts.length || !fonts[selectedIndex])
             fail("INVALID_FONT_INDEX", "The selected font does not contain font index " + selectedIndex);
-        return fonts[selectedIndex];
+        var font = fonts[selectedIndex];
+        if (!font.head || !font.hhea || !isFinite(font.head.unitsPerEm) || font.head.unitsPerEm <= 0 ||
+            !isFinite(font.hhea.ascender) || !isFinite(font.hhea.descender))
+            fail("INVALID_FONT", "The selected font has invalid metrics");
+        return font;
     }
 
     function codePointLabel(code) {
@@ -130,7 +141,7 @@ var SvgCurveExporter = (function () {
         return String(value).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    function normalizedOptions(options) {
+    function normalizedOptions(options, limits) {
         options = options || {};
         var bounds = options.bounds || {};
         var alignment = options.alignment || "left";
@@ -140,12 +151,12 @@ var SvgCurveExporter = (function () {
         if (!isFinite(precision) || precision < 0 || precision > 8 || Math.floor(precision) !== precision)
             fail("INVALID_OPTION", "precision must be an integer from 0 to 8");
         return {
-            fontSize: finiteNumber(options.fontSize, 48, "fontSize", false),
-            lineSpacing: finiteNumber(options.lineSpacing, 1.2, "lineSpacing", false),
+            fontSize: finiteNumber(options.fontSize, 48, "fontSize", false, limits.values.maxFontSize),
+            lineSpacing: finiteNumber(options.lineSpacing, 1.2, "lineSpacing", false, limits.values.maxLineSpacing),
             alignment: alignment,
-            width: bounds.width === undefined ? null : finiteNumber(bounds.width, null, "bounds.width", false),
-            height: bounds.height === undefined ? null : finiteNumber(bounds.height, null, "bounds.height", false),
-            padding: finiteNumber(bounds.padding, 0, "bounds.padding", true),
+            width: bounds.width === undefined ? null : finiteNumber(bounds.width, null, "bounds.width", false, limits.values.maxDimension),
+            height: bounds.height === undefined ? null : finiteNumber(bounds.height, null, "bounds.height", false, limits.values.maxDimension),
+            padding: finiteNumber(bounds.padding, 0, "bounds.padding", true, limits.values.maxPadding),
             fill: options.fill === undefined ? "#000000" : String(options.fill),
             precision: precision,
             fontIndex: options.fontIndex === undefined ? null : Number(options.fontIndex),
@@ -163,18 +174,36 @@ var SvgCurveExporter = (function () {
         };
     }
 
-    function inspect(text, bytes, options, typr) {
-        if (typeof text !== "string") fail("INVALID_TEXT", "Text must be a string");
-        var normalized = normalizedOptions(options);
-        var font = parseFont(bytes, normalized.fontIndex, typr);
-        return { font: fontIdentity(font), missingGlyphs: missingGlyphs(font, text, typr) };
+    function inspect(text, bytes, options, typr, limits) {
+        limits = requireLimits(limits);
+        limits.assertTextLength(text, limits.values.maxSvgTextLength, "EXPORT_TEXT_TOO_LARGE");
+        limits.assertFontBytes(bytes);
+        var normalized = normalizedOptions(options, limits);
+        try {
+            var font = parseFont(bytes, normalized.fontIndex, typr);
+            return { font: fontIdentity(font), missingGlyphs: missingGlyphs(font, text, typr) };
+        } catch (error) {
+            if (error && error.code) throw error;
+            fail("INVALID_FONT", "The selected font could not be read: " + error);
+        }
     }
 
-    function exportSvg(text, bytes, options, typr) {
-        if (typeof text !== "string") fail("INVALID_TEXT", "Text must be a string");
-        var normalized = normalizedOptions(options);
+    function exportSvg(text, bytes, options, typr, limits) {
+        limits = requireLimits(limits);
+        limits.assertTextLength(text, limits.values.maxSvgTextLength, "EXPORT_TEXT_TOO_LARGE");
+        limits.assertFontBytes(bytes);
+        var normalized = normalizedOptions(options, limits);
         if (normalized.fontIndex !== null && (!isFinite(normalized.fontIndex) || normalized.fontIndex < 0 || Math.floor(normalized.fontIndex) !== normalized.fontIndex))
             fail("INVALID_OPTION", "fontIndex must be a non-negative integer");
+        try {
+            return exportWithFont(text, bytes, normalized, typr, limits);
+        } catch (error) {
+            if (error && error.code) throw error;
+            fail("INVALID_FONT", "The selected font could not be read: " + error);
+        }
+    }
+
+    function exportWithFont(text, bytes, normalized, typr, limits) {
         var font = parseFont(bytes, normalized.fontIndex, typr);
 
         var lines = text.replace(/\r\n?/g, "\n").split("\n");
@@ -204,14 +233,20 @@ var SvgCurveExporter = (function () {
         var lineHeight = normalized.fontSize * normalized.lineSpacing;
         var naturalWidth = normalized.padding * 2 + leftOverhang + maxAdvance * scale + rightOverhang;
         var naturalHeight = normalized.padding * 2 + topOverhang + (font.hhea.ascender - font.hhea.descender) * scale + bottomOverhang + (lines.length - 1) * lineHeight;
+        if (!isFinite(scale) || !isFinite(naturalWidth) || !isFinite(naturalHeight) ||
+            naturalWidth > limits.values.maxDimension || naturalHeight > limits.values.maxDimension)
+            fail("INVALID_DIMENSIONS", "The outlined text exceeds the supported SVG dimensions");
         var width = normalized.width === null ? Math.max(1, naturalWidth) : normalized.width;
         var height = normalized.height === null ? Math.max(1, naturalHeight) : normalized.height;
+        if (!isFinite(width) || !isFinite(height) || width > limits.values.maxDimension || height > limits.values.maxDimension)
+            fail("INVALID_DIMENSIONS", "The SVG dimensions are invalid or too large");
         if (width + 0.000001 < naturalWidth || height + 0.000001 < naturalHeight)
             fail("BOUNDS_TOO_SMALL", "The requested bounds are smaller than the outlined text");
 
         var contentWidth = width - normalized.padding * 2 - leftOverhang - rightOverhang;
         var baseline = normalized.padding + topOverhang + font.hhea.ascender * scale;
         var paths = [];
+        var pathCharacters = 0;
         for (var pathIndex = 0; pathIndex < outlined.length; pathIndex++) {
             var item = outlined[pathIndex];
             if (!item.path.cmds.length) continue;
@@ -219,13 +254,18 @@ var SvgCurveExporter = (function () {
             var alignedOffset = normalized.alignment === "right" ? remaining : normalized.alignment === "center" ? remaining / 2 : 0;
             var x = normalized.padding + leftOverhang + alignedOffset;
             var y = baseline + pathIndex * lineHeight;
+            if (!isFinite(x) || !isFinite(y)) fail("INVALID_DIMENSIONS", "The SVG transform is not finite");
             var transformPrecision = Math.max(6, normalized.precision);
-            paths.push('  <path fill="' + escapeAttribute(normalized.fill) + '" transform="translate(' + rounded(x, transformPrecision) + ' ' + rounded(y, transformPrecision) + ') scale(' + rounded(scale, transformPrecision) + ' -' + rounded(scale, transformPrecision) + ')" d="' + escapeAttribute(typr.U.pathToSVG(item.path, normalized.precision)) + '"/>');
+            var pathMarkup = '  <path fill="' + escapeAttribute(normalized.fill) + '" transform="translate(' + rounded(x, transformPrecision) + ' ' + rounded(y, transformPrecision) + ') scale(' + rounded(scale, transformPrecision) + ' -' + rounded(scale, transformPrecision) + ')" d="' + escapeAttribute(typr.U.pathToSVG(item.path, normalized.precision)) + '"/>';
+            pathCharacters += pathMarkup.length;
+            if (pathCharacters > limits.values.maxSvgBytes) fail("SVG_TOO_LARGE", "Generated SVG exceeds the supported size");
+            paths.push(pathMarkup);
         }
 
-        return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+        var svg = '<?xml version="1.0" encoding="UTF-8"?>\n' +
             '<svg xmlns="http://www.w3.org/2000/svg" width="' + rounded(width, normalized.precision) + '" height="' + rounded(height, normalized.precision) + '" viewBox="0 0 ' + rounded(width, normalized.precision) + ' ' + rounded(height, normalized.precision) + '">\n' +
             paths.join("\n") + (paths.length ? "\n" : "") + '</svg>\n';
+        return limits.assertSvgSize(svg);
     }
 
     return { exportSvg: exportSvg, inspect: inspect };
