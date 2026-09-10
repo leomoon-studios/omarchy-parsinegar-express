@@ -29,7 +29,7 @@ Click **پ** in the bar, type or paste your text, choose a mode, and click **Con
 - Compatibility mode for legacy applications using Maryam-compatible fonts
 - One-click conversion and clipboard copying
 - RTL and LTR controls, optional word-order reversal, and VideoStudio Pro conversion
-- Configurable Parsi/Arabic and Kurdish shaping, diacritics, tatweel, ZWJ, and named ligatures including the Rial sign
+- Persian/Arabic and Kurdish/Urdu shaping profiles, plus configurable diacritics, tatweel, ZWJ, and named ligatures including the Rial sign
 - SVG curve export using the selected Unicode or compatibility font, with missing-glyph warnings
 - English and Persian interfaces with persistent settings
 - Lazy-loaded background processing with no activity while the menu is closed

@@ -17,10 +17,14 @@ assert.equal(metadata.ligatureGroups.flatMap(group => group.ligatures).length, 2
 assert.deepEqual(Array.from(strings.languages), ['en', 'fa']);
 assert.equal(strings.text('en', 'settings.title'), 'Settings');
 assert.equal(strings.text('fa', 'settings.title'), 'تنظیمات');
-assert.equal(strings.text('en', 'settings.languageLabel.Arabic'), 'Parsi/Arabic');
+assert.equal(strings.text('en', 'settings.language'), 'SHAPING PROFILE');
+assert.equal(strings.text('fa', 'settings.language'), 'نمایهٔ شکل‌دهی');
+assert.equal(strings.text('en', 'settings.languageLabel.Arabic'), 'Persian/Arabic');
 assert.equal(strings.text('fa', 'settings.languageLabel.Arabic'), 'پارسی/عربی');
-assert.equal(strings.text('en', 'settings.languageDescription.Arabic'), 'For Persian and Arabic text.');
-assert.ok(strings.text('fa', 'settings.languageDescription.Kurdish').includes('فونت کردی سازگار'));
+assert.equal(strings.text('en', 'settings.languageLabel.Kurdish'), 'Kurdish/Urdu');
+assert.equal(strings.text('fa', 'settings.languageLabel.Kurdish'), 'کردی/اردو');
+assert.equal(strings.text('en', 'settings.languageDescription.Arabic'), 'Uses standard Unicode letter forms for Persian and Arabic.');
+assert.ok(strings.text('fa', 'settings.languageDescription.Kurdish').includes('کردی و اردو'));
 assert.equal(strings.text('fa', 'settings.deleteHarakat'), 'حذف اعراب');
 assert.equal(strings.text('fa', 'settings.shiftHarakat').startsWith('جابه‌جایی'), true);
 assert.equal(strings.text('fa', 'settings.group.sentences'), 'لیگچرهای عبارتی');
