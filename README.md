@@ -8,6 +8,32 @@ An Omarchy 4 shell plugin by LeoMoon Studios that prepares Persian text for appl
 
 Click **پ** in the bar, type or paste your text, choose a mode, and click **Convert** to copy the result. Expand **Export SVG** below Convert to save the converted text as font-specific vector curves; Unicode starts with bundled Vazirmatn, while Compatibility export requires choosing a Maryam-compatible font. **Reverse words** is enabled by default for visual ordering; the **RTL** and **LTR** buttons control the input box's alignment. The Settings view provides language, shaping, and all named ligature options; these are saved in `~/.config/leomoon-studios.omarchy-parsinegar-express/settings.json`, while draft text is never saved. The plugin UI uses bundled Vazirmatn, so no separate UI font installation is needed.
 
+## Preview
+
+**ParsiNegar Express - English**
+
+![ParsiNegar Express in English](preview.png)
+
+**ParsiNegar Express - Persian**
+
+![ParsiNegar Express in Persian](preview-persian.png)
+
+**Settings**
+
+![ParsiNegar Express settings](preview-settings.png)
+
+## Features
+
+- Contextual Persian text shaping and bidirectional reordering for applications with incomplete RTL support
+- Unicode mode for standard Persian-capable fonts
+- Compatibility mode for legacy applications using Maryam-compatible fonts
+- One-click conversion and clipboard copying
+- RTL and LTR controls, optional word-order reversal, and VideoStudio Pro conversion
+- Configurable Parsi/Arabic and Kurdish shaping, diacritics, tatweel, ZWJ, and named ligatures including the Rial sign
+- SVG curve export using the selected Unicode or compatibility font, with missing-glyph warnings
+- English and Persian interfaces with persistent settings
+- Lazy-loaded background processing with no activity while the menu is closed
+
 ## Install
 
 From GitHub:
@@ -23,3 +49,7 @@ The plugin defaults to the right side of the bar. It bundles Vazirmatn v33.003 f
 ```sh
 omarchy plugin remove leomoon-studios.omarchy-parsinegar-express
 ```
+
+## Compatibility
+
+Omarchy 4.0+ on Wayland is the only supported environment.

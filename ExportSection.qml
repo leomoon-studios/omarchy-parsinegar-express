@@ -242,7 +242,7 @@ Column {
 
     ActionButton {
         width: parent.width
-        text: root.uiText("export.title") + (root.expanded ? "  ▴" : "  ▾")
+        text: root.uiText("export.title") + (root.expanded ? "  ▲" : "  ▼")
         selected: root.expanded
         enabled: !root.exportBusy
         onClicked: {
@@ -333,7 +333,7 @@ Column {
 
             ActionButton {
                 width: parent.width
-                text: root.uiText("export.moreOptions") + (root.advancedExpanded ? "  ▴" : "  ▾")
+                text: root.uiText("export.moreOptions") + (root.advancedExpanded ? "  ▲" : "  ▼")
                 selected: root.advancedExpanded
                 enabled: !root.exportBusy
                 onClicked: root.advancedExpanded = !root.advancedExpanded
