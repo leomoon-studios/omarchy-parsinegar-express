@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "leomoon-studios.omarchy-parsinegar-express",
+  "name": "Omarchy ParsiNegar Express",
+  "version": "0.1.0",
+  "author": "LeoMoon Studios",
+  "description": "Persian text shaping and compatibility conversion",
+  "kinds": ["bar-widget"],
+  "entryPoints": {"barWidget": "Panel.qml"},
+  "barWidget": {
+    "displayName": "ParsiNegar Express",
+    "description": "Persian text shaping and compatibility conversion",
+    "category": "Utilities",
+    "defaultSection": "right",
+    "allowMultiple": false
+  }
+}
