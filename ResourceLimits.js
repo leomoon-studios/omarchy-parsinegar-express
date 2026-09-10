@@ -8,6 +8,7 @@ var ResourceLimits = (function () {
         maxSvgTextLength: 50000,
         maxFontBytes: 50 * 1024 * 1024,
         maxSvgBytes: 16 * 1024 * 1024,
+        maxSettingsBytes: 1024 * 1024,
         maxFontSize: 4096,
         maxLineSpacing: 10,
         maxDimension: 1000000,
@@ -57,8 +58,16 @@ var ResourceLimits = (function () {
     }
 
     function assertSvgSize(svg) {
-        if (utf8ByteLength(svg) > values.maxSvgBytes) fail("SVG_TOO_LARGE", "Generated SVG exceeds the supported size");
+        if (String(svg).length > values.maxSvgBytes || utf8ByteLength(svg) > values.maxSvgBytes)
+            fail("SVG_TOO_LARGE", "Generated SVG exceeds the supported size");
         return svg;
+    }
+
+    function assertSettingsSize(raw) {
+        if (typeof raw !== "string") fail("INVALID_SETTINGS", "Settings data must be a string");
+        if (raw.length > values.maxSettingsBytes || utf8ByteLength(raw) > values.maxSettingsBytes)
+            fail("SETTINGS_TOO_LARGE", "Settings exceed the supported size");
+        return raw;
     }
 
     return Object.freeze({
@@ -66,6 +75,7 @@ var ResourceLimits = (function () {
         assertTextLength: assertTextLength,
         assertFontBytes: assertFontBytes,
         assertSvgSize: assertSvgSize,
+        assertSettingsSize: assertSettingsSize,
         utf8ByteLength: utf8ByteLength
     });
 }());

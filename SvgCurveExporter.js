@@ -13,8 +13,9 @@ var SvgCurveExporter = (function () {
     }
 
     function finiteNumber(value, fallback, name, allowZero, maximum) {
-        if (value === undefined || value === null) return fallback;
-        var number = Number(value);
+        if (value === undefined) return fallback;
+        if (typeof value !== "number") fail("INVALID_OPTION", name + " must be a number");
+        var number = value;
         if (!isFinite(number) || (allowZero ? number < 0 : number <= 0) || number > maximum)
             fail("INVALID_OPTION", name + " must be a " + (allowZero ? "non-negative" : "positive") + " number no greater than " + maximum);
         return number;
@@ -25,6 +26,20 @@ var SvgCurveExporter = (function () {
             typeof limits.assertFontBytes !== "function" || typeof limits.assertSvgSize !== "function")
             fail("MISSING_LIMITS", "Resource limits are required");
         return limits;
+    }
+
+    function plainObject(value, name) {
+        if (value === null || typeof value !== "object" || Array.isArray(value) ||
+            Object.prototype.toString.call(value) !== "[object Object]")
+            fail("INVALID_OPTION", name + " must be a plain object");
+        return value;
+    }
+
+    function knownProperties(value, names, owner) {
+        if (Object.getOwnPropertySymbols(value).length) fail("INVALID_OPTION", owner + " contains an unknown symbol property");
+        Object.getOwnPropertyNames(value).forEach(function (name) {
+            if (names.indexOf(name) === -1) fail("INVALID_OPTION", "Unknown " + owner + " property: " + name);
+        });
     }
 
     function fontBuffer(bytes) {
@@ -142,14 +157,32 @@ var SvgCurveExporter = (function () {
     }
 
     function normalizedOptions(options, limits) {
-        options = options || {};
-        var bounds = options.bounds || {};
-        var alignment = options.alignment || "left";
+        if (options === undefined) options = {};
+        plainObject(options, "options");
+        knownProperties(options, ["fontSize", "lineSpacing", "alignment", "bounds", "fill", "precision", "fontIndex", "axes"], "options");
+        var bounds = options.bounds === undefined ? {} : plainObject(options.bounds, "bounds");
+        knownProperties(bounds, ["width", "height", "padding"], "bounds");
+        var alignment = options.alignment === undefined ? "left" : options.alignment;
         if (alignment !== "left" && alignment !== "center" && alignment !== "right")
             fail("INVALID_OPTION", "alignment must be left, center, or right");
-        var precision = options.precision === undefined ? 3 : Number(options.precision);
+        var precision = options.precision === undefined ? 3 : options.precision;
+        if (typeof precision !== "number") fail("INVALID_OPTION", "precision must be a number");
         if (!isFinite(precision) || precision < 0 || precision > 8 || Math.floor(precision) !== precision)
             fail("INVALID_OPTION", "precision must be an integer from 0 to 8");
+        if (options.fill !== undefined && typeof options.fill !== "string") fail("INVALID_OPTION", "fill must be a string");
+        if (options.fontIndex !== undefined && (typeof options.fontIndex !== "number" || !isFinite(options.fontIndex) ||
+            options.fontIndex < 0 || Math.floor(options.fontIndex) !== options.fontIndex))
+            fail("INVALID_OPTION", "fontIndex must be a non-negative integer");
+        var axes = options.axes;
+        if (axes !== undefined) {
+            if (!Array.isArray(axes) || axes.length === 0 || axes.length > 32)
+                fail("INVALID_OPTION", "axes must be a non-empty array of at most 32 numbers");
+            axes = axes.map(function (value) {
+                if (typeof value !== "number" || !isFinite(value) || Math.abs(value) > limits.values.maxDimension)
+                    fail("INVALID_OPTION", "Every axis value must be a finite number within the supported range");
+                return value;
+            });
+        }
         return {
             fontSize: finiteNumber(options.fontSize, 48, "fontSize", false, limits.values.maxFontSize),
             lineSpacing: finiteNumber(options.lineSpacing, 1.2, "lineSpacing", false, limits.values.maxLineSpacing),
@@ -157,11 +190,22 @@ var SvgCurveExporter = (function () {
             width: bounds.width === undefined ? null : finiteNumber(bounds.width, null, "bounds.width", false, limits.values.maxDimension),
             height: bounds.height === undefined ? null : finiteNumber(bounds.height, null, "bounds.height", false, limits.values.maxDimension),
             padding: finiteNumber(bounds.padding, 0, "bounds.padding", true, limits.values.maxPadding),
-            fill: options.fill === undefined ? "#000000" : String(options.fill),
+            fill: options.fill === undefined ? "#000000" : options.fill,
             precision: precision,
-            fontIndex: options.fontIndex === undefined ? null : Number(options.fontIndex),
-            axes: options.axes
+            fontIndex: options.fontIndex === undefined ? null : options.fontIndex,
+            axes: axes
         };
+    }
+
+    function validateAxes(font, axes) {
+        if (axes === undefined) return;
+        if (!font.fvar || !font.fvar[0] || axes.length !== font.fvar[0].length)
+            fail("INVALID_OPTION", "axes must match the selected variable font");
+        for (var index = 0; index < axes.length; index++) {
+            var definition = font.fvar[0][index];
+            if (axes[index] < definition[1] || axes[index] > definition[3])
+                fail("INVALID_OPTION", "Axis value " + index + " is outside the font's supported range");
+        }
     }
 
     function fontIdentity(font) {
@@ -181,6 +225,7 @@ var SvgCurveExporter = (function () {
         var normalized = normalizedOptions(options, limits);
         try {
             var font = parseFont(bytes, normalized.fontIndex, typr);
+            validateAxes(font, normalized.axes);
             return { font: fontIdentity(font), missingGlyphs: missingGlyphs(font, text, typr) };
         } catch (error) {
             if (error && error.code) throw error;
@@ -193,8 +238,6 @@ var SvgCurveExporter = (function () {
         limits.assertTextLength(text, limits.values.maxSvgTextLength, "EXPORT_TEXT_TOO_LARGE");
         limits.assertFontBytes(bytes);
         var normalized = normalizedOptions(options, limits);
-        if (normalized.fontIndex !== null && (!isFinite(normalized.fontIndex) || normalized.fontIndex < 0 || Math.floor(normalized.fontIndex) !== normalized.fontIndex))
-            fail("INVALID_OPTION", "fontIndex must be a non-negative integer");
         try {
             return exportWithFont(text, bytes, normalized, typr, limits);
         } catch (error) {
@@ -205,6 +248,7 @@ var SvgCurveExporter = (function () {
 
     function exportWithFont(text, bytes, normalized, typr, limits) {
         var font = parseFont(bytes, normalized.fontIndex, typr);
+        validateAxes(font, normalized.axes);
 
         var lines = text.replace(/\r\n?/g, "\n").split("\n");
         var outlined = [];

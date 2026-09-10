@@ -51,7 +51,13 @@ FocusScope {
         if (save) saveSettings()
     }
     function loadSettings(raw) {
-        var result = Settings.ReshaperSettings.parse(reshaperMetadata, raw)
+        var result
+        try {
+            Limits.ResourceLimits.assertSettingsSize(raw)
+            result = Settings.ReshaperSettings.parse(reshaperMetadata, raw)
+        } catch (error) {
+            result = { settings: Settings.ReshaperSettings.defaults(reshaperMetadata), uiLanguage: "en", recovered: true }
+        }
         if (result.recovered) console.warn("ParsiNegar Express: resetting invalid settings")
         uiLanguage = result.uiLanguage
         applySettings(result.settings, result.recovered)

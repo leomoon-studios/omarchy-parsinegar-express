@@ -7,6 +7,7 @@ import qs.Ui as Ui
 import qs.Commons
 import "InterfaceStrings.js" as Strings
 import "ResourceLimits.js" as Limits
+import "LocalPath.js" as Paths
 
 Column {
     id: root
@@ -37,19 +38,10 @@ Column {
     LayoutMirroring.childrenInherit: true
 
     function uiText(key) { return Strings.InterfaceStrings.text(controller ? controller.uiLanguage : "en", key) }
-    function localPath(pathOrUrl) {
-        var value = String(pathOrUrl)
-        return value.indexOf("file://") === 0 ? decodeURIComponent(value.substring(7)) : value
-    }
-    function fileName(pathOrUrl) {
-        var value = localPath(pathOrUrl)
-        var slash = value.lastIndexOf("/")
-        return slash < 0 ? value : value.substring(slash + 1)
-    }
     function selectedFontLabel() {
-        if (activeMode === "unicode" && localPath(selectedFontPath) === localPath(bundledUnicodeFontPath))
+        if (activeMode === "unicode" && Paths.LocalPath.absolute(selectedFontPath) === Paths.LocalPath.absolute(bundledUnicodeFontPath))
             return "Vazirmatn Regular"
-        return fileName(selectedFontPath)
+        return Paths.LocalPath.fileName(selectedFontPath)
     }
     function positiveValue(field, fallback, allowEmpty) {
         var value = String(field.text).trim()
@@ -113,46 +105,90 @@ Column {
         if (host) host.filePickerActive = active
     }
     function svgPath(path) {
-        var value = localPath(path)
+        var value = Paths.LocalPath.absolute(path)
         return value.toLowerCase().lastIndexOf(".svg") === value.length - 4 ? value : value + ".svg"
     }
     function openPicker(kind) {
         if (pickerActive) return
+        var command
+        if (kind === "font") {
+            command = ["omarchy", "file", "select", "--title", uiText("export.chooseFont"), "--extensions", "ttf otf ttc"]
+        } else {
+            command = ["/usr/bin/zenity", "--file-selection", "--save",
+                "--title=" + uiText("export.save"),
+                "--filename=" + Quickshell.env("HOME") + "/parsinegar.svg",
+                "--file-filter=SVG files | *.svg"]
+        }
+        startPickerProcess(kind, command)
+    }
+    function startPickerProcess(kind, command) {
         pickerKind = kind
         pickerOutput = ""
         pickerExited = false
         pickerOutputFinished = false
         pickerExitCode = -1
-        if (kind === "font") {
-            picker.command = ["omarchy", "file", "select", "--title", uiText("export.chooseFont"), "--extensions", "ttf otf ttc"]
-        } else {
-            picker.command = ["/usr/bin/zenity", "--file-selection", "--save", "--confirm-overwrite",
-                "--title=" + uiText("export.save"),
-                "--filename=" + Quickshell.env("HOME") + "/parsinegar.svg",
-                "--file-filter=SVG files | *.svg"]
-        }
+        picker.command = command
         setHostPickerActive(true)
         picker.running = true
+    }
+    function startDestinationCheck(destination) {
+        pendingDestination = destination
+        startPickerProcess("destinationCheck", ["/usr/bin/test", "-e", destination])
+    }
+    function startOverwriteConfirmation() {
+        startPickerProcess("overwriteConfirmation", ["/usr/bin/zenity", "--question",
+            "--title=" + uiText("export.overwriteTitle"), "--text=" + uiText("export.overwriteQuestion"),
+            "--ok-label=" + uiText("export.replace"), "--cancel-label=" + uiText("export.cancel")])
+    }
+    function continueConfirmedExport() {
+        var destination = pendingDestination
+        pendingDestination = ""
+        setHostPickerActive(false)
+        beginExport(destination)
     }
     function finishPickerIfReady() {
         if (!pickerExited || !pickerOutputFinished || !pickerActive) return
         var kind = pickerKind
-        var output = pickerOutput
+        var output = Paths.LocalPath.fromPickerOutput(pickerOutput)
         var exitCode = pickerExitCode
         pickerKind = ""
-        setHostPickerActive(false)
+        if (kind === "destinationCheck") {
+            if (exitCode === 0) startOverwriteConfirmation()
+            else if (exitCode === 1) continueConfirmedExport()
+            else {
+                setHostPickerActive(false)
+                controller.setExportStatus(uiText("export.error.destinationCheck"), true)
+                cleanupExport()
+            }
+            return
+        }
+        if (kind === "overwriteConfirmation") {
+            if (exitCode === 0) continueConfirmedExport()
+            else {
+                setHostPickerActive(false)
+                cleanupExport()
+            }
+            return
+        }
         if (exitCode === 0 && output !== "") {
-            if (kind === "font") {
-                if (activeMode === "compatibility") compatibilityFontPath = output
-                else unicodeFontPath = output
-                controller.setExportStatus("", false)
-            } else {
-                beginExport(svgPath(output))
+            try {
+                output = Paths.LocalPath.absolute(output)
+                if (kind === "font") {
+                    setHostPickerActive(false)
+                    if (activeMode === "compatibility") compatibilityFontPath = output
+                    else unicodeFontPath = output
+                    controller.setExportStatus("", false)
+                } else startDestinationCheck(svgPath(output))
+            } catch (error) {
+                setHostPickerActive(false)
+                controller.setExportStatus(uiText("export.error.invalidPath"), true)
+                cleanupExport()
             }
         } else if (exitCode !== 0 && exitCode !== 1) {
+            setHostPickerActive(false)
             controller.setExportStatus(uiText("export.error.picker"), true)
             cleanupExport()
-        }
+        } else setHostPickerActive(false)
     }
     function collapse() {
         expanded = false
@@ -182,7 +218,7 @@ Column {
     function beginExport(destination) {
         try {
             pendingText = controller.convertForExport()
-            pendingDestination = localPath(destination)
+            pendingDestination = Paths.LocalPath.absolute(destination)
             pendingOptions = exportOptions()
             exportLoader.active = true
         } catch (error) {
@@ -421,7 +457,7 @@ Column {
         stdout: StdioCollector {
             waitForEnd: true
             onStreamFinished: {
-                root.pickerOutput = String(text || "").trim()
+                root.pickerOutput = typeof text === "string" ? text : ""
                 root.pickerOutputFinished = true
                 root.finishPickerIfReady()
             }
