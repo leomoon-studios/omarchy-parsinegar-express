@@ -149,8 +149,8 @@ FocusScope {
                             Layout.fillWidth: true
                             Layout.preferredWidth: 1
                             text: root.languageLabel(modelData)
-                            selected: root.controller.baseOption("language") === modelData
-                            onClicked: root.controller.setBaseOption("language", modelData)
+                            selected: root.controller.shapingProfile === root.controller.profileForLanguage(modelData)
+                            onClicked: root.controller.setShapingLanguage(modelData)
                         }
                     }
                 }

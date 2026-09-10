@@ -7,6 +7,11 @@ var ReshaperSettings = (function () {
     "useUnshapedInsteadOfIsolated", "supportLigatures"
   ]);
   var metadata = {
+    "shapingProfiles": [
+      { "id": "standardPersianArabic", "language": "Arabic" },
+      { "id": "kurdishUrdu", "language": "Kurdish" },
+      { "id": "hebrew", "language": null }
+    ],
     "languages": [
       "Arabic",
       "Kurdish"
@@ -1487,6 +1492,20 @@ var ReshaperSettings = (function () {
   }
   function copy(value) { return JSON.parse(JSON.stringify(value)); }
   function sanitizeUiLanguage(value) { return value === "fa" ? "fa" : "en"; }
+  function profileForLanguage(language) { return language === "Kurdish" ? "kurdishUrdu" : "standardPersianArabic"; }
+  function profileLanguage(metadata, profile) {
+    for (var index = 0; index < metadata.shapingProfiles.length; index++) {
+      if (metadata.shapingProfiles[index].id === profile) return metadata.shapingProfiles[index].language;
+    }
+    return "Arabic";
+  }
+  function sanitizeShapingProfile(metadata, value, legacyLanguage) {
+    if (value === undefined) return profileForLanguage(legacyLanguage);
+    for (var index = 0; index < metadata.shapingProfiles.length; index++) {
+      if (metadata.shapingProfiles[index].id === value) return value;
+    }
+    return "standardPersianArabic";
+  }
   function defaults(metadata) {
     var result = copy(metadata.defaults);
     // Original ParsiNegar retained Harakat; the generic reshaper deletes them by default.
@@ -1513,22 +1532,33 @@ var ReshaperSettings = (function () {
       if (!object(document) || document.schemaVersion !== 1 || !object(document.settings)) {
         throw new Error("Unsupported settings file");
       }
+      var settings = sanitize(metadata, document.settings);
+      var shapingProfile = sanitizeShapingProfile(metadata, document.shapingProfile, document.settings.language);
+      var language = profileLanguage(metadata, shapingProfile);
+      if (language !== null) settings.language = language;
       return {
-        settings: sanitize(metadata, document.settings),
+        settings: settings,
+        shapingProfile: shapingProfile,
         uiLanguage: sanitizeUiLanguage(document.uiLanguage),
         recovered: false
       };
     } catch (error) {
-      return { settings: defaults(metadata), uiLanguage: "en", recovered: true };
+      return { settings: defaults(metadata), shapingProfile: "standardPersianArabic", uiLanguage: "en", recovered: true };
     }
   }
-  function serialize(metadata, value, uiLanguage) {
+  function serialize(metadata, value, uiLanguage, shapingProfile) {
+    var settings = sanitize(metadata, value);
+    var profile = sanitizeShapingProfile(metadata, shapingProfile, settings.language);
+    var language = profileLanguage(metadata, profile);
+    if (language !== null) settings.language = language;
     return JSON.stringify({
       schemaVersion: 1,
       uiLanguage: sanitizeUiLanguage(uiLanguage),
-      settings: sanitize(metadata, value)
+      shapingProfile: profile,
+      settings: settings
     }, null, 2) + "\n";
   }
   return Object.freeze({ metadata: metadata, flags: flags, copy: copy, defaults: defaults, sanitize: sanitize,
-    sanitizeUiLanguage: sanitizeUiLanguage, parse: parse, serialize: serialize });
+    sanitizeUiLanguage: sanitizeUiLanguage, sanitizeShapingProfile: sanitizeShapingProfile,
+    profileForLanguage: profileForLanguage, profileLanguage: profileLanguage, parse: parse, serialize: serialize });
 }());

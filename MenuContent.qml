@@ -23,6 +23,8 @@ FocusScope {
     readonly property string configDirectory: Quickshell.env("HOME") + "/.config/leomoon-studios.omarchy-parsinegar-express"
     readonly property string configPath: configDirectory + "/settings.json"
     property var reshaperSettings: Settings.ReshaperSettings.defaults(reshaperMetadata)
+    property string shapingProfile: "standardPersianArabic"
+    readonly property bool hebrewProfile: shapingProfile === "hebrew"
     property string uiLanguage: "en"
     property int settingsRevision: 0
     property bool settingsReady: false
@@ -50,6 +52,7 @@ FocusScope {
         if (host) {
             host.reshaperSettings = reshaperSettings
             host.reshaperSettingsLoaded = true
+            host.shapingProfile = shapingProfile
             host.uiLanguage = uiLanguage
         }
         if (save) saveSettings()
@@ -60,15 +63,17 @@ FocusScope {
             Limits.ResourceLimits.assertSettingsSize(raw)
             result = Settings.ReshaperSettings.parse(reshaperMetadata, raw)
         } catch (error) {
-            result = { settings: Settings.ReshaperSettings.defaults(reshaperMetadata), uiLanguage: "en", recovered: true }
+            result = { settings: Settings.ReshaperSettings.defaults(reshaperMetadata), shapingProfile: "standardPersianArabic", uiLanguage: "en", recovered: true }
         }
         if (result.recovered) console.warn("ParsiNegar Express: resetting invalid settings")
         uiLanguage = result.uiLanguage
+        shapingProfile = Settings.ReshaperSettings.sanitizeShapingProfile(reshaperMetadata, result.shapingProfile)
         applySettings(result.settings, result.recovered)
+        ensureProfileMode()
     }
     function saveSettings() {
         if (!settingsReady) return
-        settingsFile.setText(Settings.ReshaperSettings.serialize(reshaperMetadata, reshaperSettings, uiLanguage))
+        settingsFile.setText(Settings.ReshaperSettings.serialize(reshaperMetadata, reshaperSettings, uiLanguage, shapingProfile))
     }
     function setUiLanguage(language) {
         var next = Settings.ReshaperSettings.sanitizeUiLanguage(language)
@@ -78,6 +83,21 @@ FocusScope {
         saveSettings()
     }
     function baseOption(name) { settingsRevision; return reshaperSettings[name] }
+    function profileForLanguage(language) { return Settings.ReshaperSettings.profileForLanguage(language) }
+    function setShapingProfile(value, save) {
+        var nextProfile = Settings.ReshaperSettings.sanitizeShapingProfile(reshaperMetadata, value)
+        var nextSettings = Settings.ReshaperSettings.copy(reshaperSettings)
+        var language = Settings.ReshaperSettings.profileLanguage(reshaperMetadata, nextProfile)
+        if (language !== null) nextSettings.language = language
+        shapingProfile = nextProfile
+        applySettings(nextSettings, false)
+        ensureProfileMode()
+        if (save) saveSettings()
+    }
+    function setShapingLanguage(language) { setShapingProfile(profileForLanguage(language), true) }
+    function ensureProfileMode() {
+        if (hebrewProfile && host && host.conversionMode !== "unicode") host.conversionMode = "unicode"
+    }
     function setBaseOption(name, value) {
         if (baseOption(name) === value) return
         var next = Settings.ReshaperSettings.copy(reshaperSettings)
@@ -91,11 +111,18 @@ FocusScope {
         next.ligatures[name] = !ligatureEnabled(name)
         applySettings(next, true)
     }
-    function resetReshaperSettings() { applySettings(Settings.ReshaperSettings.defaults(reshaperMetadata), true) }
+    function resetReshaperSettings() {
+        shapingProfile = "standardPersianArabic"
+        applySettings(Settings.ReshaperSettings.defaults(reshaperMetadata), true)
+        ensureProfileMode()
+    }
     function initialize() {
         if (host && host.reshaperSettingsLoaded) {
             uiLanguage = Settings.ReshaperSettings.sanitizeUiLanguage(host.uiLanguage)
+            shapingProfile = Settings.ReshaperSettings.sanitizeShapingProfile(
+                reshaperMetadata, host.shapingProfile, host.reshaperSettings.language)
             applySettings(host.reshaperSettings, false)
+            ensureProfileMode()
         }
         else settingsDirectoryCreator.running = true
     }
@@ -110,12 +137,14 @@ FocusScope {
         return {
             reverseWords: host.reverseWords,
             videoStudioPro: host.videoStudioPro,
+            shapingProfile: shapingProfile,
             reshaperOptions: reshaperSettings
         }
     }
     function requestExportConversion() {
         if (!settingsReady || !host || !host.opened || !typography || !typography.ready)
             return false
+        ensureProfileMode()
         if (conversionInFlight) return false
         Limits.ResourceLimits.assertTextLength(editor.text, Limits.ResourceLimits.values.maxSvgTextLength, "EXPORT_TEXT_TOO_LARGE")
         conversionInFlight = true
@@ -138,6 +167,7 @@ FocusScope {
     }
     function convertAndCopy() {
         if (conversionInFlight || exportSection.exportBusy || !settingsReady || !host || !host.opened || !typography || !typography.ready) return
+        ensureProfileMode()
         try {
             Limits.ResourceLimits.assertTextLength(editor.text, Limits.ResourceLimits.values.maxConversionTextLength, "CONVERSION_TEXT_TOO_LARGE")
         } catch (error) {
@@ -366,7 +396,8 @@ FocusScope {
                         Layout.preferredWidth: 1
                         text: root.uiText("mode.compatibility")
                         selected: root.host && root.host.conversionMode === "compatibility"
-                        onClicked: root.host.conversionMode = "compatibility"
+                        enabled: !root.hebrewProfile
+                        onClicked: if (!root.hebrewProfile) root.host.conversionMode = "compatibility"
                     }
                 }
 

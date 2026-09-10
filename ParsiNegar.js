@@ -318,7 +318,7 @@ var ParsiNegar = (function () {
     }
     if (Object.getOwnPropertySymbols(options).length) throw new TypeError("Unknown option");
     Object.getOwnPropertyNames(options).forEach(function (key) {
-      if (key !== "reverseWords" && key !== "videoStudioPro" && key !== "reshaperOptions") {
+      if (key !== "reverseWords" && key !== "videoStudioPro" && key !== "shapingProfile" && key !== "reshaperOptions") {
         throw new TypeError("Unknown option: " + key);
       }
     });
@@ -329,9 +329,24 @@ var ParsiNegar = (function () {
       if (typeof value !== "boolean") throw new TypeError(key + " must be a boolean");
       result[key] = value;
     });
+    var shapingProfile = Object.prototype.hasOwnProperty.call(options, "shapingProfile") ? options.shapingProfile : undefined;
     result.reshaperOptions = readReshaperOptions(
       Object.prototype.hasOwnProperty.call(options, "reshaperOptions") ? options.reshaperOptions : undefined
     );
+    if (shapingProfile === undefined) shapingProfile = result.reshaperOptions.language === "Kurdish"
+      ? "kurdishUrdu" : "standardPersianArabic";
+    if (shapingProfile !== "standardPersianArabic" && shapingProfile !== "kurdishUrdu" && shapingProfile !== "hebrew") {
+      throw new RangeError("Unknown shaping profile: " + shapingProfile);
+    }
+    result.shapingProfile = shapingProfile;
+    var mappedLanguage = shapingProfile === "standardPersianArabic" ? "Arabic"
+      : shapingProfile === "kurdishUrdu" ? "Kurdish" : null;
+    if (mappedLanguage !== null && result.reshaperOptions.language !== mappedLanguage) {
+      var mappedOptions = {};
+      Object.keys(result.reshaperOptions).forEach(function (key) { mappedOptions[key] = result.reshaperOptions[key]; });
+      mappedOptions.language = mappedLanguage;
+      result.reshaperOptions = Object.freeze(mappedOptions);
+    }
     return result;
   }
 
@@ -339,12 +354,21 @@ var ParsiNegar = (function () {
     requireText(text);
     if (mode !== "unicode" && mode !== "compatibility") throw new RangeError("Mode must be unicode or compatibility");
     var settings = readOptions(options);
-    if (!reshaperApi || typeof reshaperApi.reshape !== "function") throw new TypeError("A reshaper API is required");
+    if (settings.shapingProfile === "hebrew" && mode === "compatibility") {
+      var compatibilityError = new RangeError("Hebrew supports Unicode mode only");
+      compatibilityError.code = "HEBREW_COMPATIBILITY_UNSUPPORTED";
+      throw compatibilityError;
+    }
     if (settings.reverseWords && (!bidiApi || typeof bidiApi.getDisplay !== "function")) {
       throw new TypeError("A bidi API is required when reverseWords is enabled");
     }
-    var shaped = requireText(reshaperApi.reshape(normalize(text), settings.reshaperOptions));
-    var result = applyCustomLigatures(shaped);
+    var result;
+    if (settings.shapingProfile === "hebrew") result = text;
+    else {
+      if (!reshaperApi || typeof reshaperApi.reshape !== "function") throw new TypeError("A reshaper API is required");
+      var shaped = requireText(reshaperApi.reshape(normalize(text), settings.reshaperOptions));
+      result = applyCustomLigatures(shaped);
+    }
     // Preserve whole-input auto detection. Do not split paragraphs or force RTL.
     if (settings.reverseWords) result = requireText(bidiApi.getDisplay(result));
     return mode === "compatibility" ? mapMaryam(result, settings.videoStudioPro) : result;

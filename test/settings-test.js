@@ -12,6 +12,11 @@ const metadata = settings.metadata;
 const strings = context.InterfaceStrings;
 const plain = value => JSON.parse(JSON.stringify(value));
 assert.deepEqual(plain(metadata.languages), ['Arabic', 'Kurdish']);
+assert.deepEqual(plain(metadata.shapingProfiles), [
+    { id: 'standardPersianArabic', language: 'Arabic' },
+    { id: 'kurdishUrdu', language: 'Kurdish' },
+    { id: 'hebrew', language: null }
+]);
 assert.deepEqual(plain(metadata.ligatureGroups.map(group => group.ligatures.length)), [3, 9, 274]);
 assert.equal(metadata.ligatureGroups.flatMap(group => group.ligatures).length, 286);
 assert.deepEqual(Array.from(strings.languages), ['en', 'fa']);
@@ -91,9 +96,28 @@ assert.ok(!serialized.includes('draftText'));
 const restored = settings.parse(metadata, serialized);
 assert.equal(restored.recovered, false);
 assert.equal(restored.uiLanguage, 'en');
+assert.equal(restored.shapingProfile, 'kurdishUrdu');
 assert.deepEqual(plain(restored.settings), plain(custom));
 const persianSerialized = settings.serialize(metadata, custom, 'fa');
 assert.equal(settings.parse(metadata, persianSerialized).uiLanguage, 'fa');
+const legacyArabic = settings.parse(metadata, JSON.stringify({ schemaVersion: 1, settings: { language: 'Arabic' } }));
+const legacyKurdish = settings.parse(metadata, JSON.stringify({ schemaVersion: 1, settings: { language: 'Kurdish' } }));
+assert.equal(legacyArabic.shapingProfile, 'standardPersianArabic');
+assert.equal(legacyKurdish.shapingProfile, 'kurdishUrdu');
+assert.equal(legacyKurdish.settings.language, 'Kurdish');
+const hebrewSettings = settings.parse(metadata, JSON.stringify({
+    schemaVersion: 1, shapingProfile: 'hebrew', settings: { language: 'Kurdish', deleteHarakat: true }
+}));
+assert.equal(hebrewSettings.shapingProfile, 'hebrew');
+assert.equal(hebrewSettings.settings.language, 'Kurdish', 'Hebrew must retain the last reshaper table for later reuse');
+const invalidProfile = settings.parse(metadata, JSON.stringify({
+    schemaVersion: 1, shapingProfile: 'unknown', settings: { language: 'Kurdish' }
+}));
+assert.equal(invalidProfile.shapingProfile, 'standardPersianArabic');
+assert.equal(invalidProfile.settings.language, 'Arabic');
+const serializedHebrew = settings.serialize(metadata, hebrewSettings.settings, 'en', 'hebrew');
+assert.equal(JSON.parse(serializedHebrew).shapingProfile, 'hebrew');
+assert.equal(settings.parse(metadata, serializedHebrew).settings.language, 'Kurdish');
 assert.equal(context.JsParsiReshaper.reshape('ریال', { ligatures: { 'RIAL SIGN': true } }), '﷼');
 assert.notEqual(context.JsParsiReshaper.reshape('ریال', { ligatures: { 'RIAL SIGN': false } }), '﷼');
 assert.equal(context.JsParsiReshaper.reshape('الله', { ligatures: { 'ARABIC LIGATURE ALLAH': true } }), 'ﷲ');

@@ -83,6 +83,12 @@ for (const key of ['deleteHarakat', 'shiftHarakat', 'deleteTatweel', 'supportZWJ
 }
 assert.equal((settings.match(/Ui\.Toggle\s*\{/g) || []).length, 9);
 assert.ok(settings.includes('model: root.controller.reshaperMetadata.languages'));
+assert.ok(menu.includes('property string shapingProfile: "standardPersianArabic"'));
+assert.ok(menu.includes('readonly property bool hebrewProfile: shapingProfile === "hebrew"'));
+assert.ok(menu.includes('shapingProfile: shapingProfile'));
+assert.match(menu, /text: root\.uiText\("mode\.compatibility"\)[\s\S]*enabled: !root\.hebrewProfile/);
+assert.ok(settings.includes('root.controller.setShapingLanguage(modelData)'));
+assert.ok(panel.includes('property string shapingProfile: "standardPersianArabic"'));
 assert.ok(settings.includes('model: root.controller.reshaperMetadata.ligatureGroups'));
 assert.ok(settings.includes('root.controller.toggleLigature(modelData.name)'));
 for (const source of [panel, read('Typography.qml'), read('LetterBadge.qml')]) {

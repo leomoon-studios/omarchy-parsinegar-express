@@ -19,6 +19,7 @@ Ui.Panel {
     // Loaded on first menu open; kept in memory after the lazy menu closes.
     property bool reshaperSettingsLoaded: false
     property var reshaperSettings: ({})
+    property string shapingProfile: "standardPersianArabic"
     property string uiLanguage: "en"
     // Keep the menu loaded, but move its popup out of the way while an
     // out-of-process desktop file chooser owns the keyboard focus.

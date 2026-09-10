@@ -83,6 +83,63 @@ function test(name, callback) {
     assert.equal(core.convert('ریال', 'unicode', base, null, reshaper), '﷼');
   });
 
+  test('shaping profiles map only Arabic-script profiles to reshaper languages', () => {
+    const languages = [];
+    const shaper = { reshape(text, options) { languages.push(options.language); return text; } };
+    core.convert('پ', 'unicode', {
+      reverseWords: false, shapingProfile: 'standardPersianArabic', reshaperOptions: { language: 'Kurdish' }
+    }, null, shaper);
+    core.convert('پ', 'unicode', {
+      reverseWords: false, shapingProfile: 'kurdishUrdu', reshaperOptions: { language: 'Arabic' }
+    }, null, shaper);
+    assert.deepEqual(languages, ['Arabic', 'Kurdish']);
+  });
+
+  test('Hebrew profile bypasses shaping and applies only optional bidi ordering', () => {
+    const forbiddenShaper = { reshape() { throw new Error('Hebrew must not enter the reshaper'); } };
+    const cases = [
+      ['שלום', 'םולש'],
+      ['שלום 123!', '!123 םולש'],
+      ['abc שלום 123', 'abc 123 םולש'],
+      ['שלום\nעולם', 'םולש\nםלוע'],
+      ['שלום (123) test', 'test (123) םולש']
+    ];
+    for (const [input, expected] of cases) {
+      assert.equal(core.convert(input, 'unicode', { shapingProfile: 'hebrew' }, bidi, forbiddenShaper), expected);
+      assert.equal(core.convert(input, 'unicode', { shapingProfile: 'hebrew', reverseWords: false }, null, forbiddenShaper), input);
+    }
+    assert.equal(core.convert('שלום ى ا"', 'unicode', {
+      shapingProfile: 'hebrew', reverseWords: false
+    }, null, null), 'שלום ى ا"', 'Hebrew profile must also bypass Arabic-specific normalization');
+  });
+
+  test('Hebrew profile rejects Compatibility mode before shaping or Maryam mapping', () => {
+    assert.throws(() => core.convert('שלום', 'compatibility', {
+      shapingProfile: 'hebrew', reverseWords: false
+    }, null, null), { name: 'RangeError', code: 'HEBREW_COMPATIBILITY_UNSUPPORTED' });
+  });
+
+  test('Hebrew SVG-export preparation uses the same bidi-only Unicode result', () => {
+    const source = 'מחיר 123 ש״ח';
+    const preparedForExport = core.convert(source, 'unicode', { shapingProfile: 'hebrew' }, bidi, null);
+    assert.equal(preparedForExport, 'ח״ש 123 ריחמ');
+  });
+
+  test('explicit Arabic-script profiles preserve legacy Persian and Kurdish output', () => {
+    const persian = 'این یک متن فارسی است';
+    const kurdish = 'کوردی و ئوردوو';
+    assert.equal(
+      core.convert(persian, 'unicode', { reverseWords: true, shapingProfile: 'standardPersianArabic' }, bidi, reshaper),
+      core.convert(persian, 'unicode', { reverseWords: true }, bidi, reshaper)
+    );
+    assert.equal(
+      core.convert(kurdish, 'unicode', {
+        reverseWords: true, shapingProfile: 'kurdishUrdu', reshaperOptions: { language: 'Kurdish' }
+      }, bidi, reshaper),
+      core.convert(kurdish, 'unicode', { reverseWords: true, reshaperOptions: { language: 'Kurdish' } }, bidi, reshaper)
+    );
+  });
+
   test('VideoStudio applies only after Maryam mapping and never modifies Unicode output', () => {
     assert.equal(core.convert('\u0153', 'unicode', { videoStudioPro: true }, identity, identity), '\u0153');
     assert.equal(core.convert('\ufed2', 'compatibility', { videoStudioPro: true }, identity, identity), '\u00fe');
@@ -101,6 +158,9 @@ function test(name, callback) {
     for (const mode of [undefined, null, 'Unicode', 'Maryam', '', 0]) assert.throws(() => core.convert('', mode, {}, identity, identity), { name: 'RangeError' });
     for (const options of [null, [], true, 1, '', new Date(), { unknown: true }, { reverseWords: 1 }, { videoStudioPro: 'false' }, { [Symbol('x')]: true }]) {
       assert.throws(() => core.convert('', 'unicode', options, identity, identity), { name: 'TypeError' });
+    }
+    for (const shapingProfile of ['unknown', null, false, 1]) {
+      assert.throws(() => core.convert('', 'unicode', { shapingProfile }, identity, identity), { name: 'RangeError' });
     }
     for (const reshaperOptions of [null, [], true, new Date(), { unknown: true }, { ligatures: [] }, { [Symbol('x')]: true }]) {
       assert.throws(() => core.convert('', 'unicode', { reshaperOptions }, identity, reshaper), { name: 'TypeError' });
