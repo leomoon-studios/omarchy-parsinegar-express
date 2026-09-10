@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell.Io
-import "SvgCurveAdapter.js" as Curves
 import "ResourceLimits.js" as Limits
 import "LocalPath.js" as Paths
 
@@ -15,7 +14,12 @@ Item {
     property string errorCode: ""
     property string errorMessage: ""
     property string outputPath: ""
+    property string pendingText: ""
     property var exportWarnings: []
+    property var pendingOptions: ({})
+    property var fontByteView: null
+    property int fontByteOffset: 0
+    property int requestId: 0
     readonly property url bundledUnicodeFont: Qt.resolvedUrl("assets/fonts/Vazirmatn[wght].ttf")
 
     signal exported(string path, var warnings)
@@ -28,39 +32,103 @@ Item {
         errorMessage = ""
         exportWarnings = []
         outputPath = Paths.LocalPath.absolute(destinationPath)
-        var bytes = null
         try {
             Limits.ResourceLimits.assertTextLength(text, Limits.ResourceLimits.values.maxSvgTextLength, "EXPORT_TEXT_TOO_LARGE")
+            pendingText = text
+            pendingOptions = options
+            requestId++
             fontFile.path = Paths.LocalPath.absolute(fontPath)
-            bytes = fontFile.data()
-            Limits.ResourceLimits.assertFontBytes(bytes)
-            exportWarnings = Curves.inspect(text, bytes, options).missingGlyphs
-            var svg = Curves.exportSvg(text, bytes, options)
-            Limits.ResourceLimits.assertSvgSize(svg)
-            outputFile.path = outputPath
-            outputFile.setText(svg)
-            svg = ""
             return true
         } catch (error) {
-            fontFile.path = ""
-            outputFile.path = ""
-            exportWarnings = []
-            busy = false
-            errorCode = String(error.code || "EXPORT_FAILED")
-            errorMessage = String(error.message || error)
-            failed(errorCode, errorMessage, error.details || [])
+            failExport(error.code, error.message || error, error.details || [])
             return false
-        } finally {
-            fontFile.path = ""
-            bytes = null
         }
+    }
+
+    function failExport(code, message, details) {
+        fontFile.path = ""
+        outputFile.path = ""
+        pendingText = ""
+        pendingOptions = ({})
+        fontByteView = null
+        fontByteOffset = 0
+        exportWarnings = []
+        busy = false
+        errorCode = String(code || "EXPORT_FAILED")
+        errorMessage = String(message || "Export failed")
+        failed(errorCode, errorMessage, details || [])
+    }
+
+    function prepareFontBytes() {
+        if (!busy) return
+        try {
+            var data = fontFile.data()
+            Limits.ResourceLimits.assertFontBytes(data)
+            fontByteView = new Uint8Array(data)
+            fontByteOffset = 0
+            curveWorker.sendMessage({
+                action: "begin",
+                id: requestId,
+                text: pendingText,
+                options: pendingOptions
+            })
+            copyFontChunk()
+        } catch (error) {
+            failExport(error.code, error.message || error, error.details || [])
+        }
+    }
+
+    function copyFontChunk() {
+        if (!busy || !fontByteView) return
+        var end = Math.min(fontByteOffset + 65536, fontByteView.length)
+        var chunk = []
+        for (var index = fontByteOffset; index < end; index++) chunk.push(fontByteView[index])
+        fontByteOffset = end
+        curveWorker.sendMessage({
+            action: "chunk",
+            id: requestId,
+            fontBytes: chunk,
+            final: fontByteOffset >= fontByteView.length
+        })
+        if (fontByteOffset < fontByteView.length) {
+            Qt.callLater(copyFontChunk)
+            return
+        }
+        fontByteView = null
+        fontFile.path = ""
+    }
+
+    function finishWorker(message) {
+        if (!busy || message.id !== requestId) return
+        pendingText = ""
+        pendingOptions = ({})
+        if (!message.ok) {
+            failExport(message.code, message.message, message.details)
+            return
+        }
+        try {
+            Limits.ResourceLimits.assertSvgSize(message.svg)
+            exportWarnings = message.warnings || []
+            outputFile.path = outputPath
+            outputFile.setText(message.svg)
+        } catch (error) {
+            failExport(error.code, error.message || error, error.details || [])
+        }
+    }
+
+    WorkerScript {
+        id: curveWorker
+        source: "SvgCurveWorker.js"
+        onMessage: function(message) { root.finishWorker(message) }
     }
 
     FileView {
         id: fontFile
-        preload: false
+        preload: true
         watchChanges: false
-        blockLoading: true
+        blockLoading: false
+        onLoaded: root.prepareFontBytes()
+        onLoadFailed: function(error) { root.failExport("INVALID_FONT", String(error), []) }
     }
 
     FileView {

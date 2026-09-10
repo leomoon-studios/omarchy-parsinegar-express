@@ -5,7 +5,6 @@ import Quickshell
 import Quickshell.Io
 import qs.Ui as Ui
 import qs.Commons
-import "LibraryAdapter.js" as Conversion
 import "ReshaperSettings.js" as Settings
 import "InterfaceStrings.js" as Strings
 import "ResourceLimits.js" as Limits
@@ -32,10 +31,15 @@ FocusScope {
         ? Style.space(500)
         : editorHeader.implicitHeight + Style.space(14) + formColumn.implicitHeight
     property bool busy: false
+    property bool conversionInFlight: false
+    property int conversionRequestId: 0
+    property string conversionPurpose: ""
     property string statusText: ""
     property bool statusError: false
     property bool statusWarning: false
     signal closeRequested()
+    signal exportConversionReady(string output)
+    signal exportConversionFailed(string code, string message)
 
     function uiText(key) { return Strings.InterfaceStrings.text(uiLanguage, key) }
 
@@ -109,12 +113,23 @@ FocusScope {
             reshaperOptions: reshaperSettings
         }
     }
-    function convertForExport() {
+    function requestExportConversion() {
         if (!settingsReady || !host || !host.opened || !typography || !typography.ready)
-            throw new Error("Export is not ready")
+            return false
+        if (conversionInFlight) return false
         Limits.ResourceLimits.assertTextLength(editor.text, Limits.ResourceLimits.values.maxSvgTextLength, "EXPORT_TEXT_TOO_LARGE")
-        var output = Conversion.convert(editor.text, host.conversionMode, conversionOptions())
-        return Limits.ResourceLimits.assertTextLength(output, Limits.ResourceLimits.values.maxSvgTextLength, "EXPORT_TEXT_TOO_LARGE")
+        conversionInFlight = true
+        conversionPurpose = "export"
+        conversionRequestId++
+        conversionWorker.sendMessage({
+            id: conversionRequestId,
+            text: editor.text,
+            mode: host.conversionMode,
+            options: conversionOptions(),
+            maxOutputLength: Limits.ResourceLimits.values.maxSvgTextLength,
+            sizeErrorCode: "EXPORT_TEXT_TOO_LARGE"
+        })
+        return true
     }
     function setExportStatus(message, isError, isWarning) {
         statusText = message
@@ -122,24 +137,61 @@ FocusScope {
         statusWarning = isWarning === true
     }
     function convertAndCopy() {
-        if (busy || exportSection.exportBusy || !settingsReady || !host || !host.opened || !typography || !typography.ready) return
-        busy = true
+        if (conversionInFlight || exportSection.exportBusy || !settingsReady || !host || !host.opened || !typography || !typography.ready) return
         try {
-            focusEditor()
             Limits.ResourceLimits.assertTextLength(editor.text, Limits.ResourceLimits.values.maxConversionTextLength, "CONVERSION_TEXT_TOO_LARGE")
-            var output = Conversion.convert(editor.text, host.conversionMode, conversionOptions())
-            Quickshell.clipboardText = output
-            statusError = false
-            statusWarning = false
-            statusText = uiText("status.converted")
         } catch (error) {
             statusError = true
             statusWarning = false
-            statusText = error && error.code === "CONVERSION_TEXT_TOO_LARGE"
-                ? uiText("status.textTooLarge") : uiText("status.failure") + String(error && error.message || error)
-        } finally {
-            busy = false
+            statusText = uiText("status.textTooLarge")
+            return
         }
+        busy = true
+        conversionInFlight = true
+        conversionPurpose = "clipboard"
+        conversionRequestId++
+        statusError = false
+        statusWarning = false
+        statusText = uiText("status.converting")
+        focusEditor()
+        conversionWorker.sendMessage({
+            id: conversionRequestId,
+            text: editor.text,
+            mode: host.conversionMode,
+            options: conversionOptions(),
+            maxOutputLength: Limits.ResourceLimits.values.maxConversionTextLength,
+            sizeErrorCode: "CONVERSION_TEXT_TOO_LARGE"
+        })
+    }
+    function finishConversion(message) {
+        if (!conversionInFlight || message.id !== conversionRequestId) return
+        var purpose = conversionPurpose
+        conversionInFlight = false
+        conversionPurpose = ""
+        busy = false
+        if (message.ok) {
+            if (purpose === "export") {
+                exportConversionReady(message.output)
+                return
+            }
+            Quickshell.clipboardText = message.output
+            statusError = false
+            statusWarning = false
+            statusText = uiText("status.converted")
+        } else if (purpose === "export") {
+            exportConversionFailed(message.code || "CONVERSION_FAILED", message.message || "Conversion failed")
+        } else {
+            statusError = true
+            statusWarning = false
+            statusText = message.code === "CONVERSION_TEXT_TOO_LARGE"
+                ? uiText("status.textTooLarge") : uiText("status.failure") + String(message.message || "")
+        }
+    }
+
+    WorkerScript {
+        id: conversionWorker
+        source: "ConversionWorker.js"
+        onMessage: function(message) { root.finishConversion(message) }
     }
 
     Keys.onEscapePressed: function(event) {
@@ -339,15 +391,24 @@ FocusScope {
                     onClicked: root.openSettings()
                 }
 
-                Text {
+                RowLayout {
                     width: parent.width
-                    text: root.statusText
-                    textFormat: Text.PlainText
-                    font.family: root.fontFamily
-                    font.pixelSize: Style.font.caption
-                    color: root.statusError ? Color.urgent : root.statusWarning ? Color.accent : root.foreground
-                    wrapMode: Text.WordWrap
-                    visible: text !== "" && !exportSection.expanded
+                    visible: (root.busy || root.statusText !== "") && !exportSection.expanded
+                    spacing: Style.space(6)
+                    BusySpinner {
+                        running: root.busy
+                        fontFamily: root.fontFamily
+                        foreground: root.foreground
+                    }
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.statusText
+                        textFormat: Text.PlainText
+                        font.family: root.fontFamily
+                        font.pixelSize: Style.font.caption
+                        color: root.statusError ? Color.urgent : root.statusWarning ? Color.accent : root.foreground
+                        wrapMode: Text.WordWrap
+                    }
                 }
             }
         }

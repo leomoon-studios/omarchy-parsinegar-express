@@ -17,6 +17,7 @@ Column {
     required property Typography typography
     property bool expanded: false
     property bool advancedExpanded: false
+    property bool preparingExport: false
     readonly property string bundledUnicodeFontPath: String(Qt.resolvedUrl("assets/fonts/Vazirmatn[wght].ttf"))
     property string unicodeFontPath: bundledUnicodeFontPath
     property string compatibilityFontPath: ""
@@ -31,7 +32,7 @@ Column {
     readonly property string activeMode: host ? host.conversionMode : "unicode"
     readonly property string selectedFontPath: activeMode === "compatibility" ? compatibilityFontPath : unicodeFontPath
     readonly property bool pickerActive: pickerKind !== ""
-    readonly property bool exportBusy: exportLoader.active || pickerActive
+    readonly property bool exportBusy: preparingExport || exportLoader.active || pickerActive
     width: parent ? parent.width : 0
     spacing: Style.space(8)
     LayoutMirroring.enabled: controller && controller.uiLanguage === "fa"
@@ -96,6 +97,7 @@ Column {
         cleanupExport()
     }
     function cleanupExport() {
+        preparingExport = false
         pendingText = ""
         pendingDestination = ""
         pendingOptions = ({})
@@ -131,20 +133,14 @@ Column {
         setHostPickerActive(true)
         picker.running = true
     }
-    function startDestinationCheck(destination) {
+    function continueExport(destination) {
         pendingDestination = destination
-        startPickerProcess("destinationCheck", ["/usr/bin/test", "-e", destination])
-    }
-    function startOverwriteConfirmation() {
-        startPickerProcess("overwriteConfirmation", ["/usr/bin/zenity", "--question",
-            "--title=" + uiText("export.overwriteTitle"), "--text=" + uiText("export.overwriteQuestion"),
-            "--ok-label=" + uiText("export.replace"), "--cancel-label=" + uiText("export.cancel")])
-    }
-    function continueConfirmedExport() {
-        var destination = pendingDestination
-        pendingDestination = ""
+        preparingExport = true
+        controller.setExportStatus(uiText("export.processing"), false)
         setHostPickerActive(false)
-        beginExport(destination)
+        Qt.callLater(function() {
+            if (root.preparingExport) root.beginExport()
+        })
     }
     function finishPickerIfReady() {
         if (!pickerExited || !pickerOutputFinished || !pickerActive) return
@@ -152,24 +148,6 @@ Column {
         var output = Paths.LocalPath.fromPickerOutput(pickerOutput)
         var exitCode = pickerExitCode
         pickerKind = ""
-        if (kind === "destinationCheck") {
-            if (exitCode === 0) startOverwriteConfirmation()
-            else if (exitCode === 1) continueConfirmedExport()
-            else {
-                setHostPickerActive(false)
-                controller.setExportStatus(uiText("export.error.destinationCheck"), true)
-                cleanupExport()
-            }
-            return
-        }
-        if (kind === "overwriteConfirmation") {
-            if (exitCode === 0) continueConfirmedExport()
-            else {
-                setHostPickerActive(false)
-                cleanupExport()
-            }
-            return
-        }
         if (exitCode === 0 && output !== "") {
             try {
                 output = Paths.LocalPath.absolute(output)
@@ -178,7 +156,7 @@ Column {
                     if (activeMode === "compatibility") compatibilityFontPath = output
                     else unicodeFontPath = output
                     controller.setExportStatus("", false)
-                } else startDestinationCheck(svgPath(output))
+                } else continueExport(svgPath(output))
             } catch (error) {
                 setHostPickerActive(false)
                 controller.setExportStatus(uiText("export.error.invalidPath"), true)
@@ -215,17 +193,22 @@ Column {
         }
         openPicker("destination")
     }
-    function beginExport(destination) {
+    function beginExport() {
         try {
-            pendingText = controller.convertForExport()
-            pendingDestination = Paths.LocalPath.absolute(destination)
+            pendingDestination = Paths.LocalPath.absolute(pendingDestination)
             pendingOptions = exportOptions()
-            exportLoader.active = true
+            if (!controller.requestExportConversion()) throw new Error("Export conversion is busy")
         } catch (error) {
             controller.setExportStatus(uiText(error && error.code === "EXPORT_TEXT_TOO_LARGE"
                 ? "export.error.textTooLarge" : "export.error.generic"), true)
             cleanupExport()
         }
+    }
+    function continueAfterConversion(output) {
+        if (!preparingExport) return
+        pendingText = output
+        exportLoader.active = true
+        preparingExport = false
     }
 
     property string alignment: "right"
@@ -436,17 +419,26 @@ Column {
                 onClicked: root.chooseDestination()
             }
 
-            Text {
+            RowLayout {
                 width: parent.width
-                visible: text !== ""
-                text: root.controller ? root.controller.statusText : ""
-                textFormat: Text.PlainText
-                color: root.controller && root.controller.statusError ? Color.urgent
-                    : root.controller && root.controller.statusWarning ? Color.accent
-                    : (root.controller ? root.controller.foreground : Color.foreground)
-                font.family: root.typography ? root.typography.family : ""
-                font.pixelSize: Style.font.caption
-                wrapMode: Text.WordWrap
+                visible: root.exportBusy || (root.controller && root.controller.statusText !== "")
+                spacing: Style.space(6)
+                BusySpinner {
+                    running: root.preparingExport || exportLoader.active
+                    fontFamily: root.typography ? root.typography.family : ""
+                    foreground: root.controller ? root.controller.foreground : Color.foreground
+                }
+                Text {
+                    Layout.fillWidth: true
+                    text: root.controller ? root.controller.statusText : ""
+                    textFormat: Text.PlainText
+                    color: root.controller && root.controller.statusError ? Color.urgent
+                        : root.controller && root.controller.statusWarning ? Color.accent
+                        : (root.controller ? root.controller.foreground : Color.foreground)
+                    font.family: root.typography ? root.typography.family : ""
+                    font.pixelSize: Style.font.caption
+                    wrapMode: Text.WordWrap
+                }
             }
         }
     }
@@ -469,6 +461,12 @@ Column {
         }
     }
 
+    Connections {
+        target: root.controller
+        function onExportConversionReady(output) { root.continueAfterConversion(output) }
+        function onExportConversionFailed(code, message) { root.reportError(code, message, []) }
+    }
+
     Loader {
         id: exportLoader
         active: false
@@ -486,8 +484,12 @@ Column {
                 Qt.callLater(root.cleanupExport)
             })
             item.failed.connect(root.reportError)
-            if (!item.exportTo(root.pendingText, root.selectedFontPath, root.pendingDestination, root.pendingOptions))
-                Qt.callLater(root.cleanupExport)
+            var loadedController = item
+            Qt.callLater(function() {
+                if (!exportLoader.active || exportLoader.item !== loadedController) return
+                if (!loadedController.exportTo(root.pendingText, root.selectedFontPath, root.pendingDestination, root.pendingOptions))
+                    Qt.callLater(root.cleanupExport)
+            })
         }
     }
 

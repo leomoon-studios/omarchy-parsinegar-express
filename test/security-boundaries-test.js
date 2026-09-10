@@ -56,39 +56,9 @@ const exportSection = read('ExportSection.qml');
 const menu = read('MenuContent.qml');
 const controller = read('SvgCurveExportController.qml');
 assert.doesNotMatch(exportSection, /--confirm-overwrite/);
-assert.ok(exportSection.includes('["/usr/bin/test", "-e", destination]'));
-assert.ok(exportSection.includes('["/usr/bin/zenity", "--question"'));
-assert.ok(exportSection.includes('if (exitCode === 0) startOverwriteConfirmation()'));
-assert.ok(exportSection.includes('else if (exitCode === 1) continueConfirmedExport()'));
-assert.match(exportSection, /kind === "overwriteConfirmation"[\s\S]*if \(exitCode === 0\) continueConfirmedExport\(\)[\s\S]*else \{[\s\S]*cleanupExport\(\)/);
-const flowFunctions = exportSection.slice(exportSection.indexOf('    function startDestinationCheck('), exportSection.indexOf('    function collapse()'));
-const trace = { started: [], exported: [], cleanupCount: 0, hostActive: true };
-const flow = vm.createContext({
-    pickerExited: true, pickerOutputFinished: true, pickerActive: true, pickerKind: 'destination',
-    pickerOutput: '/tmp/existing.svg\n', pickerExitCode: 0, pendingDestination: '', activeMode: 'unicode',
-    Paths: { LocalPath: paths },
-    startPickerProcess(kind, command) { trace.started.push({ kind, command }); },
-    setHostPickerActive(active) { trace.hostActive = active; },
-    beginExport(destination) { trace.exported.push(destination); }, cleanupExport() { trace.cleanupCount++; },
-    svgPath(value) { return value.toLowerCase().endsWith('.svg') ? value : value + '.svg'; },
-    controller: { setExportStatus() {} }, uiText(key) { return key; },
-    compatibilityFontPath: '', unicodeFontPath: ''
-});
-vm.runInContext(flowFunctions, flow);
-flow.finishPickerIfReady();
-assert.equal(flow.pendingDestination, '/tmp/existing.svg');
-assert.equal(trace.started.at(-1).kind, 'destinationCheck');
-assert.deepEqual(Array.from(trace.started.at(-1).command), ['/usr/bin/test', '-e', '/tmp/existing.svg']);
-flow.pickerKind = 'destinationCheck'; flow.pickerExitCode = 0;
-flow.finishPickerIfReady();
-assert.equal(trace.started.at(-1).kind, 'overwriteConfirmation', 'an existing file must require explicit confirmation');
-flow.pickerKind = 'overwriteConfirmation'; flow.pickerExitCode = 1;
-flow.finishPickerIfReady();
-assert.equal(trace.exported.length, 0, 'canceling replacement must not export');
-assert.equal(trace.cleanupCount, 1);
-flow.pendingDestination = '/tmp/new.svg'; flow.pickerKind = 'destinationCheck'; flow.pickerExitCode = 1;
-flow.finishPickerIfReady();
-assert.deepEqual(trace.exported, ['/tmp/new.svg'], 'a confirmed non-existing destination may proceed');
+assert.doesNotMatch(exportSection, /destinationCheck|overwriteConfirmation|zenity", "--question|\/usr\/bin\/test/);
+assert.match(exportSection, /kind === "font"[\s\S]*else continueExport\(svgPath\(output\)\)/);
+assert.match(exportSection, /function continueExport\(destination\)[\s\S]*controller\.setExportStatus\(uiText\("export\.processing"\)[\s\S]*Qt\.callLater/);
 assert.ok(menu.indexOf('Limits.ResourceLimits.assertSettingsSize(raw)') < menu.indexOf('Settings.ReshaperSettings.parse(reshaperMetadata, raw)'));
 assert.ok(controller.includes('outputPath = Paths.LocalPath.absolute(destinationPath)'));
 assert.ok(controller.includes('outputFile.path = outputPath'));
