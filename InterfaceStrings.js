@@ -5,7 +5,7 @@ var InterfaceStrings = (function () {
 
   var values = {
     en: {
-      "editor.title": "ParsiNegar Express", "button.ltr": "LTR", "button.rtl": "RTL",
+      "editor.title": "ParsiNegar Express",
       "toggle.reverse": "Apply bidi visual ordering", "toggle.reverseDescription": "For applications that do not handle right-to-left layout",
       "toggle.video": "Special convert for VideoStudio Pro", "toggle.videoDescription": "Available in Compatibility mode",
       "placeholder": "Enter your text…", "mode.unicode": "Unicode mode", "mode.compatibility": "Compatibility mode",
@@ -41,7 +41,7 @@ var InterfaceStrings = (function () {
       "settings.rialDescription": "Convert ریال or ريال to ﷼"
     },
     fa: {
-      "editor.title": "پارسی‌نگار اکسپرس", "button.ltr": "چپ‌به‌راست", "button.rtl": "راست‌به‌چپ",
+      "editor.title": "پارسی‌نگار اکسپرس",
       "toggle.reverse": "اعمال ترتیب نمایشی دوجهته", "toggle.reverseDescription": "برای برنامه‌هایی که چیدمان راست‌به‌چپ را پشتیبانی نمی‌کنند",
       "toggle.video": "تبدیل ویژه برای VideoStudio Pro", "toggle.videoDescription": "در حالت سازگاری در دسترس است",
       "placeholder": "متن خود را وارد کنید…", "mode.unicode": "حالت یونیکد", "mode.compatibility": "حالت سازگاری",

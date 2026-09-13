@@ -44,6 +44,31 @@ FocusScope {
     signal exportConversionFailed(string code, string message)
 
     function uiText(key) { return Strings.InterfaceStrings.text(uiLanguage, key) }
+    function isRtlStrong(code) {
+        return (code >= 0x05d0 && code <= 0x05ea) ||
+            (code >= 0x0621 && code <= 0x064a) ||
+            (code >= 0x066e && code <= 0x06d3) ||
+            (code >= 0x06fa && code <= 0x06ff) ||
+            (code >= 0x0700 && code <= 0x074f) ||
+            (code >= 0x0750 && code <= 0x077f) ||
+            (code >= 0x08a0 && code <= 0x08ff) ||
+            (code >= 0xfb1d && code <= 0xfdff) ||
+            (code >= 0xfe70 && code <= 0xfeff)
+    }
+    function isLtrStrong(code) {
+        return (code >= 0x0041 && code <= 0x005a) ||
+            (code >= 0x0061 && code <= 0x007a) ||
+            (code >= 0x00c0 && code <= 0x02af)
+    }
+    function automaticEditorAlignment(value) {
+        var text = String(value || "")
+        for (var index = 0; index < text.length; index++) {
+            var code = text.charCodeAt(index)
+            if (isRtlStrong(code)) return TextEdit.AlignRight
+            if (isLtrStrong(code)) return TextEdit.AlignLeft
+        }
+        return uiLanguage === "fa" ? TextEdit.AlignRight : TextEdit.AlignLeft
+    }
 
     function applySettings(value, save) {
         reshaperSettings = Settings.ReshaperSettings.sanitize(reshaperMetadata, value)
@@ -295,22 +320,6 @@ FocusScope {
                 font.bold: true
                 elide: Text.ElideRight
             }
-            RowLayout {
-                id: directionButtons
-                spacing: Style.space(6)
-                LayoutMirroring.enabled: false
-                LayoutMirroring.childrenInherit: true
-                ActionButton {
-                    text: root.uiText("button.ltr")
-                    selected: root.host ? !root.host.editorRtl : false
-                    onClicked: { root.host.editorRtl = false; root.focusEditor() }
-                }
-                ActionButton {
-                    text: root.uiText("button.rtl")
-                    selected: root.host ? root.host.editorRtl : true
-                    onClicked: { root.host.editorRtl = true; root.focusEditor() }
-                }
-            }
         }
 
         Controls.ScrollView {
@@ -370,7 +379,7 @@ FocusScope {
                         textFormat: TextEdit.PlainText
                         selectByMouse: true
                         persistentSelection: true
-                        horizontalAlignment: root.host && !root.host.editorRtl ? TextEdit.AlignLeft : TextEdit.AlignRight
+                        horizontalAlignment: root.automaticEditorAlignment(text)
                         padding: Style.space(10)
                         background: Rectangle {
                             color: Util.alpha(root.foreground, 0.03)

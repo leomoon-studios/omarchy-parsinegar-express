@@ -74,7 +74,11 @@ assert.ok(menu.includes('readonly property alias editorPageScroll: formScroll'))
 assert.ok(menu.includes('LayoutMirroring.enabled: root.uiLanguage === "fa"'));
 assert.ok(menu.includes('id: editorScroll'));
 assert.ok(menu.includes('LayoutMirroring.enabled: false'));
-assert.ok(menu.includes('id: directionButtons'));
+assert.ok(!menu.includes('id: directionButtons'));
+assert.ok(!menu.includes('button.ltr'));
+assert.ok(!menu.includes('button.rtl'));
+assert.ok(menu.includes('function automaticEditorAlignment'));
+assert.ok(menu.includes('horizontalAlignment: root.automaticEditorAlignment(text)'));
 assert.ok(settings.includes('LayoutMirroring.childrenInherit: false'));
 assert.ok(settings.includes('LayoutMirroring.enabled: controller.uiLanguage === "fa"'));
 assert.ok(menu.indexOf('mode.unicode') < menu.indexOf('mode.compatibility'));
