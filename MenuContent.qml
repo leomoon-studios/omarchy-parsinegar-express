@@ -16,7 +16,7 @@ FocusScope {
     readonly property alias editorItem: editor
     readonly property alias exportItem: exportSection
     readonly property alias editorPageScroll: formScroll
-    readonly property string sourceText: editor.text
+    readonly property string sourceText: conversionText()
     readonly property color foreground: host && host.bar ? host.bar.foreground : Color.foreground
     readonly property string fontFamily: typography ? typography.family : ""
     readonly property var reshaperMetadata: Settings.ReshaperSettings.metadata
@@ -39,6 +39,7 @@ FocusScope {
     property string statusText: ""
     property bool statusError: false
     property bool statusWarning: false
+    property bool formattingEditor: false
     signal closeRequested()
     signal exportConversionReady(string output)
     signal exportConversionFailed(string code, string message)
@@ -60,14 +61,48 @@ FocusScope {
             (code >= 0x0061 && code <= 0x007a) ||
             (code >= 0x00c0 && code <= 0x02af)
     }
-    function automaticEditorAlignment(value) {
+    function paragraphAlignment(value) {
         var text = String(value || "")
         for (var index = 0; index < text.length; index++) {
             var code = text.charCodeAt(index)
-            if (isRtlStrong(code)) return TextEdit.AlignRight
-            if (isLtrStrong(code)) return TextEdit.AlignLeft
+            if (isRtlStrong(code)) return "right"
+            if (isLtrStrong(code)) return "left"
         }
-        return uiLanguage === "fa" ? TextEdit.AlignRight : TextEdit.AlignLeft
+        return uiLanguage === "fa" ? "right" : "left"
+    }
+    function rawEditorText() {
+        return editor.textFormat === TextEdit.RichText ? editor.getText(0, editor.length) : editor.text
+    }
+    function conversionText() {
+        return rawEditorText().replace(/\u2029/g, "\n")
+    }
+    function escapeHtml(value) {
+        return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;").replace(/\"/g, "&quot;")
+    }
+    function formattedEditorText(value) {
+        var parts = String(value || "").split(/(\r\n|[\r\n\u2029])/)
+        var markup = []
+        for (var index = 0; index < parts.length; index += 2) {
+            var paragraph = parts[index]
+            var alignment = paragraphAlignment(paragraph)
+            markup.push("<p dir=\"" + (alignment === "right" ? "rtl" : "ltr") +
+                "\" align=\"" + alignment + "\" style=\"margin:0\">" + escapeHtml(paragraph) + "</p>")
+        }
+        return markup.join("")
+    }
+    function reformatEditor(value) {
+        var plain = value === undefined ? rawEditorText() : String(value)
+        var cursor = editor.cursorPosition
+        var selectionStart = editor.selectionStart
+        var selectionEnd = editor.selectionEnd
+        formattingEditor = true
+        editor.text = formattedEditorText(plain)
+        editor.cursorPosition = Math.min(cursor, editor.length)
+        if (selectionStart !== selectionEnd) {
+            editor.select(Math.min(selectionStart, editor.length), Math.min(selectionEnd, editor.length))
+        }
+        formattingEditor = false
     }
 
     function applySettings(value, save) {
@@ -150,6 +185,7 @@ FocusScope {
             ensureProfileMode()
         }
         else settingsDirectoryCreator.running = true
+        Qt.callLater(function() { if (editor.textFormat === TextEdit.RichText) reformatEditor() })
     }
     function focusEditor() { page = "editor"; editor.forceActiveFocus() }
     function openSettings() {
@@ -172,13 +208,13 @@ FocusScope {
             return false
         ensureProfileMode()
         if (conversionInFlight) return false
-        Limits.ResourceLimits.assertTextLength(editor.text, Limits.ResourceLimits.values.maxSvgTextLength, "EXPORT_TEXT_TOO_LARGE")
+        Limits.ResourceLimits.assertTextLength(sourceText, Limits.ResourceLimits.values.maxSvgTextLength, "EXPORT_TEXT_TOO_LARGE")
         conversionInFlight = true
         conversionPurpose = "export"
         conversionRequestId++
         conversionWorker.sendMessage({
             id: conversionRequestId,
-            text: editor.text,
+            text: sourceText,
             mode: host.conversionMode,
             options: conversionOptions(),
             maxOutputLength: Limits.ResourceLimits.values.maxSvgTextLength,
@@ -195,7 +231,7 @@ FocusScope {
         if (conversionInFlight || exportSection.exportBusy || !settingsReady || !host || !host.opened || !typography || !typography.ready) return
         ensureProfileMode()
         try {
-            Limits.ResourceLimits.assertTextLength(editor.text, Limits.ResourceLimits.values.maxConversionTextLength, "CONVERSION_TEXT_TOO_LARGE")
+            Limits.ResourceLimits.assertTextLength(sourceText, Limits.ResourceLimits.values.maxConversionTextLength, "CONVERSION_TEXT_TOO_LARGE")
         } catch (error) {
             statusError = true
             statusWarning = false
@@ -212,7 +248,7 @@ FocusScope {
         focusEditor()
         conversionWorker.sendMessage({
             id: conversionRequestId,
-            text: editor.text,
+            text: sourceText,
             mode: host.conversionMode,
             options: conversionOptions(),
             maxOutputLength: Limits.ResourceLimits.values.maxConversionTextLength,
@@ -365,8 +401,15 @@ FocusScope {
                         id: editor
                         text: root.host ? root.host.draftText : ""
                         onTextChanged: {
-                            if (root.host && root.host.draftText !== text) root.host.draftText = text
+                            if (root.formattingEditor) return
+                            var plain = root.rawEditorText()
+                            if (root.host && root.host.draftText !== plain) root.host.draftText = plain
                             root.statusText = ""
+                            var requested = plain
+                            Qt.callLater(function() {
+                                if (!root.formattingEditor && root.rawEditorText() === requested)
+                                    root.reformatEditor(requested)
+                            })
                         }
                         font.family: root.fontFamily
                         font.pixelSize: Style.font.body
@@ -376,10 +419,10 @@ FocusScope {
                         selectionColor: Color.accent
                         selectedTextColor: Color.background
                         wrapMode: TextEdit.Wrap
-                        textFormat: TextEdit.PlainText
+                        textFormat: TextEdit.RichText
                         selectByMouse: true
                         persistentSelection: true
-                        horizontalAlignment: root.automaticEditorAlignment(text)
+                        horizontalAlignment: TextEdit.AlignLeft
                         padding: Style.space(10)
                         background: Rectangle {
                             color: Util.alpha(root.foreground, 0.03)
