@@ -25,3 +25,9 @@ The plugin-local adapters, conversion core, and SVG exporter are separate files.
 The UI bundles the unchanged variable font from [Vazirmatn v33.003](https://github.com/rastikerdar/vazirmatn/releases/tag/v33.003), source commit `83629f877e8f084cc07b47030b5d3a0ff06c76ec`. Copyright 2015 The Vazirmatn Project Authors. The complete supplied SIL Open Font License 1.1 is included at [assets/fonts/OFL.txt](assets/fonts/OFL.txt). The font supports the UI's regular, medium, and semibold weights in one file; no system font installation or runtime download is required.
 
 Bundled file: `assets/fonts/Vazirmatn[wght].ttf`. Download replacement font files manually from the official project and retain the supplied license.
+
+## Material Symbols
+
+The application bundles a subset of [Material Symbols Rounded](https://github.com/google/material-design-icons) from commit `40a7a292a79d9394157e1ea24f83d52d5e17c556`. Copyright Google LLC. Material Symbols is distributed under the Apache License 2.0 retained at `assets/fonts/MaterialSymbols-LICENSE.txt`.
+
+Bundled file: `assets/fonts/MaterialSymbolsRounded.ttf`. It was generated from the unchanged upstream variable font with fonttools `pyftsubset` and contains only settings, light mode, dark mode, left-to-right text direction, and right-to-left text direction glyphs. No outlines were modified.

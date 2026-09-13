@@ -6,6 +6,7 @@ QtObject {
     id: root
 
     property url fontSource: Qt.resolvedUrl("assets/fonts/Vazirmatn[wght].ttf")
+    property url iconFontSource: Qt.resolvedUrl("assets/fonts/MaterialSymbolsRounded.ttf")
     property real basePixelSize: 12
     property color foreground: "#cacccc"
     property color muted: "#707880"
@@ -14,6 +15,10 @@ QtObject {
     readonly property bool ready: bundledFont.status === FontLoader.Ready
     readonly property bool failed: bundledFont.status === FontLoader.Error
     readonly property string family: ready ? bundledFont.name : ""
+    readonly property bool iconReady: bundledIconFont.status === FontLoader.Ready
+    readonly property bool iconFailed: bundledIconFont.status === FontLoader.Error
+    readonly property string iconFamily: iconReady ? bundledIconFont.name : family
+    readonly property string iconSettings: "\ue8b8"
     readonly property string errorMessage: failed ? "Unable to load the bundled Vazirmatn font." : ""
     signal loadFailed(string message)
 
@@ -28,6 +33,11 @@ QtObject {
                 root.loadFailed(message);
             }
         }
+    }
+
+    readonly property FontLoader iconFontLoader: FontLoader {
+        id: bundledIconFont
+        source: root.iconFontSource
     }
 
     function sizedFont(ratio, weight) {

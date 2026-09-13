@@ -19,6 +19,7 @@ FocusScope {
     readonly property string sourceText: conversionText()
     readonly property color foreground: host && host.bar ? host.bar.foreground : Color.foreground
     readonly property string fontFamily: typography ? typography.family : ""
+    readonly property string iconFontFamily: typography ? typography.iconFamily : fontFamily
     readonly property var reshaperMetadata: Settings.ReshaperSettings.metadata
     readonly property string configDirectory: Quickshell.env("HOME") + "/.config/leomoon-studios.omarchy-parsinegar-express"
     readonly property string configPath: configDirectory + "/settings.json"
@@ -483,6 +484,19 @@ FocusScope {
                 font.bold: true
                 elide: Text.ElideRight
             }
+
+            Ui.PanelActionButton {
+                id: settingsHeaderButton
+                iconText: root.typography ? root.typography.iconSettings : "\ue8b8"
+                tooltipText: root.uiText("button.settings")
+                fontFamily: root.iconFontFamily
+                fontSize: Style.font.heading
+                size: Style.space(42)
+                bordered: true
+                focusable: true
+                enabled: root.settingsReady
+                onClicked: root.openSettings()
+            }
         }
 
         Controls.ScrollView {
@@ -611,13 +625,6 @@ FocusScope {
                     controller: root
                     host: root.host
                     typography: root.typography
-                }
-
-                ActionButton {
-                    width: parent.width
-                    text: root.uiText("button.settings")
-                    enabled: root.settingsReady
-                    onClicked: root.openSettings()
                 }
 
                 RowLayout {
