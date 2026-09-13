@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import qs.Ui as Ui
 import qs.Commons
+import "EditorDirection.js" as Direction
 import "ReshaperSettings.js" as Settings
 import "InterfaceStrings.js" as Strings
 import "ResourceLimits.js" as Limits
@@ -47,45 +48,8 @@ FocusScope {
     signal exportConversionFailed(string code, string message)
 
     function uiText(key) { return Strings.InterfaceStrings.text(uiLanguage, key) }
-    function isRtlStrong(code) {
-        return (code >= 0x05d0 && code <= 0x05ea) ||
-            (code >= 0x0621 && code <= 0x064a) ||
-            (code >= 0x066e && code <= 0x06d3) ||
-            (code >= 0x06fa && code <= 0x06ff) ||
-            (code >= 0x0700 && code <= 0x074f) ||
-            (code >= 0x0750 && code <= 0x077f) ||
-            (code >= 0x08a0 && code <= 0x08ff) ||
-            (code >= 0xfb1d && code <= 0xfdff) ||
-            (code >= 0xfe70 && code <= 0xfeff)
-    }
-    function isLtrStrong(code) {
-        return (code >= 0x0041 && code <= 0x005a) ||
-            (code >= 0x0061 && code <= 0x007a) ||
-            (code >= 0x00c0 && code <= 0x02af)
-    }
-    function paragraphAlignment(value) {
-        var text = String(value || "")
-        for (var index = 0; index < text.length; index++) {
-            var code = text.charCodeAt(index)
-            if (isRtlStrong(code)) return "right"
-            if (isLtrStrong(code)) return "left"
-        }
-        return ""
-    }
-    function paragraphDirections(value) {
-        var paragraphs = String(value || "").split(/\r\n|[\r\n\u2029]/)
-        // Match the desktop editor: neutral paragraphs inherit the preceding direction.
-        var inheritedAlignment = "left"
-        var directions = []
-        for (var index = 0; index < paragraphs.length; index++) {
-            var detectedAlignment = paragraphAlignment(paragraphs[index])
-            if (detectedAlignment !== "") inheritedAlignment = detectedAlignment
-            directions.push(inheritedAlignment)
-        }
-        return directions
-    }
-    function directionSignature(directions) {
-        return directions.join("|")
+    function paragraphLayout(value) {
+        return Direction.EditorDirection.paragraphLayout(value)
     }
     function rawEditorText() {
         return editor.textFormat === TextEdit.RichText ? editor.getText(0, editor.length) : editor.text
@@ -97,31 +61,30 @@ FocusScope {
         return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;")
             .replace(/>/g, "&gt;").replace(/\"/g, "&quot;")
     }
-    function formattedEditorText(value, directions) {
-        var paragraphs = String(value || "").split(/\r\n|[\r\n\u2029]/)
-        var effectiveDirections = directions || paragraphDirections(value)
+    function formattedEditorText(value, layout) {
+        var effectiveLayout = layout || paragraphLayout(value)
         var markup = []
-        for (var index = 0; index < paragraphs.length; index++) {
-            var paragraph = paragraphs[index]
-            var alignment = effectiveDirections[index]
+        for (var index = 0; index < effectiveLayout.paragraphs.length; index++) {
+            var paragraph = effectiveLayout.paragraphs[index]
+            var alignment = effectiveLayout.directions[index]
             markup.push("<p dir=\"" + (alignment === "right" ? "rtl" : "ltr") +
                 "\" align=\"" + alignment + "\" style=\"margin:0\">" + escapeHtml(paragraph) + "</p>")
         }
         return markup.join("")
     }
-    function reformatEditor(value, directions) {
+    function reformatEditor(value, layout) {
         var plain = value === undefined ? rawEditorText() : String(value)
-        var effectiveDirections = directions || paragraphDirections(plain)
+        var effectiveLayout = layout || paragraphLayout(plain)
         var cursor = editor.cursorPosition
         var selectionStart = editor.selectionStart
         var selectionEnd = editor.selectionEnd
         formattingEditor = true
-        editor.text = formattedEditorText(plain, effectiveDirections)
+        editor.text = formattedEditorText(plain, effectiveLayout)
         editor.cursorPosition = Math.min(cursor, editor.length)
         if (selectionStart !== selectionEnd) {
             editor.select(Math.min(selectionStart, editor.length), Math.min(selectionEnd, editor.length))
         }
-        editorDirectionSignature = directionSignature(effectiveDirections)
+        editorDirectionSignature = effectiveLayout.signature
         formattingEditor = false
     }
 
@@ -592,12 +555,11 @@ FocusScope {
                             if (root.host && root.host.draftText !== plain) root.host.draftText = plain
                             root.statusText = ""
                             var requested = plain
-                            var requestedDirections = root.paragraphDirections(requested)
-                            var requestedSignature = root.directionSignature(requestedDirections)
-                            if (requestedSignature !== root.editorDirectionSignature) {
+                            var requestedLayout = root.paragraphLayout(requested)
+                            if (requestedLayout.signature !== root.editorDirectionSignature) {
                                 Qt.callLater(function() {
                                     if (!root.formattingEditor && root.rawEditorText() === requested)
-                                        root.reformatEditor(requested, requestedDirections)
+                                        root.reformatEditor(requested, requestedLayout)
                                 })
                             }
                         }

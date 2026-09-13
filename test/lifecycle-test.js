@@ -20,7 +20,7 @@ for (const file of ['Panel.qml', 'Typography.qml', 'LetterBadge.qml']) {
 }
 assert.doesNotMatch(read('MenuContent.qml'), /SvgCurve(?:Exporter|Adapter|ExportController)|vendor\/typr/i);
 assert.doesNotMatch(read('SettingsContent.qml'), /SvgCurve|typr/i);
-for (const file of ['Panel.qml', 'Typography.qml', 'LetterBadge.qml', 'LibraryAdapter.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'InterfaceStrings.js', 'SettingsContent.qml']) {
+for (const file of ['Panel.qml', 'Typography.qml', 'LetterBadge.qml', 'LibraryAdapter.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'InterfaceStrings.js', 'EditorDirection.js', 'SettingsContent.qml']) {
     assert.doesNotMatch(read(file), /\b(?:Timer|Process|FileView|Connections|WorkerScript)\s*\{|\b(?:setInterval|setTimeout|fetch)\s*\(|Quickshell\.exec|XMLHttpRequest/);
 }
 assert.doesNotMatch(menu, /\bTimer\s*\{|\b(?:setInterval|setTimeout|fetch)\s*\(|Quickshell\.exec|XMLHttpRequest/);
