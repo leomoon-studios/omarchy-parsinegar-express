@@ -31,7 +31,7 @@ var EditorDirection = (function () {
 
   function paragraphLayout(value) {
     var paragraphs = String(value || "").split(/\r\n|[\r\n\u2029]/);
-    var inheritedAlignment = "left";
+    var inheritedAlignment = "right";
     var directions = [];
     var states = [];
     for (var index = 0; index < paragraphs.length; index++) {

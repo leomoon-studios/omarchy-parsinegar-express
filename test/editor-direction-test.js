@@ -17,6 +17,14 @@ assert.equal(direction.paragraphAlignment('سلام.'), 'right');
 assert.equal(direction.paragraphAlignment('salam.'), 'left');
 assert.equal(direction.paragraphAlignment('123؟'), '');
 
+const initialNeutral = direction.paragraphLayout('');
+assert.deepEqual(Array.from(initialNeutral.directions), ['right']);
+assert.equal(initialNeutral.signature, 'inherited:right');
+
+const initialEnglish = direction.paragraphLayout('s');
+assert.deepEqual(Array.from(initialEnglish.directions), ['left']);
+assert.equal(initialEnglish.signature, 'strong:left');
+
 const emptyAfterPersian = direction.paragraphLayout('سلام.\n');
 assert.deepEqual(Array.from(emptyAfterPersian.directions), ['right', 'right']);
 assert.equal(emptyAfterPersian.signature, 'strong:right|inherited:right');

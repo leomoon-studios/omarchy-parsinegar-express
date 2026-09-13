@@ -574,7 +574,7 @@ FocusScope {
                         textFormat: TextEdit.RichText
                         selectByMouse: true
                         persistentSelection: true
-                        horizontalAlignment: TextEdit.AlignLeft
+                        horizontalAlignment: TextEdit.AlignRight
                         padding: Style.space(10)
                         background: Rectangle {
                             color: Util.alpha(root.foreground, 0.03)

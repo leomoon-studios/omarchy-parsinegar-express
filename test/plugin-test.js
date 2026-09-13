@@ -40,6 +40,7 @@ assert.ok(!/Controls\.(?:Button|CheckBox)\s*\{/.test(menu));
 assert.ok(panel.includes('fittedContentWidth(Style.space(760))'));
 assert.ok(menu.includes('Quickshell.clipboardText = message.output'));
 assert.ok(menu.includes('textFormat: TextEdit.RichText'));
+assert.ok(menu.includes('horizontalAlignment: TextEdit.AlignRight'));
 assert.ok(menu.includes('Keys.onEscapePressed'));
 assert.ok(!menu.includes('PanelKeyCatcher'));
 assert.equal((menu.match(/\bProcess\s*\{/g) || []).length, 1);
