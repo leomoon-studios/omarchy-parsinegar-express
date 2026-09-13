@@ -22,6 +22,8 @@ assert.equal(metadata.ligatureGroups.flatMap(group => group.ligatures).length, 2
 assert.deepEqual(Array.from(strings.languages), ['en', 'fa']);
 assert.equal(strings.text('en', 'settings.title'), 'Settings');
 assert.equal(strings.text('fa', 'settings.title'), 'تنظیمات');
+assert.equal(strings.text('en', 'mode.unicodeDescription'), 'Standard Unicode presentation forms for applications that accept Unicode text.');
+assert.equal(strings.text('fa', 'mode.compatibilityDescription'), 'کدهای قدیمی مریم/LMN؛ به یک فونت سازگار با LMN نیاز دارد.');
 assert.equal(strings.text('en', 'settings.language'), 'SHAPING PROFILE');
 assert.equal(strings.text('fa', 'settings.language'), 'نمایهٔ شکل‌دهی');
 assert.equal(strings.text('en', 'settings.profileLabel.standardPersianArabic'), 'Persian/Arabic');

@@ -108,7 +108,7 @@ Ui.Panel {
         open: root.opened && !root.filePickerActive
         popoutSwitching: root.popoutSwitching
         popoutSwitchClosing: root.popoutSwitchClosing
-        contentWidth: fittedContentWidth(Style.space(500))
+        contentWidth: fittedContentWidth(Style.space(760))
         contentHeight: fittedContentHeight(menuLoader.item ? menuLoader.item.implicitHeight : Style.space(360))
         focusTarget: menuLoader.item ? menuLoader.item.editorItem : null
 

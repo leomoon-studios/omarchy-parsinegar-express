@@ -334,6 +334,133 @@ FocusScope {
         focusable: true
     }
 
+    component ConvertButton: Ui.Button {
+        id: convertControl
+        property string label: ""
+
+        fontFamily: root.fontFamily
+        foreground: root.foreground
+        accent: Color.accent
+        bordered: true
+        focusable: true
+        text: ""
+
+        Text {
+            anchors.centerIn: parent
+            text: convertControl.label
+            textFormat: Text.PlainText
+            color: convertControl.foreground
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.heading
+            font.bold: true
+        }
+    }
+
+    component ModeCard: Item {
+        id: modeCard
+        property string title: ""
+        property string description: ""
+        property bool selected: false
+        property color foreground: root.foreground
+        property color accent: Color.accent
+        property bool hovered: cardMouseArea.containsMouse
+        property bool pressed: cardMouseArea.pressed
+        signal clicked()
+
+        implicitHeight: cardContent.implicitHeight + Style.space(20)
+        implicitWidth: Style.space(280)
+        activeFocusOnTab: true
+        Keys.onReturnPressed: modeCard.clicked()
+        Keys.onEnterPressed: modeCard.clicked()
+        Keys.onSpacePressed: modeCard.clicked()
+
+        Rectangle {
+            anchors.fill: parent
+            color: modeCard.selected
+                ? Util.alpha(modeCard.accent, 0.14)
+                : modeCard.pressed || modeCard.hovered
+                    ? Util.alpha(modeCard.foreground, 0.08)
+                    : Util.alpha(modeCard.foreground, 0.03)
+            border.color: modeCard.activeFocus || modeCard.selected
+                ? modeCard.accent
+                : Util.alpha(modeCard.foreground, 0.25)
+            border.width: modeCard.activeFocus || modeCard.selected
+                ? Math.max(2, Style.normalBorderWidth)
+                : Math.max(1, Style.normalBorderWidth)
+            radius: Style.cornerRadius
+        }
+
+        RowLayout {
+            id: cardContent
+            anchors.fill: parent
+            anchors.leftMargin: Style.space(14)
+            anchors.rightMargin: Style.space(14)
+            anchors.topMargin: Style.space(10)
+            anchors.bottomMargin: Style.space(10)
+            spacing: Style.space(12)
+            LayoutMirroring.enabled: root.uiLanguage === "fa"
+            LayoutMirroring.childrenInherit: true
+
+            Rectangle {
+                Layout.alignment: Qt.AlignVCenter
+                implicitWidth: Style.space(18)
+                implicitHeight: Style.space(18)
+                radius: width / 2
+                color: "transparent"
+                border.color: modeCard.selected ? modeCard.accent : Util.alpha(modeCard.foreground, 0.7)
+                border.width: modeCard.selected ? Math.max(2, Style.normalBorderWidth) : Math.max(1, Style.normalBorderWidth)
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: Style.space(8)
+                    height: Style.space(8)
+                    radius: width / 2
+                    visible: modeCard.selected
+                    color: modeCard.accent
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+                spacing: Style.space(2)
+
+                Text {
+                    Layout.fillWidth: true
+                    text: modeCard.title
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.body
+                    font.bold: true
+                    color: modeCard.foreground
+                    wrapMode: Text.NoWrap
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: modeCard.description
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.caption
+                    color: Util.alpha(modeCard.foreground, 0.72)
+                    wrapMode: Text.NoWrap
+                    maximumLineCount: 1
+                    elide: Text.ElideRight
+                }
+            }
+        }
+
+        MouseArea {
+            id: cardMouseArea
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                modeCard.forceActiveFocus()
+                modeCard.clicked()
+            }
+        }
+    }
+
     ColumnLayout {
         id: editorPage
         anchors.fill: parent
@@ -433,32 +560,50 @@ FocusScope {
                     }
                 }
 
-                GridLayout {
+                RowLayout {
+                    id: conversionActions
                     width: parent.width
-                    columns: 2
-                    columnSpacing: Style.space(8)
-                    ActionButton {
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 1
-                        text: root.uiText("mode.unicode")
-                        selected: root.host && root.host.conversionMode === "unicode"
-                        onClicked: root.host.conversionMode = "unicode"
-                    }
-                    ActionButton {
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 1
-                        text: root.uiText("mode.compatibility")
-                        selected: root.host && root.host.conversionMode === "compatibility"
-                        enabled: !root.hebrewProfile
-                        onClicked: if (!root.hebrewProfile) root.host.conversionMode = "compatibility"
-                    }
-                }
+                    spacing: Style.space(8)
+                    layoutDirection: root.uiLanguage === "fa" ? Qt.RightToLeft : Qt.LeftToRight
+                    LayoutMirroring.enabled: false
+                    LayoutMirroring.childrenInherit: false
 
-                ActionButton {
-                    width: parent.width
-                    text: root.uiText("button.convert")
-                    enabled: root.settingsReady && !root.busy && !exportSection.exportBusy && root.typography && root.typography.ready
-                    onClicked: root.convertAndCopy()
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 0
+                        spacing: Style.space(8)
+
+                        ModeCard {
+                            Layout.fillWidth: true
+                            LayoutMirroring.enabled: root.uiLanguage === "fa"
+                            LayoutMirroring.childrenInherit: true
+                            title: root.uiText("mode.unicode")
+                            description: root.uiText("mode.unicodeDescription")
+                            selected: root.host && root.host.conversionMode === "unicode"
+                            onClicked: root.host.conversionMode = "unicode"
+                        }
+                        ModeCard {
+                            Layout.fillWidth: true
+                            LayoutMirroring.enabled: root.uiLanguage === "fa"
+                            LayoutMirroring.childrenInherit: true
+                            title: root.uiText("mode.compatibility")
+                            description: root.uiText("mode.compatibilityDescription")
+                            selected: root.host && root.host.conversionMode === "compatibility"
+                            enabled: !root.hebrewProfile
+                            onClicked: if (!root.hebrewProfile) root.host.conversionMode = "compatibility"
+                        }
+                    }
+
+                    ConvertButton {
+                        id: convertButton
+                        Layout.fillHeight: true
+                        Layout.minimumWidth: Style.space(120)
+                        Layout.preferredWidth: Style.space(170)
+                        Layout.maximumWidth: Style.space(200)
+                        label: root.uiText("button.convert")
+                        enabled: root.settingsReady && !root.busy && !exportSection.exportBusy && root.typography && root.typography.ready
+                        onClicked: root.convertAndCopy()
+                    }
                 }
 
                 ExportSection {
