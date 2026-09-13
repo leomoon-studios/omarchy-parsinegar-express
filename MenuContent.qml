@@ -41,6 +41,7 @@ FocusScope {
     property bool statusError: false
     property bool statusWarning: false
     property bool formattingEditor: false
+    property string editorDirectionSignature: ""
     signal closeRequested()
     signal exportConversionReady(string output)
     signal exportConversionFailed(string code, string message)
@@ -69,7 +70,22 @@ FocusScope {
             if (isRtlStrong(code)) return "right"
             if (isLtrStrong(code)) return "left"
         }
-        return uiLanguage === "fa" ? "right" : "left"
+        return ""
+    }
+    function paragraphDirections(value) {
+        var paragraphs = String(value || "").split(/\r\n|[\r\n\u2029]/)
+        // Match the desktop editor: neutral paragraphs inherit the preceding direction.
+        var inheritedAlignment = "left"
+        var directions = []
+        for (var index = 0; index < paragraphs.length; index++) {
+            var detectedAlignment = paragraphAlignment(paragraphs[index])
+            if (detectedAlignment !== "") inheritedAlignment = detectedAlignment
+            directions.push(inheritedAlignment)
+        }
+        return directions
+    }
+    function directionSignature(directions) {
+        return directions.join("|")
     }
     function rawEditorText() {
         return editor.textFormat === TextEdit.RichText ? editor.getText(0, editor.length) : editor.text
@@ -81,28 +97,31 @@ FocusScope {
         return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;")
             .replace(/>/g, "&gt;").replace(/\"/g, "&quot;")
     }
-    function formattedEditorText(value) {
-        var parts = String(value || "").split(/(\r\n|[\r\n\u2029])/)
+    function formattedEditorText(value, directions) {
+        var paragraphs = String(value || "").split(/\r\n|[\r\n\u2029]/)
+        var effectiveDirections = directions || paragraphDirections(value)
         var markup = []
-        for (var index = 0; index < parts.length; index += 2) {
-            var paragraph = parts[index]
-            var alignment = paragraphAlignment(paragraph)
+        for (var index = 0; index < paragraphs.length; index++) {
+            var paragraph = paragraphs[index]
+            var alignment = effectiveDirections[index]
             markup.push("<p dir=\"" + (alignment === "right" ? "rtl" : "ltr") +
                 "\" align=\"" + alignment + "\" style=\"margin:0\">" + escapeHtml(paragraph) + "</p>")
         }
         return markup.join("")
     }
-    function reformatEditor(value) {
+    function reformatEditor(value, directions) {
         var plain = value === undefined ? rawEditorText() : String(value)
+        var effectiveDirections = directions || paragraphDirections(plain)
         var cursor = editor.cursorPosition
         var selectionStart = editor.selectionStart
         var selectionEnd = editor.selectionEnd
         formattingEditor = true
-        editor.text = formattedEditorText(plain)
+        editor.text = formattedEditorText(plain, effectiveDirections)
         editor.cursorPosition = Math.min(cursor, editor.length)
         if (selectionStart !== selectionEnd) {
             editor.select(Math.min(selectionStart, editor.length), Math.min(selectionEnd, editor.length))
         }
+        editorDirectionSignature = directionSignature(effectiveDirections)
         formattingEditor = false
     }
 
@@ -345,6 +364,8 @@ FocusScope {
         bordered: true
         focusable: true
         text: ""
+        Accessible.role: Accessible.Button
+        Accessible.name: label
 
         Text {
             anchors.centerIn: parent
@@ -370,7 +391,12 @@ FocusScope {
 
         implicitHeight: cardContent.implicitHeight + Style.space(20)
         implicitWidth: Style.space(280)
+        opacity: enabled ? 1 : 0.5
         activeFocusOnTab: true
+        Accessible.role: Accessible.RadioButton
+        Accessible.name: title
+        Accessible.description: description
+        Accessible.checked: selected
         Keys.onReturnPressed: modeCard.clicked()
         Keys.onEnterPressed: modeCard.clicked()
         Keys.onSpacePressed: modeCard.clicked()
@@ -438,6 +464,7 @@ FocusScope {
                 }
 
                 Text {
+                    id: descriptionLabel
                     Layout.fillWidth: true
                     text: modeCard.description
                     font.family: root.fontFamily
@@ -448,6 +475,12 @@ FocusScope {
                     elide: Text.ElideRight
                 }
             }
+        }
+
+        Ui.PanelToolTip {
+            visible: modeCard.hovered && descriptionLabel.truncated
+            text: modeCard.description
+            fontFamily: root.fontFamily
         }
 
         MouseArea {
@@ -487,15 +520,27 @@ FocusScope {
 
             Ui.PanelActionButton {
                 id: settingsHeaderButton
+                property bool pointerHovered: false
+                objectName: "settingsButton"
                 iconText: root.typography ? root.typography.iconSettings : "\ue8b8"
-                tooltipText: root.uiText("button.settings")
                 fontFamily: root.iconFontFamily
                 fontSize: Style.font.heading
                 size: Style.space(42)
                 bordered: true
                 focusable: true
                 enabled: root.settingsReady
-                onClicked: root.openSettings()
+                Accessible.name: root.uiText("button.settings")
+                onHovered: function(isHovered) { pointerHovered = isHovered }
+                onClicked: {
+                    pointerHovered = false
+                    root.openSettings()
+                }
+
+                Ui.PanelToolTip {
+                    visible: settingsHeaderButton.pointerHovered
+                    text: root.uiText("button.settings")
+                    fontFamily: root.fontFamily
+                }
             }
         }
 
@@ -547,10 +592,14 @@ FocusScope {
                             if (root.host && root.host.draftText !== plain) root.host.draftText = plain
                             root.statusText = ""
                             var requested = plain
-                            Qt.callLater(function() {
-                                if (!root.formattingEditor && root.rawEditorText() === requested)
-                                    root.reformatEditor(requested)
-                            })
+                            var requestedDirections = root.paragraphDirections(requested)
+                            var requestedSignature = root.directionSignature(requestedDirections)
+                            if (requestedSignature !== root.editorDirectionSignature) {
+                                Qt.callLater(function() {
+                                    if (!root.formattingEditor && root.rawEditorText() === requested)
+                                        root.reformatEditor(requested, requestedDirections)
+                                })
+                            }
                         }
                         font.family: root.fontFamily
                         font.pixelSize: Style.font.body
@@ -591,6 +640,7 @@ FocusScope {
                             Layout.fillWidth: true
                             LayoutMirroring.enabled: root.uiLanguage === "fa"
                             LayoutMirroring.childrenInherit: true
+                            objectName: "unicodeButton"
                             title: root.uiText("mode.unicode")
                             description: root.uiText("mode.unicodeDescription")
                             selected: root.host && root.host.conversionMode === "unicode"
@@ -600,6 +650,7 @@ FocusScope {
                             Layout.fillWidth: true
                             LayoutMirroring.enabled: root.uiLanguage === "fa"
                             LayoutMirroring.childrenInherit: true
+                            objectName: "compatibilityButton"
                             title: root.uiText("mode.compatibility")
                             description: root.uiText("mode.compatibilityDescription")
                             selected: root.host && root.host.conversionMode === "compatibility"
@@ -610,6 +661,7 @@ FocusScope {
 
                     ConvertButton {
                         id: convertButton
+                        objectName: "convertButton"
                         Layout.fillHeight: true
                         Layout.minimumWidth: Style.space(120)
                         Layout.preferredWidth: Style.space(170)

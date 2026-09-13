@@ -86,6 +86,25 @@ function test(name, callback) {
     assert.deepEqual(calls, ['one', 'two', 'three', 'four']);
   });
 
+  test('automatic paragraph direction skips empty paragraphs', () => {
+    const calls = [];
+    const ordering = {
+      getDisplay(text) {
+        calls.push(text);
+        return '[' + text + ']';
+      }
+    };
+    const shaper = { reshape(text) { return text; } };
+    assert.equal(
+      core.convert('one\n\nthree\n', 'unicode', {
+        reverseWords: true,
+        autoParagraphDirection: true
+      }, ordering, shaper),
+      '[one]\n\n[three]\n'
+    );
+    assert.deepEqual(calls, ['one', 'three']);
+  });
+
   test('custom reshaper settings are copied and passed only during conversion', () => {
     const ligatures = Object.freeze({ 'RIAL SIGN': true, 'ARABIC LIGATURE ALLAH': false });
     const reshaperOptions = Object.freeze({

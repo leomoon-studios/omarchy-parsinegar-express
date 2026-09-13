@@ -9,6 +9,14 @@ The application behavior is pinned to LeoMoon Studios' ParsiNegar commit `09745d
 
 `test/fixtures.js` preserves the 213 ordered Maryam pairs, static conversion expectations, and original editor corpus. The mapping was transcribed from the application source; duplicate keys retain the first value and the empty sentinel maps to an empty string.
 
+## Icon font provenance
+
+| Artifact | Pinned source | SHA-256 |
+| --- | --- | --- |
+| `assets/fonts/MaterialSymbolsRounded.ttf` | Material Symbols Rounded commit `40a7a292a79d9394157e1ea24f83d52d5e17c556`, subset to five documented glyphs | `989e7150e04d2aa1b3b54d05e6e8d9aa0f3ce0e7a10193c2c77ef48365f041a8` |
+
+The subset is identical to the desktop artifact and contains U+E247, U+E248, U+E518, U+E51C, and U+E8B8. Its supplied Apache License 2.0 text is retained at `assets/fonts/MaterialSymbols-LICENSE.txt`, and `THIRD_PARTY_NOTICES.md` records the upstream project and local subsetting details.
+
 ## Preserved application rules
 
 Normalize U+0649 to U+06CC and ALEF followed by a quotation mark to ALEF/FATHATAN. Use the reshaper's `Arabic` table for Persian text, retain harakat and tatweel, keep mark shifting off, enable ZWJ, use shaped isolated forms, and retain default ligatures. Replace final HEH plus HAMZA ABOVE with U+FBA5 and apply the seven combined-diacritic substitutions before optional bidi ordering. The plugin enables independent bidi ordering for each hard-separated paragraph so mixed Persian and Latin paragraphs keep their own base direction.
