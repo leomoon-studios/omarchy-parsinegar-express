@@ -11,7 +11,7 @@ The application behavior is pinned to LeoMoon Studios' ParsiNegar commit `09745d
 
 ## Preserved application rules
 
-Normalize U+0649 to U+06CC and ALEF followed by a quotation mark to ALEF/FATHATAN. Use the reshaper's `Arabic` table for Persian text, retain harakat and tatweel, keep mark shifting off, enable ZWJ, use shaped isolated forms, and retain default ligatures. Replace final HEH plus HAMZA ABOVE with U+FBA5 and apply the seven combined-diacritic substitutions before optional whole-input bidi ordering.
+Normalize U+0649 to U+06CC and ALEF followed by a quotation mark to ALEF/FATHATAN. Use the reshaper's `Arabic` table for Persian text, retain harakat and tatweel, keep mark shifting off, enable ZWJ, use shaped isolated forms, and retain default ligatures. Replace final HEH plus HAMZA ABOVE with U+FBA5 and apply the seven combined-diacritic substitutions before optional bidi ordering. The plugin enables independent bidi ordering for each hard-separated paragraph so mixed Persian and Latin paragraphs keep their own base direction.
 
 Both FATHATAN/SHADDA and KASRATAN/SHADDA map to U+FC5F, as in the reference handler. U+FC5E and U+FC5F have duplicate Maryam keys: their first values U+00DE and U+00DD win, respectively. Custom ligatures U+FC62 and U+FC63 have no Maryam entries and are therefore dropped in Compatibility mode. Multi-character mapping values remain intact because mapping occurs after ordering.
 

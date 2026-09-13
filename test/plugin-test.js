@@ -88,6 +88,7 @@ assert.match(settings, /columns: 3[\s\S]*model: root\.controller\.reshaperMetada
 assert.ok(menu.includes('property string shapingProfile: "standardPersianArabic"'));
 assert.ok(menu.includes('readonly property bool hebrewProfile: shapingProfile === "hebrew"'));
 assert.ok(menu.includes('shapingProfile: shapingProfile'));
+assert.ok(menu.includes('autoParagraphDirection: true'));
 assert.match(menu, /text: root\.uiText\("mode\.compatibility"\)[\s\S]*enabled: !root\.hebrewProfile/);
 assert.ok(settings.includes('root.controller.setShapingProfile(modelData.id, true)'));
 assert.ok(settings.includes('settings.hebrewNoticeTitle'));

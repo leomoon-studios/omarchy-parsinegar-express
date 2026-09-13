@@ -136,6 +136,7 @@ FocusScope {
     function conversionOptions() {
         return {
             reverseWords: host.reverseWords,
+            autoParagraphDirection: true,
             videoStudioPro: host.videoStudioPro,
             shapingProfile: shapingProfile,
             reshaperOptions: reshaperSettings

@@ -57,6 +57,35 @@ function test(name, callback) {
     assert.equal(calls, 1);
   });
 
+  test('automatic paragraph direction keeps mixed-script paragraphs independent', () => {
+    assert.equal(
+      core.convert('سلام.\nsalam.\nچطوری؟', 'unicode', {
+        reverseWords: true,
+        autoParagraphDirection: true
+      }, bidi, reshaper),
+      '.ﻡﻼﺳ\nsalam.\n؟ﯼﺭﻮﻄﭼ'
+    );
+  });
+
+  test('automatic paragraph direction preserves hard separators', () => {
+    const calls = [];
+    const ordering = {
+      getDisplay(text) {
+        calls.push(text);
+        return '[' + text + ']';
+      }
+    };
+    const shaper = { reshape(text) { return text; } };
+    assert.equal(
+      core.convert('one\r\ntwo\rthree\u2029four', 'unicode', {
+        reverseWords: true,
+        autoParagraphDirection: true
+      }, ordering, shaper),
+      '[one]\r\n[two]\r[three]\u2029[four]'
+    );
+    assert.deepEqual(calls, ['one', 'two', 'three', 'four']);
+  });
+
   test('custom reshaper settings are copied and passed only during conversion', () => {
     const ligatures = Object.freeze({ 'RIAL SIGN': true, 'ARABIC LIGATURE ALLAH': false });
     const reshaperOptions = Object.freeze({
@@ -156,7 +185,7 @@ function test(name, callback) {
 
   test('modes and options are strict even for empty text', () => {
     for (const mode of [undefined, null, 'Unicode', 'Maryam', '', 0]) assert.throws(() => core.convert('', mode, {}, identity, identity), { name: 'RangeError' });
-    for (const options of [null, [], true, 1, '', new Date(), { unknown: true }, { reverseWords: 1 }, { videoStudioPro: 'false' }, { [Symbol('x')]: true }]) {
+    for (const options of [null, [], true, 1, '', new Date(), { unknown: true }, { reverseWords: 1 }, { videoStudioPro: 'false' }, { autoParagraphDirection: 1 }, { [Symbol('x')]: true }]) {
       assert.throws(() => core.convert('', 'unicode', options, identity, identity), { name: 'TypeError' });
     }
     for (const shapingProfile of ['unknown', null, false, 1]) {
