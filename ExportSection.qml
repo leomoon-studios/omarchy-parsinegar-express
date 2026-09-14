@@ -77,10 +77,15 @@ FocusScope {
         }
         return result
     }
+    function validFillColor(value) {
+        return /^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(String(value).trim())
+    }
     function exportOptions() {
         var bounds = { padding: nonNegativeValue(paddingField, 16) }
         var width = automaticWidth ? undefined : positiveValue(widthField, undefined, false)
         var height = automaticHeight ? undefined : positiveValue(heightField, undefined, false)
+        var fill = String(fillField.text).trim()
+        if (!validFillColor(fill)) throw new Error("INVALID_OPTION")
         if (width !== undefined) bounds.width = width
         if (height !== undefined) bounds.height = height
         var result = {
@@ -88,7 +93,7 @@ FocusScope {
             lineSpacing: positiveValue(lineSpacingField, 1.2, false),
             alignment: alignment,
             bounds: bounds,
-            fill: String(fillField.text).trim() || "#000000",
+            fill: fill,
             precision: nonNegativeValue(precisionField, 3)
         }
         var fontIndex = optionalNonNegativeInteger(fontIndexField)
@@ -353,6 +358,8 @@ FocusScope {
     }
 
     component ValueField: TextField {
+        property bool validValue: true
+
         font.family: root.typography ? root.typography.family : ""
         font.pixelSize: Style.font.body
         color: root.controller ? root.controller.foreground : Color.foreground
@@ -360,7 +367,9 @@ FocusScope {
         selectByMouse: true
         background: Rectangle {
             color: Util.alpha(root.controller ? root.controller.foreground : Color.foreground, 0.03)
-            border.color: parent.activeFocus ? Color.accent : Util.alpha(root.controller ? root.controller.foreground : Color.foreground, 0.25)
+            border.color: !parent.validValue ? Color.urgent
+                : parent.activeFocus ? Color.accent
+                : Util.alpha(root.controller ? root.controller.foreground : Color.foreground, 0.25)
             border.width: Math.max(1, Style.normalBorderWidth)
             radius: Style.cornerRadius
         }
@@ -679,7 +688,14 @@ FocusScope {
                                 Layout.fillWidth: true
                                 Layout.preferredWidth: 0
                                 SectionHeading { Layout.fillWidth: true; label: root.uiText("export.fill"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
-                                ValueField { id: fillField; Layout.fillWidth: true; text: "#000000"; LayoutMirroring.enabled: false; onEditingFinished: root.saveSettings() }
+                                ValueField {
+                                    id: fillField
+                                    Layout.fillWidth: true
+                                    text: "#000000"
+                                    validValue: root.validFillColor(text)
+                                    LayoutMirroring.enabled: false
+                                    onEditingFinished: root.saveSettings()
+                                }
                             }
                         }
 

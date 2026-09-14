@@ -169,7 +169,9 @@ var SvgCurveExporter = (function () {
         if (typeof precision !== "number") fail("INVALID_OPTION", "precision must be a number");
         if (!isFinite(precision) || precision < 0 || precision > 8 || Math.floor(precision) !== precision)
             fail("INVALID_OPTION", "precision must be an integer from 0 to 8");
-        if (options.fill !== undefined && typeof options.fill !== "string") fail("INVALID_OPTION", "fill must be a string");
+        if (options.fill !== undefined && (typeof options.fill !== "string" ||
+            !/^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(options.fill)))
+            fail("INVALID_OPTION", "fill must be a #RRGGBB or #RRGGBBAA hex color");
         if (options.fontIndex !== undefined && (typeof options.fontIndex !== "number" || !isFinite(options.fontIndex) ||
             options.fontIndex < 0 || Math.floor(options.fontIndex) !== options.fontIndex))
             fail("INVALID_OPTION", "fontIndex must be a non-negative integer");

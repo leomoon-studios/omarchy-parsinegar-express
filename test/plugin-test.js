@@ -221,6 +221,9 @@ assert.match(exportSection, /columns: 2[\s\S]*mode\.unicode[\s\S]*mode\.compatib
 assert.ok(exportSection.includes('root.controller.setConversionMode("unicode")'));
 assert.ok(exportSection.includes('root.controller.setConversionMode("compatibility")'));
 for (const option of ['fillField', 'precisionField', 'fontIndexField', 'axesField']) assert.ok(exportSection.includes(option));
+assert.ok(exportSection.includes('function validFillColor(value)'));
+assert.ok(exportSection.includes('validValue: root.validFillColor(text)'));
+assert.ok(exportSection.includes('if (!validFillColor(fill)) throw new Error("INVALID_OPTION")'));
 assert.ok(exportSection.includes('signal backRequested()'));
 assert.doesNotMatch(exportSection, /property bool expanded|root\.expanded/);
 assert.ok(exportSection.includes('root.controller.statusText'));

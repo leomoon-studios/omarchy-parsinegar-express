@@ -30,9 +30,10 @@ for (const options of [
 }
 assert.match(exporter.exportSvg('پ', font, { axes: [400] }, context.Typr, limits), /<svg /);
 const payload = '\"><script>alert(1)</script>&';
-const escaped = exporter.exportSvg('پ', font, { fill: payload }, context.Typr, limits);
-assert.doesNotMatch(escaped, /<script/i);
-assert.ok(escaped.includes('&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;&amp;'));
+assert.throws(() => exporter.exportSvg('پ', font, { fill: payload }, context.Typr, limits),
+    error => error.code === 'INVALID_OPTION');
+assert.match(exporter.exportSvg('پ', font, { fill: '#12345678' }, context.Typr, limits),
+    /fill="#12345678"/);
 
 for (const invalid of [null, undefined, '', 'relative.svg', 'https://example.com/a.svg', 'file://example.com/a.svg', 'file:///tmp/bad%ZZ.svg', 'file:///tmp/%00.svg', '/tmp/bad\0.svg', '/tmp/../outside.svg', 'file:///tmp/%2e%2e/outside.svg']) {
     assert.throws(() => paths.absolute(invalid), error => error.code === 'INVALID_PATH');
