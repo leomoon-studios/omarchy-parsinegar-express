@@ -4,12 +4,13 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const context = vm.createContext({});
-for (const file of ['../vendor/js-parsi-reshaper.js', '../ReshaperSettings.js', '../InterfaceStrings.js']) {
+for (const file of ['../vendor/js-parsi-reshaper.js', '../ReshaperSettings.js', '../TextTools.js', '../InterfaceStrings.js']) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, file), 'utf8'), context, { filename: file });
 }
 const settings = context.ReshaperSettings;
 const metadata = settings.metadata;
 const strings = context.InterfaceStrings;
+const textTools = context.TextTools;
 const plain = value => JSON.parse(JSON.stringify(value));
 assert.deepEqual(plain(metadata.languages), ['Arabic', 'Kurdish']);
 assert.deepEqual(plain(metadata.shapingProfiles), [
@@ -38,6 +39,27 @@ assert.ok(strings.text('en', 'settings.profileDescription.hebrew').includes('bid
 assert.ok(strings.text('fa', 'settings.profileDescription.hebrew').includes('عبری'));
 assert.equal(strings.text('en', 'toggle.reverse'), 'Apply bidi visual ordering');
 assert.equal(strings.text('fa', 'toggle.reverse'), 'اعمال ترتیب نمایشی دوجهته');
+for (const key of ['tools.title', 'tools.intro', 'tools.undo', 'tools.appliedStatus', 'tools.arabicYehToPersian', 'tools.englishDigits']) {
+    assert.notEqual(strings.text('en', key), key, key + ' English');
+    assert.notEqual(strings.text('fa', key), key, key + ' Persian');
+}
+assert.equal(textTools.operations.length, 15);
+assert.equal(textTools.applyOne('يىك', 'arabicYehToPersian'), 'ییك');
+assert.equal(textTools.applyOne('ك', 'arabicKafToPersian'), 'ک');
+assert.equal(textTools.applyOne('123 ٤٥٪ ۱۲٫۳', 'persianDigits'), '۱۲۳ ۴۵٪ ۱۲٫۳');
+assert.equal(textTools.applyOne('۱۲۳ ٤٥٪ ۱۲٫۳', 'englishDigits'), '123 45% 12.3');
+assert.equal(textTools.applyOne('"سلام" and "test"', 'persianQuotes'), '«سلام» and "test"');
+assert.equal(textTools.applyOne('سَلاـمٔ', 'removeDiacritics'), 'سلاـم');
+assert.equal(textTools.applyOne('سلاـم', 'removeTatweel'), 'سلام');
+let textToolState = textTools.withToggled({}, 'persianDigits');
+textToolState = textTools.withToggled(textToolState, 'englishDigits');
+assert.equal(textToolState.persianDigits, false);
+assert.equal(textToolState.englishDigits, true);
+const cleaned = textTools.applyEnabled('ي ك ة "سلام" 12%', {
+    arabicYehToPersian: true, arabicKafToPersian: true, tehMarbutaToHeh: true,
+    persianQuotes: true, persianDigits: true
+});
+assert.equal(cleaned.text, 'ی ک ه «سلام» ۱۲٪');
 for (const key of ['settings.hebrewNoticeTitle', 'settings.hebrewNoticeDescription']) {
     assert.notEqual(strings.text('en', key), key, key + ' English');
     assert.notEqual(strings.text('fa', key), key, key + ' Persian');
@@ -105,11 +127,27 @@ for (const raw of ['', '{', 'null', '[]', '{"schemaVersion":2,"settings":{}}']) 
 }
 const serialized = settings.serialize(metadata, custom);
 assert.ok(!serialized.includes('draftText'));
+assert.ok(!serialized.includes('"language"'));
 const restored = settings.parse(metadata, serialized);
 assert.equal(restored.recovered, false);
 assert.equal(restored.uiLanguage, 'en');
 assert.equal(restored.shapingProfile, 'kurdishUrdu');
 assert.deepEqual(plain(restored.settings), plain(custom));
+assert.deepEqual(plain(restored.textTools), {});
+assert.deepEqual(plain(restored.appState), plain(settings.defaultAppState()));
+const toolsSerialized = settings.serialize(metadata, custom, 'en', 'standardPersianArabic', {
+    persianDigits: true, englishDigits: false, ignored: 'yes'
+});
+assert.deepEqual(plain(settings.parse(metadata, toolsSerialized).textTools), {
+    persianDigits: true, englishDigits: false
+});
+const appStateSerialized = settings.serialize(metadata, custom, 'en', 'standardPersianArabic', {}, {
+    conversionMode: 'compatibility', reverseWords: false, videoStudioPro: true
+});
+assert.deepEqual(plain(settings.parse(metadata, appStateSerialized).appState), {
+    conversionMode: 'compatibility', reverseWords: false, videoStudioPro: true,
+    exportSettings: plain(settings.defaultAppState().exportSettings)
+});
 const persianSerialized = settings.serialize(metadata, custom, 'fa');
 assert.equal(settings.parse(metadata, persianSerialized).uiLanguage, 'fa');
 const legacyArabic = settings.parse(metadata, JSON.stringify({ schemaVersion: 1, settings: { language: 'Arabic' } }));
@@ -129,7 +167,7 @@ assert.equal(invalidProfile.shapingProfile, 'standardPersianArabic');
 assert.equal(invalidProfile.settings.language, 'Arabic');
 const serializedHebrew = settings.serialize(metadata, hebrewSettings.settings, 'en', 'hebrew');
 assert.equal(JSON.parse(serializedHebrew).shapingProfile, 'hebrew');
-assert.equal(settings.parse(metadata, serializedHebrew).settings.language, 'Kurdish');
+assert.equal(settings.parse(metadata, serializedHebrew).settings.language, 'Arabic');
 assert.equal(context.JsParsiReshaper.reshape('ریال', { ligatures: { 'RIAL SIGN': true } }), '﷼');
 assert.notEqual(context.JsParsiReshaper.reshape('ریال', { ligatures: { 'RIAL SIGN': false } }), '﷼');
 assert.equal(context.JsParsiReshaper.reshape('الله', { ligatures: { 'ARABIC LIGATURE ALLAH': true } }), 'ﷲ');

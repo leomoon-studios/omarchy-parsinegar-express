@@ -14,6 +14,7 @@ assert.equal(manifest.barWidget.allowMultiple, false);
 const panel = read('Panel.qml');
 const menu = read('MenuContent.qml');
 const settings = read('SettingsContent.qml');
+const textToolsPage = read('TextToolsPage.qml');
 const headerAction = read('HeaderActionButton.qml');
 const readme = read('README.md');
 assert.ok(fs.existsSync(path.join(root, 'assets/fonts/MaterialSymbolsRounded.ttf')));
@@ -22,6 +23,8 @@ const typography = read('Typography.qml');
 assert.ok(typography.includes('MaterialSymbolsRounded.ttf'));
 assert.ok(typography.includes('readonly property string iconFamily'));
 assert.ok(typography.includes('readonly property string iconExport'));
+assert.ok(typography.includes('readonly property string iconTools'));
+assert.ok(typography.includes('"\\uf10b"'));
 assert.ok(typography.includes('readonly property string iconBack'));
 assert.ok(typography.includes('readonly property string iconForward'));
 assert.ok(panel.includes('Ui.WidgetButton {'));
@@ -38,6 +41,7 @@ assert.ok(!/SvgCurve|typr/i.test(settings));
 assert.doesNotMatch(menu, /import "LibraryAdapter\.js"/);
 assert.ok(menu.includes('import "EditorDirection.js" as Direction'));
 assert.ok(menu.includes('import "ReshaperSettings.js" as Settings'));
+assert.ok(menu.includes('import "TextTools.js" as TextTools'));
 assert.ok(menu.includes('component ActionButton: Ui.Button'));
 assert.ok(menu.includes('component ConvertButton: Ui.Button'));
 assert.ok(menu.includes('component ModeCard: Item'));
@@ -93,6 +97,13 @@ assert.ok(menu.includes('HeaderActionButton'));
 assert.ok(headerAction.includes('Ui.PanelActionButton'));
 assert.ok(menu.includes('id: exportHeaderButton'));
 assert.ok(menu.includes('id: settingsHeaderButton'));
+assert.ok(menu.includes('id: textToolsHeaderButton'));
+assert.ok(menu.includes('function openTextTools()'));
+assert.ok(menu.includes('page === "tools"'));
+assert.ok(menu.includes('function applyTextToolsToSource()'));
+assert.ok(menu.includes('var prepared = applyTextToolsToSource()'));
+assert.ok(menu.includes('TextTools.TextTools.copyState(result.textTools)'));
+assert.ok(menu.includes('TextTools.TextTools.copyState(host ? host.textTools : {})'));
 assert.ok(menu.includes('root.openExport()'));
 assert.ok(menu.includes('root.openSettings()'));
 assert.ok(!menu.includes('width: parent.width\n                    text: root.uiText("button.settings")'));
@@ -151,7 +162,7 @@ for (const source of [panel, read('Typography.qml'), read('LetterBadge.qml'), he
     assert.ok(!/\b(?:Timer|Process|FileView)\s*\{|Quickshell\.exec/.test(source));
 }
 for (const source of [menu, settings]) assert.ok(!/\bTimer\s*\{|Quickshell\.exec/.test(source));
-for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'InterfaceStrings.js', 'ResourceLimits.js', 'LocalPath.js', 'BusySpinner.qml', 'HeaderActionButton.qml', 'SettingsContent.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
+for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'TextTools.js', 'InterfaceStrings.js', 'ResourceLimits.js', 'LocalPath.js', 'BusySpinner.qml', 'HeaderActionButton.qml', 'SectionHeading.qml', 'SettingsContent.qml', 'TextToolsPage.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
     assert.ok(fs.statSync(path.join(root, file)).isFile(), file);
 }
 const curveController = read('SvgCurveExportController.qml');
@@ -168,6 +179,13 @@ assert.ok(curveController.includes('signal exported(string path, var warnings)')
 assert.equal((curveController.match(/\bWorkerScript\s*\{/g) || []).length, 1);
 assert.doesNotMatch(curveController, /\b(?:Timer|Process|Connections)\s*\{|Quickshell\.exec|setInterval|setTimeout|fetch\s*\(/);
 const exportSection = read('ExportSection.qml');
+assert.ok(textToolsPage.includes('ScrollView'));
+assert.ok(textToolsPage.includes('LayoutMirroring.enabled: controller.uiLanguage === "fa"'));
+assert.ok(textToolsPage.includes('TextTools.TextTools.groups(group)'));
+assert.ok(textToolsPage.includes('root.controller.toggleTextTool(modelData.id)'));
+assert.ok(textToolsPage.includes('font.pixelSize: Style.font.body'));
+assert.ok(textToolsPage.includes('objectName: "textToolsBackButton"'));
+assert.ok(read('SectionHeading.qml').includes('font.pixelSize: Style.font.body'));
 assert.ok(exportSection.includes('import "ResourceLimits.js" as Limits'));
 assert.ok(exportSection.includes('import "LocalPath.js" as Paths'));
 assert.doesNotMatch(exportSection, /--confirm-overwrite/);
@@ -187,8 +205,8 @@ assert.ok(exportSection.includes('exportScroll.ScrollBar.vertical.width + Style.
 assert.ok(exportSection.includes('ScrollBar.vertical.policy: ScrollBar.AsNeeded'));
 assert.match(exportSection, /LayoutMirroring\.enabled: false[\s\S]*export\.alignLeft[\s\S]*export\.alignCenter[\s\S]*export\.alignRight/);
 assert.match(exportSection, /columns: 2[\s\S]*mode\.unicode[\s\S]*mode\.compatibility/);
-assert.ok(exportSection.includes('root.host.conversionMode = "unicode"'));
-assert.ok(exportSection.includes('root.host.conversionMode = "compatibility"'));
+assert.ok(exportSection.includes('root.controller.setConversionMode("unicode")'));
+assert.ok(exportSection.includes('root.controller.setConversionMode("compatibility")'));
 for (const option of ['fillField', 'precisionField', 'fontIndexField', 'axesField']) assert.ok(exportSection.includes(option));
 assert.ok(exportSection.includes('signal backRequested()'));
 assert.doesNotMatch(exportSection, /property bool expanded|root\.expanded/);

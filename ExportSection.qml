@@ -101,6 +101,45 @@ FocusScope {
             (bounds.height !== undefined && bounds.height > limits.maxDimension) || result.precision > 8) throw new Error("INVALID_OPTION")
         return result
     }
+    function loadSavedSettings(value) {
+        var settings = value || ({})
+        advancedExpanded = settings.advancedExpanded === true
+        automaticWidth = settings.automaticWidth !== false
+        automaticHeight = settings.automaticHeight !== false
+        unicodeFontPath = settings.unicodeFontPath || bundledUnicodeFontPath
+        compatibilityFontPath = settings.compatibilityFontPath || ""
+        alignment = ["left", "center", "right"].indexOf(settings.alignment) !== -1 ? settings.alignment : "right"
+        fontSizeField.text = settings.fontSize === undefined ? "48" : settings.fontSize
+        lineSpacingField.text = settings.lineSpacing === undefined ? "1.2" : settings.lineSpacing
+        widthField.text = settings.width === undefined ? "800" : settings.width
+        heightField.text = settings.height === undefined ? "300" : settings.height
+        paddingField.text = settings.padding === undefined ? "16" : settings.padding
+        precisionField.text = settings.precision === undefined ? "3" : settings.precision
+        fontIndexField.text = settings.fontIndex || ""
+        fillField.text = settings.fill || "#000000"
+        axesField.text = settings.axes || ""
+    }
+    function saveSettings() {
+        if (!host || !controller || !controller.settingsReady) return
+        host.exportSettings = {
+            advancedExpanded: advancedExpanded,
+            automaticWidth: automaticWidth,
+            automaticHeight: automaticHeight,
+            unicodeFontPath: unicodeFontPath === bundledUnicodeFontPath ? "" : unicodeFontPath,
+            compatibilityFontPath: compatibilityFontPath,
+            alignment: alignment,
+            fontSize: fontSizeField.text,
+            lineSpacing: lineSpacingField.text,
+            width: widthField.text,
+            height: heightField.text,
+            padding: paddingField.text,
+            precision: precisionField.text,
+            fontIndex: fontIndexField.text,
+            fill: fillField.text,
+            axes: axesField.text
+        }
+        controller.saveSettings()
+    }
     function reportError(code, message, details) {
         var key = "export.error.generic"
         if (code === "INVALID_OPTION") key = "export.error.invalidOption"
@@ -181,6 +220,7 @@ FocusScope {
                     setHostPickerActive(false)
                     if (activeMode === "compatibility") compatibilityFontPath = output
                     else unicodeFontPath = output
+                    saveSettings()
                     controller.setExportStatus("", false)
                 } else continueExport(svgPath(output))
             } catch (error) {
@@ -381,13 +421,12 @@ FocusScope {
                         anchors.margins: Style.space(12)
                         spacing: Style.space(8)
 
-                        Text {
+                        SectionHeading {
                             width: parent.width
-                            text: root.uiText("export.mode")
-                            color: Color.muted
-                            font.family: root.typography ? root.typography.family : ""
-                            font.pixelSize: Style.font.caption
-                            font.bold: true
+                            label: root.uiText("export.mode")
+                            foreground: root.controller ? root.controller.foreground : Color.foreground
+                            fontFamily: root.typography ? root.typography.family : ""
+                            rightToLeft: root.controller && root.controller.uiLanguage === "fa"
                         }
 
                         GridLayout {
@@ -401,7 +440,7 @@ FocusScope {
                                 text: root.uiText("mode.unicode")
                                 selected: root.activeMode === "unicode"
                                 enabled: !root.exportBusy
-                                onClicked: root.host.conversionMode = "unicode"
+                                onClicked: root.controller.setConversionMode("unicode")
                             }
                             ActionButton {
                                 Layout.fillWidth: true
@@ -409,17 +448,16 @@ FocusScope {
                                 text: root.uiText("mode.compatibility")
                                 selected: root.activeMode === "compatibility"
                                 enabled: !root.exportBusy && !root.controller.hebrewProfile
-                                onClicked: root.host.conversionMode = "compatibility"
+                                onClicked: root.controller.setConversionMode("compatibility")
                             }
                         }
 
-                        Text {
+                        SectionHeading {
                             width: parent.width
-                            text: root.uiText("export.font")
-                            color: Color.muted
-                            font.family: root.typography ? root.typography.family : ""
-                            font.pixelSize: Style.font.caption
-                            font.bold: true
+                            label: root.uiText("export.font")
+                            foreground: root.controller ? root.controller.foreground : Color.foreground
+                            fontFamily: root.typography ? root.typography.family : ""
+                            rightToLeft: root.controller && root.controller.uiLanguage === "fa"
                         }
 
                         RowLayout {
@@ -443,7 +481,10 @@ FocusScope {
                                 visible: root.activeMode === "unicode" && Paths.LocalPath.absolute(root.unicodeFontPath) !== Paths.LocalPath.absolute(root.bundledUnicodeFontPath)
                                 text: root.uiText("export.useBundledFont")
                                 enabled: !root.exportBusy
-                                onClicked: root.unicodeFontPath = root.bundledUnicodeFontPath
+                                onClicked: {
+                                    root.unicodeFontPath = root.bundledUnicodeFontPath
+                                    root.saveSettings()
+                                }
                             }
                         }
                     }
@@ -474,36 +515,36 @@ FocusScope {
                                 Layout.fillWidth: true
                                 Layout.preferredWidth: 0
                                 spacing: Style.space(4)
-                                Text {
+                                SectionHeading {
                                     Layout.fillWidth: true
-                                    text: root.uiText("export.fontSize")
-                                    color: Color.muted
-                                    font.family: root.typography ? root.typography.family : ""
-                                    font.pixelSize: Style.font.body
+                                    label: root.uiText("export.fontSize")
+                                    foreground: root.controller ? root.controller.foreground : Color.foreground
+                                    fontFamily: root.typography ? root.typography.family : ""
+                                    rightToLeft: root.controller && root.controller.uiLanguage === "fa"
                                 }
-                                NumberField { id: fontSizeField; Layout.fillWidth: true; text: "48" }
+                                NumberField { id: fontSizeField; Layout.fillWidth: true; text: "48"; onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 Layout.preferredWidth: 0
                                 spacing: Style.space(4)
-                                Text {
+                                SectionHeading {
                                     Layout.fillWidth: true
-                                    text: root.uiText("export.lineSpacing")
-                                    color: Color.muted
-                                    font.family: root.typography ? root.typography.family : ""
-                                    font.pixelSize: Style.font.body
+                                    label: root.uiText("export.lineSpacing")
+                                    foreground: root.controller ? root.controller.foreground : Color.foreground
+                                    fontFamily: root.typography ? root.typography.family : ""
+                                    rightToLeft: root.controller && root.controller.uiLanguage === "fa"
                                 }
-                                NumberField { id: lineSpacingField; Layout.fillWidth: true; text: "1.2" }
+                                NumberField { id: lineSpacingField; Layout.fillWidth: true; text: "1.2"; onEditingFinished: root.saveSettings() }
                             }
                         }
 
-                        Text {
+                        SectionHeading {
                             width: parent.width
-                            text: root.uiText("export.alignment")
-                            color: Color.muted
-                            font.family: root.typography ? root.typography.family : ""
-                            font.pixelSize: Style.font.body
+                            label: root.uiText("export.alignment")
+                            foreground: root.controller ? root.controller.foreground : Color.foreground
+                            fontFamily: root.typography ? root.typography.family : ""
+                            rightToLeft: root.controller && root.controller.uiLanguage === "fa"
                         }
 
                         GridLayout {
@@ -512,9 +553,9 @@ FocusScope {
                             LayoutMirroring.childrenInherit: false
                             columns: 3
                             columnSpacing: Style.space(6)
-                            ActionButton { Layout.fillWidth: true; Layout.preferredWidth: 0; text: root.uiText("export.alignLeft"); selected: root.alignment === "left"; onClicked: root.alignment = "left" }
-                            ActionButton { Layout.fillWidth: true; Layout.preferredWidth: 0; text: root.uiText("export.alignCenter"); selected: root.alignment === "center"; onClicked: root.alignment = "center" }
-                            ActionButton { Layout.fillWidth: true; Layout.preferredWidth: 0; text: root.uiText("export.alignRight"); selected: root.alignment === "right"; onClicked: root.alignment = "right" }
+                            ActionButton { Layout.fillWidth: true; Layout.preferredWidth: 0; text: root.uiText("export.alignLeft"); selected: root.alignment === "left"; onClicked: { root.alignment = "left"; root.saveSettings() } }
+                            ActionButton { Layout.fillWidth: true; Layout.preferredWidth: 0; text: root.uiText("export.alignCenter"); selected: root.alignment === "center"; onClicked: { root.alignment = "center"; root.saveSettings() } }
+                            ActionButton { Layout.fillWidth: true; Layout.preferredWidth: 0; text: root.uiText("export.alignRight"); selected: root.alignment === "right"; onClicked: { root.alignment = "right"; root.saveSettings() } }
                         }
 
                         ActionButton {
@@ -522,7 +563,7 @@ FocusScope {
                             text: root.uiText(root.advancedExpanded ? "export.fewerOptions" : "export.moreOptions") + (root.advancedExpanded ? "  ▲" : "  ▼")
                             selected: root.advancedExpanded
                             enabled: !root.exportBusy
-                            onClicked: root.advancedExpanded = !root.advancedExpanded
+                            onClicked: { root.advancedExpanded = !root.advancedExpanded; root.saveSettings() }
                         }
 
                         GridLayout {
@@ -533,12 +574,12 @@ FocusScope {
                             rowSpacing: Style.space(8)
 
                             Text { text: root.uiText("export.width"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
-                            NumberField { id: widthField; Layout.fillWidth: true; text: "800"; enabled: !root.automaticWidth }
-                            ActionButton { text: root.uiText("export.auto"); selected: root.automaticWidth; onClicked: root.automaticWidth = !root.automaticWidth }
+                            NumberField { id: widthField; Layout.fillWidth: true; text: "800"; enabled: !root.automaticWidth; onEditingFinished: root.saveSettings() }
+                            ActionButton { text: root.uiText("export.auto"); selected: root.automaticWidth; onClicked: { root.automaticWidth = !root.automaticWidth; root.saveSettings() } }
 
                             Text { text: root.uiText("export.height"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
-                            NumberField { id: heightField; Layout.fillWidth: true; text: "300"; enabled: !root.automaticHeight }
-                            ActionButton { text: root.uiText("export.auto"); selected: root.automaticHeight; onClicked: root.automaticHeight = !root.automaticHeight }
+                            NumberField { id: heightField; Layout.fillWidth: true; text: "300"; enabled: !root.automaticHeight; onEditingFinished: root.saveSettings() }
+                            ActionButton { text: root.uiText("export.auto"); selected: root.automaticHeight; onClicked: { root.automaticHeight = !root.automaticHeight; root.saveSettings() } }
                         }
 
                         GridLayout {
@@ -551,22 +592,22 @@ FocusScope {
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 Text { text: root.uiText("export.padding"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
-                                NumberField { id: paddingField; Layout.fillWidth: true; text: "16" }
+                                NumberField { id: paddingField; Layout.fillWidth: true; text: "16"; onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 Text { text: root.uiText("export.precision"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
-                                NumberField { id: precisionField; Layout.fillWidth: true; text: "3" }
+                                NumberField { id: precisionField; Layout.fillWidth: true; text: "3"; onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 Text { text: root.uiText("export.fontIndex"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
-                                NumberField { id: fontIndexField; Layout.fillWidth: true; placeholderText: root.uiText("export.default") }
+                                NumberField { id: fontIndexField; Layout.fillWidth: true; placeholderText: root.uiText("export.default"); onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 Text { text: root.uiText("export.fill"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
-                                ValueField { id: fillField; Layout.fillWidth: true; text: "#000000"; LayoutMirroring.enabled: false }
+                                ValueField { id: fillField; Layout.fillWidth: true; text: "#000000"; LayoutMirroring.enabled: false; onEditingFinished: root.saveSettings() }
                             }
                         }
 
@@ -575,7 +616,7 @@ FocusScope {
                             visible: root.advancedExpanded
                             spacing: Style.space(4)
                             Text { Layout.fillWidth: true; text: root.uiText("export.axes"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
-                            ValueField { id: axesField; Layout.fillWidth: true; placeholderText: root.uiText("export.axesHint"); LayoutMirroring.enabled: false }
+                            ValueField { id: axesField; Layout.fillWidth: true; placeholderText: root.uiText("export.axesHint"); LayoutMirroring.enabled: false; onEditingFinished: root.saveSettings() }
                         }
                     }
                 }

@@ -105,13 +105,12 @@ FocusScope {
                 width: settingsScroll.availableWidth
                 spacing: Style.space(10)
 
-                Text {
+                SectionHeading {
                     width: parent.width
-                    text: root.uiText("settings.interfaceLanguage")
-                    color: Qt.darker(root.foreground, 1.45)
-                    font.family: root.fontFamily
-                    font.pixelSize: Style.font.caption
-                    font.bold: true
+                    label: root.uiText("settings.interfaceLanguage")
+                    foreground: root.foreground
+                    fontFamily: root.fontFamily
+                    rightToLeft: root.controller.uiLanguage === "fa"
                 }
 
                 Text {
@@ -140,13 +139,12 @@ FocusScope {
                     }
                 }
 
-                Text {
+                SectionHeading {
                     width: parent.width
-                    text: root.uiText("settings.language")
-                    color: Qt.darker(root.foreground, 1.45)
-                    font.family: root.fontFamily
-                    font.pixelSize: Style.font.caption
-                    font.bold: true
+                    label: root.uiText("settings.language")
+                    foreground: root.foreground
+                    fontFamily: root.fontFamily
+                    rightToLeft: root.controller.uiLanguage === "fa"
                 }
 
                 GridLayout {
@@ -175,13 +173,12 @@ FocusScope {
                     wrapMode: Text.WordWrap
                 }
 
-                Text {
+                SectionHeading {
                     width: parent.width
-                    text: root.uiText("settings.textShaping")
-                    color: Qt.darker(root.foreground, 1.45)
-                    font.family: root.fontFamily
-                    font.pixelSize: Style.font.caption
-                    font.bold: true
+                    label: root.uiText("settings.textShaping")
+                    foreground: root.foreground
+                    fontFamily: root.fontFamily
+                    rightToLeft: root.controller.uiLanguage === "fa"
                 }
 
                 Ui.Toggle {
@@ -192,7 +189,7 @@ FocusScope {
                     foreground: root.foreground
                     accent: Color.accent
                     fontFamily: root.fontFamily
-                    onClicked: if (root.controller.host) root.controller.host.reverseWords = !root.controller.host.reverseWords
+                    onClicked: root.controller.setReverseWords(!root.controller.host.reverseWords)
                 }
 
                 Rectangle {
@@ -240,7 +237,7 @@ FocusScope {
                     foreground: root.foreground
                     accent: Color.accent
                     fontFamily: root.fontFamily
-                    onClicked: if (root.controller.host) root.controller.host.videoStudioPro = !root.controller.host.videoStudioPro
+                    onClicked: root.controller.setVideoStudioPro(!root.controller.host.videoStudioPro)
                 }
 
                 Ui.Toggle {
@@ -310,14 +307,13 @@ FocusScope {
                     onClicked: root.controller.toggleBaseOption("supportLigatures")
                 }
 
-                Text {
+                SectionHeading {
                     width: parent.width
                     visible: !root.controller.hebrewProfile
-                    text: root.uiText("settings.namedLigatures")
-                    color: Qt.darker(root.foreground, 1.45)
-                    font.family: root.fontFamily
-                    font.pixelSize: Style.font.caption
-                    font.bold: true
+                    label: root.uiText("settings.namedLigatures")
+                    foreground: root.foreground
+                    fontFamily: root.fontFamily
+                    rightToLeft: root.controller.uiLanguage === "fa"
                 }
 
                 Text {

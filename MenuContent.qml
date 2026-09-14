@@ -7,6 +7,7 @@ import qs.Ui as Ui
 import qs.Commons
 import "EditorDirection.js" as Direction
 import "ReshaperSettings.js" as Settings
+import "TextTools.js" as TextTools
 import "InterfaceStrings.js" as Strings
 import "ResourceLimits.js" as Limits
 
@@ -19,7 +20,8 @@ FocusScope {
     readonly property alias editorPageScroll: formScroll
     readonly property Item focusItem: page === "settings"
         ? settingsContent.focusItem
-        : page === "export" ? exportSection.focusItem : editor
+        : page === "export" ? exportSection.focusItem
+        : page === "tools" ? textToolsPage.focusItem : editor
     readonly property string sourceText: conversionText()
     readonly property color foreground: host && host.bar ? host.bar.foreground : Color.foreground
     readonly property string fontFamily: typography ? typography.family : ""
@@ -34,7 +36,7 @@ FocusScope {
     property int settingsRevision: 0
     property bool settingsReady: false
     property string page: "editor"
-    implicitHeight: page === "settings" || page === "export"
+    implicitHeight: page === "settings" || page === "export" || page === "tools"
         ? Style.space(500)
         : editorHeader.implicitHeight + Style.space(14) + formColumn.implicitHeight
     property bool busy: false
@@ -46,6 +48,8 @@ FocusScope {
     property bool statusWarning: false
     property bool formattingEditor: false
     property string editorDirectionSignature: ""
+    property string textToolsUndoText: ""
+    property var lastAppliedTextTools: []
     signal closeRequested()
     signal exportConversionReady(string output)
     signal exportConversionFailed(string code, string message)
@@ -109,17 +113,53 @@ FocusScope {
             Limits.ResourceLimits.assertSettingsSize(raw)
             result = Settings.ReshaperSettings.parse(reshaperMetadata, raw)
         } catch (error) {
-            result = { settings: Settings.ReshaperSettings.defaults(reshaperMetadata), shapingProfile: "standardPersianArabic", uiLanguage: "en", recovered: true }
+            result = { settings: Settings.ReshaperSettings.defaults(reshaperMetadata), shapingProfile: "standardPersianArabic", uiLanguage: "en", textTools: {}, appState: Settings.ReshaperSettings.defaultAppState(), recovered: true }
         }
         if (result.recovered) console.warn("ParsiNegar Express: resetting invalid settings")
         uiLanguage = result.uiLanguage
         shapingProfile = Settings.ReshaperSettings.sanitizeShapingProfile(reshaperMetadata, result.shapingProfile)
+        applyAppState(result.appState)
+        if (host) host.textTools = TextTools.TextTools.copyState(result.textTools)
         applySettings(result.settings, result.recovered)
         ensureProfileMode()
     }
     function saveSettings() {
         if (!settingsReady) return
-        settingsFile.setText(Settings.ReshaperSettings.serialize(reshaperMetadata, reshaperSettings, uiLanguage, shapingProfile))
+        settingsFile.setText(Settings.ReshaperSettings.serialize(
+            reshaperMetadata, reshaperSettings, uiLanguage, shapingProfile,
+            TextTools.TextTools.copyState(host ? host.textTools : {}), appState()))
+    }
+    function appState() {
+        return {
+            conversionMode: host ? host.conversionMode : "unicode",
+            reverseWords: host ? host.reverseWords : true,
+            videoStudioPro: host ? host.videoStudioPro : false,
+            exportSettings: host ? host.exportSettings : ({})
+        }
+    }
+    function applyAppState(value) {
+        var state = Settings.ReshaperSettings.sanitizeAppState(value)
+        if (!host) return
+        host.conversionMode = state.conversionMode
+        host.reverseWords = state.reverseWords
+        host.videoStudioPro = state.videoStudioPro
+        host.exportSettings = state.exportSettings
+    }
+    function setConversionMode(value) {
+        if (!host || (value !== "unicode" && value !== "compatibility") || (value === "compatibility" && hebrewProfile)) return
+        if (host.conversionMode === value) return
+        host.conversionMode = value
+        saveSettings()
+    }
+    function setReverseWords(value) {
+        if (!host || host.reverseWords === value) return
+        host.reverseWords = value
+        saveSettings()
+    }
+    function setVideoStudioPro(value) {
+        if (!host || host.videoStudioPro === value) return
+        host.videoStudioPro = value
+        saveSettings()
     }
     function setUiLanguage(language) {
         var next = Settings.ReshaperSettings.sanitizeUiLanguage(language)
@@ -142,7 +182,10 @@ FocusScope {
     }
     function setShapingLanguage(language) { setShapingProfile(profileForLanguage(language), true) }
     function ensureProfileMode() {
-        if (hebrewProfile && host && host.conversionMode !== "unicode") host.conversionMode = "unicode"
+        if (hebrewProfile && host && host.conversionMode !== "unicode") {
+            host.conversionMode = "unicode"
+            if (settingsReady) saveSettings()
+        }
     }
     function setBaseOption(name, value) {
         if (baseOption(name) === value) return
@@ -163,6 +206,7 @@ FocusScope {
         ensureProfileMode()
     }
     function initialize() {
+        if (host) host.textTools = TextTools.TextTools.copyState(host.textTools)
         if (host && host.reshaperSettingsLoaded) {
             uiLanguage = Settings.ReshaperSettings.sanitizeUiLanguage(host.uiLanguage)
             shapingProfile = Settings.ReshaperSettings.sanitizeShapingProfile(
@@ -186,8 +230,44 @@ FocusScope {
     function openExport() {
         page = "export"
         Qt.callLater(function() {
-            if (page === "export") exportSection.focusPage()
+            if (page === "export") {
+                exportSection.loadSavedSettings(host ? host.exportSettings : {})
+                exportSection.focusPage()
+            }
         })
+    }
+    function openTextTools() {
+        page = "tools"
+        Qt.callLater(function() {
+            if (page === "tools") textToolsPage.focusPage()
+        })
+    }
+    function textToolEnabled(id) { return host && host.textTools && host.textTools[id] === true }
+    function toggleTextTool(id) {
+        if (!host) return
+        host.textTools = TextTools.TextTools.withToggled(host.textTools, id)
+        saveSettings()
+    }
+    function applyTextToolsToSource() {
+        var input = conversionText()
+        var result = TextTools.TextTools.applyEnabled(input, host ? host.textTools : {})
+        lastAppliedTextTools = result.applied
+        if (result.text === input) return result
+        textToolsUndoText = input
+        reformatEditor(result.text)
+        if (host) host.draftText = result.text
+        return result
+    }
+    function undoTextTools() {
+        if (textToolsUndoText === "") return
+        var previous = textToolsUndoText
+        textToolsUndoText = ""
+        reformatEditor(previous)
+        if (host) host.draftText = previous
+        statusError = false
+        statusWarning = false
+        statusText = uiText("tools.undoStatus")
+        focusEditor()
     }
     function conversionOptions() {
         return {
@@ -225,8 +305,9 @@ FocusScope {
     function convertAndCopy() {
         if (conversionInFlight || exportSection.exportBusy || !settingsReady || !host || !host.opened || !typography || !typography.ready) return
         ensureProfileMode()
+        var prepared = applyTextToolsToSource()
         try {
-            Limits.ResourceLimits.assertTextLength(sourceText, Limits.ResourceLimits.values.maxConversionTextLength, "CONVERSION_TEXT_TOO_LARGE")
+            Limits.ResourceLimits.assertTextLength(prepared.text, Limits.ResourceLimits.values.maxConversionTextLength, "CONVERSION_TEXT_TOO_LARGE")
         } catch (error) {
             statusError = true
             statusWarning = false
@@ -243,7 +324,7 @@ FocusScope {
         focusEditor()
         conversionWorker.sendMessage({
             id: conversionRequestId,
-            text: sourceText,
+            text: prepared.text,
             mode: host.conversionMode,
             options: conversionOptions(),
             maxOutputLength: Limits.ResourceLimits.values.maxConversionTextLength,
@@ -264,7 +345,9 @@ FocusScope {
             Quickshell.clipboardText = message.output
             statusError = false
             statusWarning = false
-            statusText = uiText("status.converted")
+            statusText = lastAppliedTextTools.length
+                ? uiText("status.converted") + " " + uiText("tools.appliedStatus")
+                : uiText("status.converted")
         } else if (purpose === "export") {
             exportConversionFailed(message.code || "CONVERSION_FAILED", message.message || "Conversion failed")
         } else {
@@ -284,6 +367,7 @@ FocusScope {
     Keys.onEscapePressed: function(event) {
         if (page === "settings") focusEditor()
         else if (page === "export" && !exportSection.exportBusy) focusEditor()
+        else if (page === "tools") focusEditor()
         else root.closeRequested()
         event.accepted = true
     }
@@ -491,6 +575,23 @@ FocusScope {
             }
 
             HeaderActionButton {
+                id: textToolsHeaderButton
+                objectName: "textToolsButton"
+                iconText: root.typography ? root.typography.iconTools : "\uf10b"
+                fontFamily: root.iconFontFamily
+                fontSize: Style.font.heading
+                size: Style.space(42)
+                enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
+                toolTipText: root.uiText("tools.title")
+                toolTipFontFamily: root.fontFamily
+                Accessible.name: root.uiText("tools.title")
+                onClicked: {
+                    pointerHovered = false
+                    root.openTextTools()
+                }
+            }
+
+            HeaderActionButton {
                 id: exportHeaderButton
                 objectName: "exportButton"
                 iconText: root.typography ? root.typography.iconExport : "\ue2c4"
@@ -624,7 +725,7 @@ FocusScope {
                             title: root.uiText("mode.unicode")
                             description: root.uiText("mode.unicodeDescription")
                             selected: root.host && root.host.conversionMode === "unicode"
-                            onClicked: root.host.conversionMode = "unicode"
+                            onClicked: root.setConversionMode("unicode")
                         }
                         ModeCard {
                             Layout.fillWidth: true
@@ -635,7 +736,7 @@ FocusScope {
                             description: root.uiText("mode.compatibilityDescription")
                             selected: root.host && root.host.conversionMode === "compatibility"
                             enabled: !root.hebrewProfile
-                            onClicked: if (!root.hebrewProfile) root.host.conversionMode = "compatibility"
+                            onClicked: root.setConversionMode("compatibility")
                         }
                     }
 
@@ -692,6 +793,16 @@ FocusScope {
         enabled: visible
         controller: root
         host: root.host
+        typography: root.typography
+        onBackRequested: root.focusEditor()
+    }
+
+    TextToolsPage {
+        id: textToolsPage
+        anchors.fill: parent
+        visible: root.page === "tools"
+        enabled: visible
+        controller: root
         typography: root.typography
         onBackRequested: root.focusEditor()
     }

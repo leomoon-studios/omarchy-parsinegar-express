@@ -20,6 +20,9 @@ Ui.Panel {
     property var reshaperSettings: ({})
     property string shapingProfile: "standardPersianArabic"
     property string uiLanguage: "en"
+    // Text Tool choices survive menu closure but remain independent of reshaper settings.
+    property var textTools: ({})
+    property var exportSettings: ({})
     // Keep the menu loaded, but move its popup out of the way while an
     // out-of-process desktop file chooser owns the keyboard focus.
     property bool filePickerActive: false

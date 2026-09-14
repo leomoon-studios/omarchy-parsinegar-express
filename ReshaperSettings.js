@@ -1491,6 +1491,50 @@ var ReshaperSettings = (function () {
       Object.prototype.toString.call(value) === "[object Object]";
   }
   function copy(value) { return JSON.parse(JSON.stringify(value)); }
+  function sanitizeTextTools(value) {
+    var result = {};
+    if (!object(value)) return result;
+    Object.keys(value).forEach(function (name) {
+      if (typeof value[name] === "boolean") result[name] = value[name];
+    });
+    return result;
+  }
+  function defaultAppState() {
+    return {
+      conversionMode: "unicode", reverseWords: true, videoStudioPro: false,
+      exportSettings: {
+        advancedExpanded: false, automaticWidth: true, automaticHeight: true,
+        unicodeFontPath: "", compatibilityFontPath: "", alignment: "right",
+        fontSize: "48", lineSpacing: "1.2", width: "800", height: "300",
+        padding: "16", precision: "3", fontIndex: "", fill: "#000000", axes: ""
+      }
+    };
+  }
+  function savedText(value, fallback) {
+    return typeof value === "string" && value.length <= 4096 ? value : fallback;
+  }
+  function sanitizeExportSettings(value) {
+    var defaults = defaultAppState().exportSettings;
+    var result = copy(defaults);
+    if (!object(value)) return result;
+    ["advancedExpanded", "automaticWidth", "automaticHeight"].forEach(function (name) {
+      if (typeof value[name] === "boolean") result[name] = value[name];
+    });
+    if (["left", "center", "right"].indexOf(value.alignment) !== -1) result.alignment = value.alignment;
+    ["unicodeFontPath", "compatibilityFontPath", "fontSize", "lineSpacing", "width", "height", "padding", "precision", "fontIndex", "fill", "axes"].forEach(function (name) {
+      result[name] = savedText(value[name], result[name]);
+    });
+    return result;
+  }
+  function sanitizeAppState(value) {
+    var result = defaultAppState();
+    if (!object(value)) return result;
+    if (value.conversionMode === "unicode" || value.conversionMode === "compatibility") result.conversionMode = value.conversionMode;
+    if (typeof value.reverseWords === "boolean") result.reverseWords = value.reverseWords;
+    if (typeof value.videoStudioPro === "boolean") result.videoStudioPro = value.videoStudioPro;
+    result.exportSettings = sanitizeExportSettings(value.exportSettings);
+    return result;
+  }
   function sanitizeUiLanguage(value) { return value === "fa" ? "fa" : "en"; }
   function profileForLanguage(language) { return language === "Kurdish" ? "kurdishUrdu" : "standardPersianArabic"; }
   function profileLanguage(metadata, profile) {
@@ -1540,25 +1584,31 @@ var ReshaperSettings = (function () {
         settings: settings,
         shapingProfile: shapingProfile,
         uiLanguage: sanitizeUiLanguage(document.uiLanguage),
+        textTools: sanitizeTextTools(document.textTools),
+        appState: sanitizeAppState(document.appState),
         recovered: false
       };
     } catch (error) {
-      return { settings: defaults(metadata), shapingProfile: "standardPersianArabic", uiLanguage: "en", recovered: true };
+      return { settings: defaults(metadata), shapingProfile: "standardPersianArabic", uiLanguage: "en", textTools: {}, appState: defaultAppState(), recovered: true };
     }
   }
-  function serialize(metadata, value, uiLanguage, shapingProfile) {
+  function serialize(metadata, value, uiLanguage, shapingProfile, textTools, appState) {
     var settings = sanitize(metadata, value);
     var profile = sanitizeShapingProfile(metadata, shapingProfile, settings.language);
     var language = profileLanguage(metadata, profile);
     if (language !== null) settings.language = language;
+    delete settings.language;
     return JSON.stringify({
       schemaVersion: 1,
       uiLanguage: sanitizeUiLanguage(uiLanguage),
       shapingProfile: profile,
+      textTools: sanitizeTextTools(textTools),
+      appState: sanitizeAppState(appState),
       settings: settings
     }, null, 2) + "\n";
   }
   return Object.freeze({ metadata: metadata, flags: flags, copy: copy, defaults: defaults, sanitize: sanitize,
     sanitizeUiLanguage: sanitizeUiLanguage, sanitizeShapingProfile: sanitizeShapingProfile,
-    profileForLanguage: profileForLanguage, profileLanguage: profileLanguage, parse: parse, serialize: serialize });
+    profileForLanguage: profileForLanguage, profileLanguage: profileLanguage, sanitizeTextTools: sanitizeTextTools,
+    defaultAppState: defaultAppState, sanitizeAppState: sanitizeAppState, parse: parse, serialize: serialize });
 }());

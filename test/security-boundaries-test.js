@@ -51,6 +51,10 @@ assert.equal(parsedSettings.recovered, false);
 assert.equal(Object.prototype.polluted, undefined);
 assert.equal(parsedSettings.settings.polluted, undefined);
 assert.equal(parsedSettings.settings.ligatures.polluted, undefined);
+const hostileToolSettings = '{"schemaVersion":1,"settings":{},"textTools":{"persianDigits":true,"__proto__":{"polluted":true},"invalid":"true"}}';
+const parsedToolSettings = context.ReshaperSettings.parse(context.ReshaperSettings.metadata, hostileToolSettings);
+assert.deepEqual(JSON.parse(JSON.stringify(parsedToolSettings.textTools)), { persianDigits: true });
+assert.equal(Object.prototype.polluted, undefined);
 
 const exportSection = read('ExportSection.qml');
 const menu = read('MenuContent.qml');
