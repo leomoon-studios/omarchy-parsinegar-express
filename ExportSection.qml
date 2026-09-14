@@ -320,6 +320,12 @@ FocusScope {
     }
 
     component NumberField: TextField {
+        property real minimumValue: 0
+        property real maximumValue: Limits.ResourceLimits.values.maxDimension
+        property int decimalPlaces: 4
+        property bool allowEmpty: false
+        readonly property bool validNumber: (allowEmpty && text.trim() === "") || acceptableInput
+
         font.family: root.typography ? root.typography.family : ""
         font.pixelSize: Style.font.body
         color: root.controller ? root.controller.foreground : Color.foreground
@@ -329,9 +335,17 @@ FocusScope {
         LayoutMirroring.childrenInherit: false
         selectByMouse: true
         inputMethodHints: Qt.ImhFormattedNumbersOnly
+        validator: DoubleValidator {
+            bottom: parent.minimumValue
+            top: parent.maximumValue
+            decimals: parent.decimalPlaces
+            notation: DoubleValidator.StandardNotation
+        }
         background: Rectangle {
             color: Util.alpha(root.controller ? root.controller.foreground : Color.foreground, 0.03)
-            border.color: parent.activeFocus ? Color.accent : Util.alpha(root.controller ? root.controller.foreground : Color.foreground, 0.25)
+            border.color: parent.activeFocus ? Color.accent
+                : parent.validNumber ? Util.alpha(root.controller ? root.controller.foreground : Color.foreground, 0.25)
+                : Color.urgent
             border.width: Math.max(1, Style.normalBorderWidth)
             radius: Style.cornerRadius
         }
@@ -527,7 +541,7 @@ FocusScope {
                                     fontFamily: root.typography ? root.typography.family : ""
                                     rightToLeft: root.controller && root.controller.uiLanguage === "fa"
                                 }
-                                NumberField { id: fontSizeField; Layout.fillWidth: true; text: "48"; onEditingFinished: root.saveSettings() }
+                                NumberField { id: fontSizeField; Layout.fillWidth: true; minimumValue: 0.01; maximumValue: Limits.ResourceLimits.values.maxFontSize; text: "48"; onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true
@@ -540,7 +554,7 @@ FocusScope {
                                     fontFamily: root.typography ? root.typography.family : ""
                                     rightToLeft: root.controller && root.controller.uiLanguage === "fa"
                                 }
-                                NumberField { id: lineSpacingField; Layout.fillWidth: true; text: "1.2"; onEditingFinished: root.saveSettings() }
+                                NumberField { id: lineSpacingField; Layout.fillWidth: true; minimumValue: 0.01; maximumValue: Limits.ResourceLimits.values.maxLineSpacing; text: "1.2"; onEditingFinished: root.saveSettings() }
                             }
                         }
 
@@ -602,7 +616,7 @@ FocusScope {
                             rowSpacing: Style.space(8)
 
                             SectionHeading { label: root.uiText("export.width"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
-                            NumberField { id: widthField; Layout.fillWidth: true; text: "800"; enabled: !root.automaticWidth; onEditingFinished: root.saveSettings() }
+                            NumberField { id: widthField; Layout.fillWidth: true; minimumValue: 0.01; text: "800"; enabled: !root.automaticWidth; onEditingFinished: root.saveSettings() }
                             RowLayout {
                                 Layout.alignment: Qt.AlignVCenter
                                 spacing: Style.space(6)
@@ -630,7 +644,7 @@ FocusScope {
                             }
 
                             SectionHeading { label: root.uiText("export.height"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
-                            NumberField { id: heightField; Layout.fillWidth: true; text: "300"; enabled: !root.automaticHeight; onEditingFinished: root.saveSettings() }
+                            NumberField { id: heightField; Layout.fillWidth: true; minimumValue: 0.01; text: "300"; enabled: !root.automaticHeight; onEditingFinished: root.saveSettings() }
                             RowLayout {
                                 Layout.alignment: Qt.AlignVCenter
                                 spacing: Style.space(6)
@@ -668,17 +682,17 @@ FocusScope {
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 SectionHeading { Layout.fillWidth: true; label: root.uiText("export.padding"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
-                                NumberField { id: paddingField; Layout.fillWidth: true; text: "16"; onEditingFinished: root.saveSettings() }
+                                NumberField { id: paddingField; Layout.fillWidth: true; maximumValue: Limits.ResourceLimits.values.maxPadding; text: "16"; onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 SectionHeading { Layout.fillWidth: true; label: root.uiText("export.precision"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
-                                NumberField { id: precisionField; Layout.fillWidth: true; text: "3"; onEditingFinished: root.saveSettings() }
+                                NumberField { id: precisionField; Layout.fillWidth: true; maximumValue: 8; decimalPlaces: 0; text: "3"; onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 SectionHeading { Layout.fillWidth: true; label: root.uiText("export.fontIndex"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
-                                NumberField { id: fontIndexField; Layout.fillWidth: true; placeholderText: root.uiText("export.default"); onEditingFinished: root.saveSettings() }
+                                NumberField { id: fontIndexField; Layout.fillWidth: true; decimalPlaces: 0; allowEmpty: true; placeholderText: root.uiText("export.default"); onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true

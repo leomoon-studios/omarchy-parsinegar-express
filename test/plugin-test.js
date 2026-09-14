@@ -183,6 +183,9 @@ assert.ok(curveController.includes('signal exported(string path, var warnings)')
 assert.equal((curveController.match(/\bWorkerScript\s*\{/g) || []).length, 1);
 assert.doesNotMatch(curveController, /\b(?:Timer|Process|Connections)\s*\{|Quickshell\.exec|setInterval|setTimeout|fetch\s*\(/);
 const exportSection = read('ExportSection.qml');
+assert.match(exportSection, /component NumberField: TextField[\s\S]*validator: DoubleValidator/);
+assert.match(exportSection, /readonly property bool validNumber/);
+assert.match(exportSection, /Color\.urgent/);
 assert.match(exportSection, /Ui\.ToggleSwitch\s*\{[\s\S]*id: automaticWidthToggle[\s\S]*checked: root\.automaticWidth/);
 assert.match(exportSection, /Ui\.ToggleSwitch\s*\{[\s\S]*id: automaticHeightToggle[\s\S]*checked: root\.automaticHeight/);
 assert.match(exportSection, /id: widthField[\s\S]*enabled: !root\.automaticWidth/);
