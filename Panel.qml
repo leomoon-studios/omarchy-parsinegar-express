@@ -27,7 +27,7 @@ Ui.Panel {
     onFilePickerActiveChanged: {
         if (!filePickerActive && opened) {
             Qt.callLater(function() {
-                if (menuLoader.item) menuLoader.item.focusEditor()
+                if (menuLoader.item) menuLoader.item.focusCurrentPage()
             })
         }
     }
@@ -110,7 +110,7 @@ Ui.Panel {
         popoutSwitchClosing: root.popoutSwitchClosing
         contentWidth: fittedContentWidth(Style.space(760))
         contentHeight: fittedContentHeight(menuLoader.item ? menuLoader.item.implicitHeight : Style.space(360))
-        focusTarget: menuLoader.item ? menuLoader.item.editorItem : null
+        focusTarget: menuLoader.item ? menuLoader.item.focusItem : null
 
         // Installed plugins only see their own registered click targets. Keep
         // the physical bar outside this popup's input region so the real bar

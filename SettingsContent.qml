@@ -60,19 +60,30 @@ FocusScope {
         RowLayout {
             Layout.fillWidth: true
             spacing: Style.space(8)
-            ActionButton {
-                id: backButton
-                text: root.uiText("button.back")
-                onClicked: root.backRequested()
-            }
             Text {
                 Layout.fillWidth: true
+                LayoutMirroring.enabled: false
+                LayoutMirroring.childrenInherit: false
                 text: root.uiText("settings.title")
                 color: root.foreground
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.heading
                 font.bold: true
-                horizontalAlignment: Text.AlignRight
+                horizontalAlignment: root.controller.uiLanguage === "fa"
+                    ? Text.AlignRight : Text.AlignLeft
+            }
+            HeaderActionButton {
+                id: backButton
+                objectName: "settingsBackButton"
+                iconText: root.controller.uiLanguage === "fa"
+                    ? root.typography.iconForward : root.typography.iconBack
+                fontFamily: root.typography.iconFamily
+                fontSize: Style.font.heading
+                size: Style.space(42)
+                toolTipText: root.uiText("button.back")
+                toolTipFontFamily: root.fontFamily
+                Accessible.name: root.uiText("button.back")
+                onClicked: root.backRequested()
             }
         }
 
@@ -350,13 +361,10 @@ FocusScope {
         RowLayout {
             Layout.fillWidth: true
             spacing: Style.space(8)
-            ActionButton {
-                id: groupBackButton
-                text: root.uiText("button.back")
-                onClicked: root.closeGroup()
-            }
             Text {
                 Layout.fillWidth: true
+                LayoutMirroring.enabled: false
+                LayoutMirroring.childrenInherit: false
                 text: {
                     var group = root.groupById(root.ligatureGroupId)
                     return root.uiText("settings.breadcrumb") + (group ? root.groupLabel(group) : root.uiText("settings.namedLigatures"))
@@ -365,7 +373,21 @@ FocusScope {
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.heading
                 font.bold: true
-                horizontalAlignment: Text.AlignRight
+                horizontalAlignment: root.controller.uiLanguage === "fa"
+                    ? Text.AlignRight : Text.AlignLeft
+            }
+            HeaderActionButton {
+                id: groupBackButton
+                objectName: "ligatureGroupBackButton"
+                iconText: root.controller.uiLanguage === "fa"
+                    ? root.typography.iconForward : root.typography.iconBack
+                fontFamily: root.typography.iconFamily
+                fontSize: Style.font.heading
+                size: Style.space(42)
+                toolTipText: root.uiText("button.back")
+                toolTipFontFamily: root.fontFamily
+                Accessible.name: root.uiText("button.back")
+                onClicked: root.closeGroup()
             }
         }
 

@@ -11,10 +11,11 @@ const menu = read('MenuContent.qml');
 assert.match(panel, /active: root\.opened \|\| root\.filePickerActive\s+visible: active\s+enabled: active/);
 assert.match(panel, /open: root\.opened && !root\.filePickerActive/);
 assert.match(panel, /if \(root\.opened && !root\.filePickerActive && menuLoader\.item\)/);
-assert.match(panel, /focusTarget: menuLoader\.item \? menuLoader\.item\.editorItem : null/);
+assert.match(panel, /focusTarget: menuLoader\.item \? menuLoader\.item\.focusItem : null/);
+assert.match(panel, /if \(menuLoader\.item\) menuLoader\.item\.focusCurrentPage\(\)/);
 assert.equal((menu.match(/conversionWorker\.sendMessage\(/g) || []).length, 2);
 assert.match(menu, /onClicked: root\.convertAndCopy\(\)/);
-for (const file of ['Panel.qml', 'Typography.qml', 'LetterBadge.qml']) {
+for (const file of ['Panel.qml', 'Typography.qml', 'LetterBadge.qml', 'HeaderActionButton.qml']) {
     assert.doesNotMatch(read(file), /LibraryAdapter|ParsiNegar\.js|vendor\//);
     assert.doesNotMatch(read(file), /SvgCurve|typr/i);
 }
@@ -41,6 +42,8 @@ const identity = { reshape: text => text, getDisplay: text => text };
 for (let i = 0; i < 20; i++) coreContext.ParsiNegar.convert('پ', 'compatibility', undefined, identity, identity);
 assert.equal(coreContext.tableBuilds, 1, 'Maryam table must not rebuild per conversion');
 assert.match(menu, /function requestExportConversion\(\)[\s\S]*conversionWorker\.sendMessage/);
+assert.match(menu, /function openExport\(\)[\s\S]*page = "export"/);
+assert.match(menu, /ExportSection\s*\{[\s\S]*visible: root\.page === "export"/);
 assert.match(menu, /function convertAndCopy\(\)[\s\S]*conversionWorker\.sendMessage/);
 assert.match(menu, /function finishConversion\(message\)[\s\S]*Quickshell\.clipboardText = message\.output/);
 assert.match(read('ConversionWorker.js'), /WorkerScript\.onMessage[\s\S]*ParsiNegar\.convert[\s\S]*WorkerScript\.sendMessage/);

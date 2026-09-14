@@ -9,13 +9,12 @@ import "InterfaceStrings.js" as Strings
 import "ResourceLimits.js" as Limits
 import "LocalPath.js" as Paths
 
-Column {
+FocusScope {
     id: root
 
     required property var controller
     required property var host
     required property Typography typography
-    property bool expanded: false
     property bool advancedExpanded: false
     property bool preparingExport: false
     readonly property string bundledUnicodeFontPath: String(Qt.resolvedUrl("assets/fonts/Vazirmatn[wght].ttf"))
@@ -33,8 +32,8 @@ Column {
     readonly property string selectedFontPath: activeMode === "compatibility" ? compatibilityFontPath : unicodeFontPath
     readonly property bool pickerActive: pickerKind !== ""
     readonly property bool exportBusy: preparingExport || exportLoader.active || pickerActive
-    width: parent ? parent.width : 0
-    spacing: Style.space(8)
+    readonly property Item focusItem: backButton
+    signal backRequested()
     LayoutMirroring.enabled: controller && controller.uiLanguage === "fa"
     LayoutMirroring.childrenInherit: true
 
@@ -169,10 +168,10 @@ Column {
         } else setHostPickerActive(false)
     }
     function collapse() {
-        expanded = false
         advancedExpanded = false
         cleanupExport()
     }
+    function focusPage() { backButton.forceActiveFocus() }
     function chooseDestination() {
         if (!controller || controller.sourceText.length === 0) {
             controller.setExportStatus(uiText("export.error.noText"), true)
@@ -240,33 +239,81 @@ Column {
         }
     }
 
-    ActionButton {
-        width: parent.width
-        text: root.uiText("export.title") + (root.expanded ? "  ▲" : "  ▼")
-        selected: root.expanded
-        enabled: !root.exportBusy
-        onClicked: {
-            root.expanded = !root.expanded
-            if (!root.expanded) root.collapse()
-        }
+    Keys.onEscapePressed: function(event) {
+        if (!root.exportBusy) root.backRequested()
+        event.accepted = true
     }
 
-    Rectangle {
-        width: parent.width
-        height: exportColumn.implicitHeight + Style.space(24)
-        visible: root.expanded
-        color: Util.alpha(root.controller ? root.controller.foreground : Color.foreground, 0.025)
-        border.color: Util.alpha(root.controller ? root.controller.foreground : Color.foreground, 0.2)
-        border.width: Math.max(1, Style.normalBorderWidth)
-        radius: Style.cornerRadius
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: Style.space(10)
 
-        Column {
-            id: exportColumn
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.margins: Style.space(12)
-            spacing: Style.space(10)
+        RowLayout {
+            id: exportHeader
+            Layout.fillWidth: true
+            spacing: Style.space(6)
+
+            Text {
+                Layout.fillWidth: true
+                text: root.uiText("export.title")
+                color: root.controller ? root.controller.foreground : Color.foreground
+                font.family: root.typography ? root.typography.family : ""
+                font.pixelSize: Style.font.heading
+                font.bold: true
+                elide: Text.ElideRight
+            }
+
+            HeaderActionButton {
+                id: backButton
+                objectName: "exportBackButton"
+                iconText: root.controller && root.controller.uiLanguage === "fa"
+                    ? root.typography.iconForward : root.typography.iconBack
+                fontFamily: root.typography ? root.typography.iconFamily : ""
+                fontSize: Style.font.heading
+                size: Style.space(42)
+                enabled: !root.exportBusy
+                toolTipText: root.uiText("button.back")
+                toolTipFontFamily: root.typography ? root.typography.family : ""
+                Accessible.name: root.uiText("button.back")
+                onClicked: root.backRequested()
+            }
+        }
+
+        Controls.ScrollView {
+            id: exportScroll
+            readonly property bool overflowing: contentHeight > availableHeight + 0.5
+            readonly property real scrollGutter: overflowing
+                ? exportVerticalBar.width + Style.space(6) : 0
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            contentWidth: availableWidth
+            contentHeight: exportCard.height
+            clip: true
+            leftPadding: root.controller && root.controller.uiLanguage === "fa" ? scrollGutter : 0
+            rightPadding: root.controller && root.controller.uiLanguage === "fa" ? 0 : scrollGutter
+            Controls.ScrollBar.horizontal.policy: Controls.ScrollBar.AlwaysOff
+            Controls.ScrollBar.vertical: Controls.ScrollBar {
+                id: exportVerticalBar
+                policy: Controls.ScrollBar.AsNeeded
+                active: exportScroll.overflowing
+            }
+
+            Rectangle {
+                id: exportCard
+                width: exportScroll.availableWidth
+                height: exportColumn.implicitHeight + Style.space(24)
+                color: Util.alpha(root.controller ? root.controller.foreground : Color.foreground, 0.025)
+                border.color: Util.alpha(root.controller ? root.controller.foreground : Color.foreground, 0.2)
+                border.width: Math.max(1, Style.normalBorderWidth)
+                radius: Style.cornerRadius
+
+                Column {
+                    id: exportColumn
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.margins: Style.space(12)
+                    spacing: Style.space(10)
 
             RowLayout {
                 width: parent.width
@@ -389,6 +436,8 @@ Column {
                 GridLayout {
                     Layout.columnSpan: 2
                     Layout.fillWidth: true
+                    LayoutMirroring.enabled: false
+                    LayoutMirroring.childrenInherit: false
                     columns: 3
                     columnSpacing: Style.space(6)
                     ActionButton {
@@ -438,6 +487,8 @@ Column {
                     font.family: root.typography ? root.typography.family : ""
                     font.pixelSize: Style.font.caption
                     wrapMode: Text.WordWrap
+                }
+            }
                 }
             }
         }

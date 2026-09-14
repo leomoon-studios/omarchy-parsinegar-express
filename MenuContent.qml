@@ -17,6 +17,9 @@ FocusScope {
     readonly property alias editorItem: editor
     readonly property alias exportItem: exportSection
     readonly property alias editorPageScroll: formScroll
+    readonly property Item focusItem: page === "settings"
+        ? settingsContent.focusItem
+        : page === "export" ? exportSection.focusItem : editor
     readonly property string sourceText: conversionText()
     readonly property color foreground: host && host.bar ? host.bar.foreground : Color.foreground
     readonly property string fontFamily: typography ? typography.family : ""
@@ -31,7 +34,7 @@ FocusScope {
     property int settingsRevision: 0
     property bool settingsReady: false
     property string page: "editor"
-    implicitHeight: page === "settings" || exportSection.expanded
+    implicitHeight: page === "settings" || page === "export"
         ? Style.space(500)
         : editorHeader.implicitHeight + Style.space(14) + formColumn.implicitHeight
     property bool busy: false
@@ -171,10 +174,19 @@ FocusScope {
         Qt.callLater(function() { if (editor.textFormat === TextEdit.RichText) reformatEditor() })
     }
     function focusEditor() { page = "editor"; editor.forceActiveFocus() }
+    function focusCurrentPage() {
+        if (focusItem) focusItem.forceActiveFocus()
+    }
     function openSettings() {
         page = "settings"
         Qt.callLater(function() {
             if (page === "settings" && settingsContent.focusItem) settingsContent.focusItem.forceActiveFocus()
+        })
+    }
+    function openExport() {
+        page = "export"
+        Qt.callLater(function() {
+            if (page === "export") exportSection.focusPage()
         })
     }
     function conversionOptions() {
@@ -271,10 +283,7 @@ FocusScope {
 
     Keys.onEscapePressed: function(event) {
         if (page === "settings") focusEditor()
-        else if (exportSection.expanded) {
-            exportSection.collapse()
-            editor.forceActiveFocus()
-        }
+        else if (page === "export" && !exportSection.exportBusy) focusEditor()
         else root.closeRequested()
         event.accepted = true
     }
@@ -481,28 +490,37 @@ FocusScope {
                 elide: Text.ElideRight
             }
 
-            Ui.PanelActionButton {
+            HeaderActionButton {
+                id: exportHeaderButton
+                objectName: "exportButton"
+                iconText: root.typography ? root.typography.iconExport : "\ue2c4"
+                fontFamily: root.iconFontFamily
+                fontSize: Style.font.heading
+                size: Style.space(42)
+                enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
+                toolTipText: root.uiText("export.title")
+                toolTipFontFamily: root.fontFamily
+                Accessible.name: root.uiText("export.title")
+                onClicked: {
+                    pointerHovered = false
+                    root.openExport()
+                }
+            }
+
+            HeaderActionButton {
                 id: settingsHeaderButton
-                property bool pointerHovered: false
                 objectName: "settingsButton"
                 iconText: root.typography ? root.typography.iconSettings : "\ue8b8"
                 fontFamily: root.iconFontFamily
                 fontSize: Style.font.heading
                 size: Style.space(42)
-                bordered: true
-                focusable: true
                 enabled: root.settingsReady
+                toolTipText: root.uiText("button.settings")
+                toolTipFontFamily: root.fontFamily
                 Accessible.name: root.uiText("button.settings")
-                onHovered: function(isHovered) { pointerHovered = isHovered }
                 onClicked: {
                     pointerHovered = false
                     root.openSettings()
-                }
-
-                Ui.PanelToolTip {
-                    visible: settingsHeaderButton.pointerHovered
-                    text: root.uiText("button.settings")
-                    fontFamily: root.fontFamily
                 }
             }
         }
@@ -634,16 +652,9 @@ FocusScope {
                     }
                 }
 
-                ExportSection {
-                    id: exportSection
-                    controller: root
-                    host: root.host
-                    typography: root.typography
-                }
-
                 RowLayout {
                     width: parent.width
-                    visible: (root.busy || root.statusText !== "") && !exportSection.expanded
+                    visible: root.busy || root.statusText !== ""
                     spacing: Style.space(6)
                     BusySpinner {
                         running: root.busy
@@ -670,6 +681,17 @@ FocusScope {
         visible: root.page === "settings"
         enabled: visible
         controller: root
+        typography: root.typography
+        onBackRequested: root.focusEditor()
+    }
+
+    ExportSection {
+        id: exportSection
+        anchors.fill: parent
+        visible: root.page === "export"
+        enabled: visible
+        controller: root
+        host: root.host
         typography: root.typography
         onBackRequested: root.focusEditor()
     }

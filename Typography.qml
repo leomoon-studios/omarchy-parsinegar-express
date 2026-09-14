@@ -19,6 +19,9 @@ QtObject {
     readonly property bool iconFailed: bundledIconFont.status === FontLoader.Error
     readonly property string iconFamily: iconReady ? bundledIconFont.name : family
     readonly property string iconSettings: "\ue8b8"
+    readonly property string iconExport: "\ue2c4"
+    readonly property string iconBack: "\ue5c4"
+    readonly property string iconForward: "\ue5c8"
     readonly property string errorMessage: failed ? "Unable to load the bundled Vazirmatn font." : ""
     signal loadFailed(string message)
 
