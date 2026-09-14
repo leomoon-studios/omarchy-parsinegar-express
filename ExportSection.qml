@@ -575,11 +575,59 @@ FocusScope {
 
                             Text { text: root.uiText("export.width"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
                             NumberField { id: widthField; Layout.fillWidth: true; text: "800"; enabled: !root.automaticWidth; onEditingFinished: root.saveSettings() }
-                            ActionButton { text: root.uiText("export.auto"); selected: root.automaticWidth; onClicked: { root.automaticWidth = !root.automaticWidth; root.saveSettings() } }
+                            RowLayout {
+                                Layout.alignment: Qt.AlignVCenter
+                                spacing: Style.space(6)
+                                layoutDirection: root.controller && root.controller.uiLanguage === "fa" ? Qt.RightToLeft : Qt.LeftToRight
+
+                                Ui.ToggleSwitch {
+                                    id: automaticWidthToggle
+                                    Layout.alignment: Qt.AlignVCenter
+                                    checked: root.automaticWidth
+                                    busy: root.exportBusy
+                                    foreground: root.controller ? root.controller.foreground : Color.foreground
+                                    accent: Color.accent
+                                    onToggled: {
+                                        root.automaticWidth = !root.automaticWidth
+                                        root.saveSettings()
+                                    }
+                                }
+                                Text {
+                                    Layout.alignment: Qt.AlignVCenter
+                                    text: root.uiText("export.auto")
+                                    color: root.exportBusy ? Color.muted : (root.controller ? root.controller.foreground : Color.foreground)
+                                    font.family: root.typography ? root.typography.family : ""
+                                    font.pixelSize: Style.font.body
+                                }
+                            }
 
                             Text { text: root.uiText("export.height"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
                             NumberField { id: heightField; Layout.fillWidth: true; text: "300"; enabled: !root.automaticHeight; onEditingFinished: root.saveSettings() }
-                            ActionButton { text: root.uiText("export.auto"); selected: root.automaticHeight; onClicked: { root.automaticHeight = !root.automaticHeight; root.saveSettings() } }
+                            RowLayout {
+                                Layout.alignment: Qt.AlignVCenter
+                                spacing: Style.space(6)
+                                layoutDirection: root.controller && root.controller.uiLanguage === "fa" ? Qt.RightToLeft : Qt.LeftToRight
+
+                                Ui.ToggleSwitch {
+                                    id: automaticHeightToggle
+                                    Layout.alignment: Qt.AlignVCenter
+                                    checked: root.automaticHeight
+                                    busy: root.exportBusy
+                                    foreground: root.controller ? root.controller.foreground : Color.foreground
+                                    accent: Color.accent
+                                    onToggled: {
+                                        root.automaticHeight = !root.automaticHeight
+                                        root.saveSettings()
+                                    }
+                                }
+                                Text {
+                                    Layout.alignment: Qt.AlignVCenter
+                                    text: root.uiText("export.auto")
+                                    color: root.exportBusy ? Color.muted : (root.controller ? root.controller.foreground : Color.foreground)
+                                    font.family: root.typography ? root.typography.family : ""
+                                    font.pixelSize: Style.font.body
+                                }
+                            }
                         }
 
                         GridLayout {
