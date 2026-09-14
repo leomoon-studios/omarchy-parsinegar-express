@@ -223,7 +223,7 @@ FocusScope {
             ensureProfileMode()
         }
         else settingsDirectoryCreator.running = true
-        Qt.callLater(function() { if (editor.textFormat === TextEdit.RichText) reformatEditor() })
+        reformatEditor(host ? host.draftText : "")
     }
     function focusEditor() { page = "editor"; editor.forceActiveFocus() }
     function focusCurrentPage() {
@@ -675,7 +675,7 @@ FocusScope {
 
                     Controls.TextArea {
                         id: editor
-                        text: root.host ? root.host.draftText : ""
+                        text: ""
                         onTextChanged: {
                             if (root.formattingEditor) return
                             var plain = root.rawEditorText()

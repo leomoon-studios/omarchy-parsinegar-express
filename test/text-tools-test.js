@@ -29,6 +29,8 @@ assert.equal(tools.applyEnabled('ي ك ة "سلام" 12%', {
 assert.equal(tools.applyEnabled('سَلاـم', { removeDiacritics: true, removeTatweel: true }).text, 'سلام');
 assert.equal(tools.applyEnabled('می روم خانه ها', { repairZwnj: true }).text, 'می‌روم خانه‌ها');
 assert.equal(tools.applyEnabled('می\nروم', { repairZwnj: true }).text, 'می\nروم');
+assert.equal(tools.applyEnabled('میخواهم نمیخواستند میدان', { repairZwnj: true }).text, 'می‌خواهم نمی‌خواستند میدان');
+assert.equal(tools.applyEnabled('در میدان بزرگ راه می روم', { repairZwnj: true }).text, 'در میدان بزرگ راه می‌روم');
 assert.equal(tools.applyEnabled('۱۲٫۳٬۴٪', { englishDigits: true }).text, '12.3,4%');
 
 console.log('Text tool transformation checks passed');
