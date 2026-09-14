@@ -238,6 +238,11 @@ FocusScope {
         advancedExpanded = false
         cleanupExport()
     }
+    function toggleAdvancedOptions() {
+        if (exportBusy) return
+        advancedExpanded = !advancedExpanded
+        saveSettings()
+    }
     function focusPage() { backButton.forceActiveFocus() }
     function chooseDestination() {
         if (!controller || controller.sourceText.length === 0) {
@@ -558,12 +563,35 @@ FocusScope {
                             ActionButton { Layout.fillWidth: true; Layout.preferredWidth: 0; text: root.uiText("export.alignRight"); selected: root.alignment === "right"; onClicked: { root.alignment = "right"; root.saveSettings() } }
                         }
 
-                        ActionButton {
+                        FocusScope {
+                            id: advancedOptionsButton
                             width: parent.width
-                            text: root.uiText(root.advancedExpanded ? "export.fewerOptions" : "export.moreOptions") + (root.advancedExpanded ? "  ▲" : "  ▼")
-                            selected: root.advancedExpanded
+                            implicitHeight: advancedOptionsHeading.implicitHeight + Style.space(8)
+                            activeFocusOnTab: true
                             enabled: !root.exportBusy
-                            onClicked: { root.advancedExpanded = !root.advancedExpanded; root.saveSettings() }
+
+                            Keys.onReturnPressed: root.toggleAdvancedOptions()
+                            Keys.onEnterPressed: root.toggleAdvancedOptions()
+                            Keys.onSpacePressed: root.toggleAdvancedOptions()
+
+                            SectionHeading {
+                                id: advancedOptionsHeading
+                                anchors.fill: parent
+                                anchors.leftMargin: Style.space(4)
+                                anchors.rightMargin: Style.space(4)
+                                label: root.uiText(root.advancedExpanded ? "export.fewerOptions" : "export.moreOptions") + (root.advancedExpanded ? "  ▲" : "  ▼")
+                                foreground: root.controller ? root.controller.foreground : Color.foreground
+                                fontFamily: root.typography ? root.typography.family : ""
+                                rightToLeft: root.controller && root.controller.uiLanguage === "fa"
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                enabled: advancedOptionsButton.enabled
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.toggleAdvancedOptions()
+                            }
                         }
 
                         GridLayout {
@@ -573,7 +601,7 @@ FocusScope {
                             columnSpacing: Style.space(8)
                             rowSpacing: Style.space(8)
 
-                            Text { text: root.uiText("export.width"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
+                            SectionHeading { label: root.uiText("export.width"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
                             NumberField { id: widthField; Layout.fillWidth: true; text: "800"; enabled: !root.automaticWidth; onEditingFinished: root.saveSettings() }
                             RowLayout {
                                 Layout.alignment: Qt.AlignVCenter
@@ -601,7 +629,7 @@ FocusScope {
                                 }
                             }
 
-                            Text { text: root.uiText("export.height"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
+                            SectionHeading { label: root.uiText("export.height"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
                             NumberField { id: heightField; Layout.fillWidth: true; text: "300"; enabled: !root.automaticHeight; onEditingFinished: root.saveSettings() }
                             RowLayout {
                                 Layout.alignment: Qt.AlignVCenter
@@ -639,22 +667,22 @@ FocusScope {
 
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                Text { text: root.uiText("export.padding"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
+                                SectionHeading { Layout.fillWidth: true; label: root.uiText("export.padding"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
                                 NumberField { id: paddingField; Layout.fillWidth: true; text: "16"; onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                Text { text: root.uiText("export.precision"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
+                                SectionHeading { Layout.fillWidth: true; label: root.uiText("export.precision"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
                                 NumberField { id: precisionField; Layout.fillWidth: true; text: "3"; onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                Text { text: root.uiText("export.fontIndex"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
+                                SectionHeading { Layout.fillWidth: true; label: root.uiText("export.fontIndex"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
                                 NumberField { id: fontIndexField; Layout.fillWidth: true; placeholderText: root.uiText("export.default"); onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                Text { text: root.uiText("export.fill"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
+                                SectionHeading { Layout.fillWidth: true; label: root.uiText("export.fill"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
                                 ValueField { id: fillField; Layout.fillWidth: true; text: "#000000"; LayoutMirroring.enabled: false; onEditingFinished: root.saveSettings() }
                             }
                         }
@@ -663,7 +691,7 @@ FocusScope {
                             width: parent.width
                             visible: root.advancedExpanded
                             spacing: Style.space(4)
-                            Text { Layout.fillWidth: true; text: root.uiText("export.axes"); color: Color.muted; font.family: root.typography ? root.typography.family : ""; font.pixelSize: Style.font.body }
+                            SectionHeading { Layout.fillWidth: true; label: root.uiText("export.axes"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
                             ValueField { id: axesField; Layout.fillWidth: true; placeholderText: root.uiText("export.axesHint"); LayoutMirroring.enabled: false; onEditingFinished: root.saveSettings() }
                         }
                     }
