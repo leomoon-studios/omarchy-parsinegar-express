@@ -59,7 +59,8 @@ FocusScope {
         return Direction.EditorDirection.paragraphLayout(value)
     }
     function rawEditorText() {
-        return editor.textFormat === TextEdit.RichText ? editor.getText(0, editor.length) : editor.text
+        var text = editor.textFormat === TextEdit.RichText ? editor.getText(0, editor.length) : editor.text
+        return text.replace(/\u200b/g, "")
     }
     function conversionText() {
         return rawEditorText().replace(/\u2029/g, "\n")
@@ -75,7 +76,8 @@ FocusScope {
             var paragraph = effectiveLayout.paragraphs[index]
             var alignment = effectiveLayout.directions[index]
             markup.push("<p dir=\"" + (alignment === "right" ? "rtl" : "ltr") +
-                "\" align=\"" + alignment + "\" style=\"margin:0\">" + escapeHtml(paragraph) + "</p>")
+                "\" align=\"" + alignment + "\" style=\"margin:0\">" +
+                (paragraph === "" ? "&#8203;" : escapeHtml(paragraph)) + "</p>")
         }
         return markup.join("")
     }

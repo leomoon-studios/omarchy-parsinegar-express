@@ -119,6 +119,8 @@ assert.ok(menu.includes('function paragraphLayout'));
 assert.ok(menu.includes('Direction.EditorDirection.paragraphLayout(value)'));
 assert.ok(menu.includes('requestedLayout.signature !== root.editorDirectionSignature'));
 assert.ok(menu.includes('function formattedEditorText'));
+assert.ok(menu.includes('text.replace(/\\u200b/g, "")'));
+assert.ok(menu.includes('paragraph === "" ? "&#8203;" : escapeHtml(paragraph)'));
 assert.ok(menu.includes('function rawEditorText'));
 assert.ok(menu.includes('function conversionText'));
 assert.ok(menu.includes('return rawEditorText().replace(/\\u2029/g, "\\n")'));
