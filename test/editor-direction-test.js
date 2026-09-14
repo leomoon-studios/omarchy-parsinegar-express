@@ -37,4 +37,16 @@ assert.notEqual(persianAfterPersian.signature, emptyAfterPersian.signature);
 const persianAfterEnglish = direction.paragraphLayout('salam.\nس');
 assert.deepEqual(Array.from(persianAfterEnglish.directions), ['left', 'right']);
 
+assert.equal(direction.isParagraphBreakInsertion('سلام.', 'سلام.\u2029'), true);
+assert.equal(direction.isParagraphBreakInsertion('سلام.\n', 'سلام.\n\n'), true);
+assert.equal(direction.isParagraphBreakInsertion('سلام.\n\n', 'سلام.\n\n\n'), true);
+assert.equal(direction.isParagraphBreakInsertion('سلام.\n', 'سلام.\nس'), false);
+assert.equal(direction.isParagraphBreakInsertion('سلام.\n', 'سلام.'), false);
+
+const documentWithEmptyParagraphs = 'k\u2029\u200b\u2029\u200b\u2029lkj';
+assert.equal(direction.logicalPosition(documentWithEmptyParagraphs, 6), 4);
+assert.equal(direction.documentPosition(documentWithEmptyParagraphs, 4), 6);
+assert.equal(direction.logicalPosition(documentWithEmptyParagraphs, documentWithEmptyParagraphs.length), 7);
+assert.equal(direction.documentPosition(documentWithEmptyParagraphs, 7), documentWithEmptyParagraphs.length);
+
 console.log('Editor direction checks passed');

@@ -47,8 +47,49 @@ var EditorDirection = (function () {
     };
   }
 
+  function normalizeParagraphBreaks(value) {
+    return String(value || "").replace(/\r\n|[\r\u2029]/g, "\n");
+  }
+
+  function isParagraphBreakInsertion(previousValue, currentValue) {
+    var previous = normalizeParagraphBreaks(previousValue);
+    var current = normalizeParagraphBreaks(currentValue);
+    if (current.length !== previous.length + 1) return false;
+
+    var index = 0;
+    while (index < previous.length && previous.charAt(index) === current.charAt(index)) index++;
+    return current.charAt(index) === "\n" &&
+      current.slice(0, index) + current.slice(index + 1) === previous;
+  }
+
+  function logicalPosition(value, documentPosition) {
+    var text = String(value || "");
+    var end = Math.max(0, Math.min(Number(documentPosition) || 0, text.length));
+    var position = 0;
+    for (var index = 0; index < end; index++) {
+      if (text.charAt(index) !== "\u200b") position++;
+    }
+    return position;
+  }
+
+  function documentPosition(value, logicalPosition) {
+    var text = String(value || "");
+    var target = Math.max(0, Number(logicalPosition) || 0);
+    var logical = 0;
+    var index = 0;
+    while (index < text.length && logical < target) {
+      if (text.charAt(index) !== "\u200b") logical++;
+      index++;
+    }
+    while (index < text.length && text.charAt(index) === "\u200b") index++;
+    return index;
+  }
+
   return Object.freeze({
     paragraphAlignment: paragraphAlignment,
-    paragraphLayout: paragraphLayout
+    paragraphLayout: paragraphLayout,
+    isParagraphBreakInsertion: isParagraphBreakInsertion,
+    logicalPosition: logicalPosition,
+    documentPosition: documentPosition
   });
 }());

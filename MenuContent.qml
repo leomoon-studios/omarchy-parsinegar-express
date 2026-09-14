@@ -48,6 +48,7 @@ FocusScope {
     property bool statusWarning: false
     property bool formattingEditor: false
     property string editorDirectionSignature: ""
+    property string editorPlainSnapshot: ""
     property string textToolsUndoText: ""
     property var lastAppliedTextTools: []
     signal closeRequested()
@@ -84,16 +85,21 @@ FocusScope {
     function reformatEditor(value, layout) {
         var plain = value === undefined ? rawEditorText() : String(value)
         var effectiveLayout = layout || paragraphLayout(plain)
-        var cursor = editor.cursorPosition
-        var selectionStart = editor.selectionStart
-        var selectionEnd = editor.selectionEnd
+        var documentText = editor.getText(0, editor.length)
+        var cursor = Direction.EditorDirection.logicalPosition(documentText, editor.cursorPosition)
+        var selectionStart = Direction.EditorDirection.logicalPosition(documentText, editor.selectionStart)
+        var selectionEnd = Direction.EditorDirection.logicalPosition(documentText, editor.selectionEnd)
         formattingEditor = true
         editor.text = formattedEditorText(plain, effectiveLayout)
-        editor.cursorPosition = Math.min(cursor, editor.length)
+        documentText = editor.getText(0, editor.length)
+        editor.cursorPosition = Direction.EditorDirection.documentPosition(documentText, cursor)
         if (selectionStart !== selectionEnd) {
-            editor.select(Math.min(selectionStart, editor.length), Math.min(selectionEnd, editor.length))
+            editor.select(
+                Direction.EditorDirection.documentPosition(documentText, selectionStart),
+                Direction.EditorDirection.documentPosition(documentText, selectionEnd))
         }
         editorDirectionSignature = effectiveLayout.signature
+        editorPlainSnapshot = plain
         formattingEditor = false
     }
 
@@ -673,10 +679,16 @@ FocusScope {
                         onTextChanged: {
                             if (root.formattingEditor) return
                             var plain = root.rawEditorText()
+                            var previousPlain = root.editorPlainSnapshot
+                            root.editorPlainSnapshot = plain
                             if (root.host && root.host.draftText !== plain) root.host.draftText = plain
                             root.statusText = ""
                             var requested = plain
                             var requestedLayout = root.paragraphLayout(requested)
+                            if (Direction.EditorDirection.isParagraphBreakInsertion(previousPlain, requested)) {
+                                root.editorDirectionSignature = requestedLayout.signature
+                                return
+                            }
                             if (requestedLayout.signature !== root.editorDirectionSignature) {
                                 Qt.callLater(function() {
                                     if (!root.formattingEditor && root.rawEditorText() === requested)
