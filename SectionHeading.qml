@@ -16,7 +16,10 @@ Text {
     font.pixelSize: Style.font.body
     font.bold: true
     wrapMode: Text.WordWrap
-    horizontalAlignment: rightToLeft ? Text.AlignRight : Text.AlignLeft
+    // Parent pages mirror their whole layout for Persian. Text alignment is
+    // mirrored too, so retaining AlignLeft gives the required physical right
+    // alignment in Persian and left alignment in English.
+    horizontalAlignment: Text.AlignLeft
     LayoutMirroring.enabled: false
     LayoutMirroring.childrenInherit: false
 }

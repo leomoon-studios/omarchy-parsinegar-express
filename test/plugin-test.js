@@ -234,6 +234,7 @@ assert.ok(helpPage.includes('objectName: "helpBackButton"'));
 assert.ok(helpPage.includes('horizontalAlignment: root.controller.uiLanguage === "fa" ? Text.AlignRight : Text.AlignLeft'));
 assert.ok((helpPage.match(/LayoutMirroring\.enabled: false/g) || []).length >= 4);
 assert.ok(read('SectionHeading.qml').includes('font.pixelSize: Style.font.body'));
+assert.ok(read('SectionHeading.qml').includes('horizontalAlignment: Text.AlignLeft'));
 assert.ok(exportSection.includes('import "ResourceLimits.js" as Limits'));
 assert.ok(exportSection.includes('import "LocalPath.js" as Paths'));
 assert.doesNotMatch(exportSection, /--confirm-overwrite/);
