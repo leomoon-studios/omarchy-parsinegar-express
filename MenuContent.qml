@@ -653,57 +653,6 @@ FocusScope {
             }
 
             HeaderActionButton {
-                id: settingsHeaderButton
-                objectName: "settingsButton"
-                iconText: root.typography ? root.typography.iconSettings : "\ue8b8"
-                fontFamily: root.iconFontFamily
-                fontSize: Style.font.heading
-                size: Style.space(42)
-                enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
-                toolTipText: root.uiText("button.settings")
-                toolTipFontFamily: root.fontFamily
-                Accessible.name: root.uiText("button.settings")
-                onClicked: {
-                    pointerHovered = false
-                    root.openSettings()
-                }
-            }
-
-            HeaderActionButton {
-                id: textToolsHeaderButton
-                objectName: "textToolsButton"
-                iconText: root.typography ? root.typography.iconTools : "\uf10b"
-                fontFamily: root.iconFontFamily
-                fontSize: Style.font.heading
-                size: Style.space(42)
-                enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
-                toolTipText: root.uiText("tools.title")
-                toolTipFontFamily: root.fontFamily
-                Accessible.name: root.uiText("tools.title")
-                onClicked: {
-                    pointerHovered = false
-                    root.openTextTools()
-                }
-            }
-
-            HeaderActionButton {
-                id: exportHeaderButton
-                objectName: "exportButton"
-                iconText: root.typography ? root.typography.iconExport : "\ue2c4"
-                fontFamily: root.iconFontFamily
-                fontSize: Style.font.heading
-                size: Style.space(42)
-                enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
-                toolTipText: root.uiText("export.title")
-                toolTipFontFamily: root.fontFamily
-                Accessible.name: root.uiText("export.title")
-                onClicked: {
-                    pointerHovered = false
-                    root.openExport()
-                }
-            }
-
-            HeaderActionButton {
                 id: undoHeaderButton
                 objectName: "undoButton"
                 iconText: root.typography ? root.typography.iconUndo : "\ue166"
@@ -736,6 +685,57 @@ FocusScope {
                     pointerHovered = false
                     root.redoSourceEdit()
                     root.focusEditor()
+                }
+            }
+
+            HeaderActionButton {
+                id: exportHeaderButton
+                objectName: "exportButton"
+                iconText: root.typography ? root.typography.iconExport : "\ue2c4"
+                fontFamily: root.iconFontFamily
+                fontSize: Style.font.heading
+                size: Style.space(42)
+                enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
+                toolTipText: root.uiText("export.title")
+                toolTipFontFamily: root.fontFamily
+                Accessible.name: root.uiText("export.title")
+                onClicked: {
+                    pointerHovered = false
+                    root.openExport()
+                }
+            }
+
+            HeaderActionButton {
+                id: textToolsHeaderButton
+                objectName: "textToolsButton"
+                iconText: root.typography ? root.typography.iconTools : "\uf10b"
+                fontFamily: root.iconFontFamily
+                fontSize: Style.font.heading
+                size: Style.space(42)
+                enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
+                toolTipText: root.uiText("tools.title")
+                toolTipFontFamily: root.fontFamily
+                Accessible.name: root.uiText("tools.title")
+                onClicked: {
+                    pointerHovered = false
+                    root.openTextTools()
+                }
+            }
+
+            HeaderActionButton {
+                id: settingsHeaderButton
+                objectName: "settingsButton"
+                iconText: root.typography ? root.typography.iconSettings : "\ue8b8"
+                fontFamily: root.iconFontFamily
+                fontSize: Style.font.heading
+                size: Style.space(42)
+                enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
+                toolTipText: root.uiText("button.settings")
+                toolTipFontFamily: root.fontFamily
+                Accessible.name: root.uiText("button.settings")
+                onClicked: {
+                    pointerHovered = false
+                    root.openSettings()
                 }
             }
         }
