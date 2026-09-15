@@ -8,6 +8,7 @@ Controls.Menu {
 
     required property var editor
     required property var controller
+    required property var pasteHandler
     property string fontFamily: Style.font.family
     property color foreground: Color.foreground
     property bool rightToLeft: false
@@ -137,7 +138,7 @@ Controls.Menu {
         shortcutText: "Ctrl+V"
         enabled: !root.editor.readOnly && root.editor.canPaste
         onTriggered: {
-            root.editor.paste()
+            root.pasteHandler()
             root.editor.forceActiveFocus()
         }
     }

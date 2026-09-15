@@ -158,6 +158,25 @@ FocusScope {
         return host && host.sourceHistory
             ? restoreSourceHistory(History.SourceHistory.redo(host.sourceHistory)) : false
     }
+    function pastePlainText() {
+        var clipboardText = Quickshell.clipboardText
+        if (clipboardText === undefined || clipboardText === null || clipboardText === "")
+            return false
+
+        var source = conversionText()
+        var documentText = editor.getText(0, editor.length)
+        var selectionStart = Direction.EditorDirection.logicalPosition(documentText, editor.selectionStart)
+        var selectionEnd = Direction.EditorDirection.logicalPosition(documentText, editor.selectionEnd)
+        var start = Math.min(selectionStart, selectionEnd)
+        var end = Math.max(selectionStart, selectionEnd)
+        var pastedText = String(clipboardText)
+        var cursor = start + pastedText.length
+
+        if (!replaceSourceText(source.slice(0, start) + pastedText + source.slice(end), cursor, cursor))
+            return false
+        editor.forceActiveFocus()
+        return true
+    }
 
     function applySettings(value, save) {
         reshaperSettings = Settings.ReshaperSettings.sanitize(reshaperMetadata, value)
@@ -823,6 +842,10 @@ FocusScope {
                             } else if (redoShortcut) {
                                 root.redoSourceEdit()
                                 event.accepted = true
+                            } else if (event.matches(StandardKey.Paste)
+                                    || (hasPrimaryModifier && !hasShift && event.key === Qt.Key_V)) {
+                                root.pastePlainText()
+                                event.accepted = true
                             }
                         }
                         background: Rectangle {
@@ -836,6 +859,7 @@ FocusScope {
                             id: editorContextMenu
                             editor: editor
                             controller: root
+                            pasteHandler: root.pastePlainText
                             fontFamily: root.fontFamily
                             foreground: root.foreground
                             rightToLeft: root.uiLanguage === "fa"
