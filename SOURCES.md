@@ -15,9 +15,9 @@ The application behavior is pinned to LeoMoon Studios' ParsiNegar commit `09745d
 
 | Artifact | Pinned source | SHA-256 |
 | --- | --- | --- |
-| `assets/fonts/MaterialSymbolsRounded.ttf` | Material Symbols Rounded commit `40a7a292a79d9394157e1ea24f83d52d5e17c556`, subset to eleven documented glyphs | `601aeb47ca99cb86a1aa09ae0b517f496cb26fcc165f4000b8096101e4fe025f` |
+| `assets/fonts/MaterialSymbolsRounded.ttf` | Material Symbols Rounded commit `40a7a292a79d9394157e1ea24f83d52d5e17c556`, subset to thirteen documented glyphs | `33ab18dce4e2ab9cceeadc1c062009ee9d21e15fcec496ae82a77eb858aaf5fc` |
 
-The subset contains U+E15A, U+E166, U+E247, U+E248, U+E2C4, U+E518, U+E51C, U+E5C4, U+E5C8, U+E8B8, and U+F10B. Its supplied Apache License 2.0 text is retained at `assets/fonts/MaterialSymbols-LICENSE.txt`, and `THIRD_PARTY_NOTICES.md` records the upstream project and local subsetting details.
+The subset contains U+E15A, U+E166, U+E247, U+E248, U+E2C4, U+E518, U+E51C, U+E5C4, U+E5C8, U+E873, U+E8B8, U+E8FD, and U+F10B. Its supplied Apache License 2.0 text is retained at `assets/fonts/MaterialSymbols-LICENSE.txt`, and `THIRD_PARTY_NOTICES.md` records the upstream project and local subsetting details.
 
 ## Preserved application rules
 

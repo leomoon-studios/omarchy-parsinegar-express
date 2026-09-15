@@ -22,7 +22,8 @@ FocusScope {
     readonly property Item focusItem: page === "settings"
         ? settingsContent.focusItem
         : page === "export" ? exportSection.focusItem
-        : page === "tools" ? textToolsPage.focusItem : editor
+        : page === "tools" ? textToolsPage.focusItem
+        : page === "help" ? helpPage.focusItem : editor
     readonly property string sourceText: conversionText()
     readonly property bool canUndo: host && host.sourceHistory
         ? History.SourceHistory.canUndo(host.sourceHistory) : false
@@ -41,7 +42,7 @@ FocusScope {
     property int settingsRevision: 0
     property bool settingsReady: false
     property string page: "editor"
-    implicitHeight: page === "settings" || page === "export" || page === "tools"
+    implicitHeight: page === "settings" || page === "export" || page === "tools" || page === "help"
         ? Style.space(500)
         : editorHeader.implicitHeight + Style.space(14) + formColumn.implicitHeight
     property bool busy: false
@@ -331,6 +332,12 @@ FocusScope {
         page = "tools"
         Qt.callLater(function() {
             if (page === "tools") textToolsPage.focusPage()
+        })
+    }
+    function openHelp() {
+        page = "help"
+        Qt.callLater(function() {
+            if (page === "help") helpPage.focusPage()
         })
     }
     function textToolEnabled(id) { return host && host.textTools && host.textTools[id] === true }
@@ -738,6 +745,23 @@ FocusScope {
                     root.openSettings()
                 }
             }
+
+            HeaderActionButton {
+                id: helpHeaderButton
+                objectName: "helpButton"
+                iconText: root.typography ? root.typography.iconHelp : "\ue8fd"
+                fontFamily: root.iconFontFamily
+                fontSize: Style.font.heading
+                size: Style.space(42)
+                enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
+                toolTipText: root.uiText("help.title")
+                toolTipFontFamily: root.fontFamily
+                Accessible.name: root.uiText("help.title")
+                onClicked: {
+                    pointerHovered = false
+                    root.openHelp()
+                }
+            }
         }
 
         Controls.ScrollView {
@@ -978,6 +1002,16 @@ FocusScope {
         id: textToolsPage
         anchors.fill: parent
         visible: root.page === "tools"
+        enabled: visible
+        controller: root
+        typography: root.typography
+        onBackRequested: root.focusEditor()
+    }
+
+    HelpPage {
+        id: helpPage
+        anchors.fill: parent
+        visible: root.page === "help"
         enabled: visible
         controller: root
         typography: root.typography

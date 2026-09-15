@@ -6,6 +6,7 @@ var InterfaceStrings = (function () {
   var values = {
     en: {
       "editor.title": "ParsiNegar Express",
+      "help.title": "Help",
       "toggle.reverse": "Apply bidi visual ordering", "toggle.reverseDescription": "For applications that do not handle right-to-left layout",
       "toggle.video": "Special convert for VideoStudio Pro", "toggle.videoDescription": "Available in Compatibility mode",
       "placeholder": "Enter your text…", "mode.unicode": "Unicode mode", "mode.unicodeDescription": "Standard Unicode presentation forms for applications that accept Unicode text.", "mode.compatibility": "Compatibility mode", "mode.compatibilityDescription": "Legacy Maryam/LMN character codes. Requires a compatible LMN font.",
@@ -60,6 +61,7 @@ var InterfaceStrings = (function () {
     },
     fa: {
       "editor.title": "پارسی‌نگار اکسپرس",
+      "help.title": "راهنما",
       "toggle.reverse": "اعمال ترتیب نمایشی دوجهته", "toggle.reverseDescription": "برای برنامه‌هایی که چیدمان راست‌به‌چپ را پشتیبانی نمی‌کنند",
       "toggle.video": "تبدیل ویژه برای VideoStudio Pro", "toggle.videoDescription": "در حالت سازگاری در دسترس است",
       "placeholder": "متن خود را وارد کنید…", "mode.unicode": "حالت یونیکد", "mode.unicodeDescription": "فرم‌های نمایشی استاندارد یونیکد برای برنامه‌هایی که متن یونیکد را می‌پذیرند.", "mode.compatibility": "حالت سازگاری", "mode.compatibilityDescription": "کدهای قدیمی مریم/LMN؛ به یک فونت سازگار با LMN نیاز دارد.",

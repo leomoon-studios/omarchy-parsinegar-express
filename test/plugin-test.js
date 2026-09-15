@@ -15,6 +15,7 @@ const panel = read('Panel.qml');
 const menu = read('MenuContent.qml');
 const settings = read('SettingsContent.qml');
 const textToolsPage = read('TextToolsPage.qml');
+const helpPage = read('HelpPage.qml');
 const textEditorContextMenu = read('TextEditorContextMenu.qml');
 const headerAction = read('HeaderActionButton.qml');
 const readme = read('README.md');
@@ -30,6 +31,7 @@ assert.ok(typography.includes('readonly property string iconBack'));
 assert.ok(typography.includes('readonly property string iconForward'));
 assert.ok(typography.includes('readonly property string iconUndo'));
 assert.ok(typography.includes('readonly property string iconRedo'));
+assert.ok(typography.includes('readonly property string iconHelp'));
 assert.ok(panel.includes('Ui.WidgetButton {'));
 assert.ok(panel.includes('Ui.KeyboardPanel {'));
 assert.ok(panel.includes('active: root.opened || root.filePickerActive'));
@@ -118,12 +120,15 @@ assert.ok(menu.indexOf('id: undoHeaderButton') < menu.indexOf('id: redoHeaderBut
 assert.ok(menu.indexOf('id: redoHeaderButton') < menu.indexOf('id: exportHeaderButton'));
 assert.ok(menu.indexOf('id: exportHeaderButton') < menu.indexOf('id: textToolsHeaderButton'));
 assert.ok(menu.indexOf('id: textToolsHeaderButton') < menu.indexOf('id: settingsHeaderButton'));
+assert.ok(menu.indexOf('id: settingsHeaderButton') < menu.indexOf('id: helpHeaderButton'));
 assert.ok(menu.includes('enabled: root.canUndo'));
 assert.ok(menu.includes('enabled: root.canRedo'));
 assert.ok(menu.includes('function undoSourceEdit()'));
 assert.ok(menu.includes('function redoSourceEdit()'));
 assert.ok(menu.includes('event.key === Qt.Key_Y'));
 assert.ok(menu.includes('function openTextTools()'));
+assert.ok(menu.includes('function openHelp()'));
+assert.ok(menu.includes('page === "help"'));
 assert.ok(menu.includes('page === "tools"'));
 assert.ok(menu.includes('function applyTextToolsToSource()'));
 assert.ok(menu.includes('var prepared = applyTextToolsToSource()'));
@@ -193,7 +198,7 @@ for (const source of [panel, read('Typography.qml'), read('LetterBadge.qml'), he
     assert.ok(!/\b(?:Timer|Process|FileView)\s*\{|Quickshell\.exec/.test(source));
 }
 for (const source of [menu, settings]) assert.ok(!/\bTimer\s*\{|Quickshell\.exec/.test(source));
-for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'SourceHistory.js', 'TextTools.js', 'InterfaceStrings.js', 'ResourceLimits.js', 'LocalPath.js', 'BusySpinner.qml', 'HeaderActionButton.qml', 'SectionHeading.qml', 'SettingsContent.qml', 'TextToolsPage.qml', 'TextEditorContextMenu.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
+for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'SourceHistory.js', 'TextTools.js', 'InterfaceStrings.js', 'ResourceLimits.js', 'LocalPath.js', 'BusySpinner.qml', 'HeaderActionButton.qml', 'SectionHeading.qml', 'SettingsContent.qml', 'TextToolsPage.qml', 'HelpPage.qml', 'TextEditorContextMenu.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
     assert.ok(fs.statSync(path.join(root, file)).isFile(), file);
 }
 const curveController = read('SvgCurveExportController.qml');
@@ -223,6 +228,9 @@ assert.ok(textToolsPage.includes('TextTools.TextTools.groups(group)'));
 assert.ok(textToolsPage.includes('root.controller.toggleTextTool(modelData.id)'));
 assert.ok(textToolsPage.includes('font.pixelSize: Style.font.body'));
 assert.ok(textToolsPage.includes('objectName: "textToolsBackButton"'));
+assert.ok(helpPage.includes('objectName: "helpBackButton"'));
+assert.ok(helpPage.includes('horizontalAlignment: root.controller.uiLanguage === "fa" ? Text.AlignRight : Text.AlignLeft'));
+assert.ok((helpPage.match(/LayoutMirroring\.enabled: false/g) || []).length >= 4);
 assert.ok(read('SectionHeading.qml').includes('font.pixelSize: Style.font.body'));
 assert.ok(exportSection.includes('import "ResourceLimits.js" as Limits'));
 assert.ok(exportSection.includes('import "LocalPath.js" as Paths'));
