@@ -831,6 +831,29 @@ FocusScope {
                             border.width: Math.max(1, Style.normalBorderWidth)
                             radius: Style.cornerRadius
                         }
+
+                        TextEditorContextMenu {
+                            id: editorContextMenu
+                            editor: editor
+                            controller: root
+                            fontFamily: root.fontFamily
+                            foreground: root.foreground
+                            rightToLeft: root.uiLanguage === "fa"
+                        }
+
+                        MouseArea {
+                            id: contextMenuMouseArea
+                            objectName: "editorContextMenuMouseArea"
+                            anchors.fill: parent
+                            acceptedButtons: Qt.RightButton
+                            preventStealing: true
+                            z: 2
+                            onPressed: function(mouse) {
+                                editor.forceActiveFocus()
+                                editorContextMenu.openAt(editor, mouse.x, mouse.y)
+                                mouse.accepted = true
+                            }
+                        }
                     }
                 }
 

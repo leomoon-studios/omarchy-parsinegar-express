@@ -15,6 +15,7 @@ const panel = read('Panel.qml');
 const menu = read('MenuContent.qml');
 const settings = read('SettingsContent.qml');
 const textToolsPage = read('TextToolsPage.qml');
+const textEditorContextMenu = read('TextEditorContextMenu.qml');
 const headerAction = read('HeaderActionButton.qml');
 const readme = read('README.md');
 assert.ok(fs.existsSync(path.join(root, 'assets/fonts/MaterialSymbolsRounded.ttf')));
@@ -53,6 +54,16 @@ assert.ok(!/Controls\.(?:Button|CheckBox)\s*\{/.test(menu));
 assert.ok(panel.includes('fittedContentWidth(Style.space(760))'));
 assert.ok(menu.includes('Quickshell.clipboardText = message.output'));
 assert.ok(menu.includes('textFormat: TextEdit.RichText'));
+assert.ok(menu.includes('TextEditorContextMenu {'));
+assert.ok(menu.includes('id: contextMenuMouseArea'));
+assert.ok(menu.includes('editorContextMenu.openAt(editor, mouse.x, mouse.y)'));
+assert.ok(textEditorContextMenu.includes('Controls.Menu'));
+assert.ok(textEditorContextMenu.includes('objectName: "editorContextMenu"'));
+assert.ok(textEditorContextMenu.includes('function openAt(item, positionX, positionY)'));
+assert.ok(textEditorContextMenu.includes('popup(item, positionX, positionY)'));
+assert.ok(textEditorContextMenu.includes('contextUndoAction'));
+assert.ok(textEditorContextMenu.includes('contextPasteAction'));
+assert.ok(textEditorContextMenu.includes('opacity: enabled ? 1 : 0.42'));
 assert.ok(menu.includes('horizontalAlignment: TextEdit.AlignRight'));
 assert.ok(menu.includes('Keys.onEscapePressed'));
 assert.ok(!menu.includes('PanelKeyCatcher'));
@@ -182,7 +193,7 @@ for (const source of [panel, read('Typography.qml'), read('LetterBadge.qml'), he
     assert.ok(!/\b(?:Timer|Process|FileView)\s*\{|Quickshell\.exec/.test(source));
 }
 for (const source of [menu, settings]) assert.ok(!/\bTimer\s*\{|Quickshell\.exec/.test(source));
-for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'SourceHistory.js', 'TextTools.js', 'InterfaceStrings.js', 'ResourceLimits.js', 'LocalPath.js', 'BusySpinner.qml', 'HeaderActionButton.qml', 'SectionHeading.qml', 'SettingsContent.qml', 'TextToolsPage.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
+for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'SourceHistory.js', 'TextTools.js', 'InterfaceStrings.js', 'ResourceLimits.js', 'LocalPath.js', 'BusySpinner.qml', 'HeaderActionButton.qml', 'SectionHeading.qml', 'SettingsContent.qml', 'TextToolsPage.qml', 'TextEditorContextMenu.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
     assert.ok(fs.statSync(path.join(root, file)).isFile(), file);
 }
 const curveController = read('SvgCurveExportController.qml');
