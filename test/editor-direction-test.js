@@ -37,6 +37,10 @@ assert.notEqual(persianAfterPersian.signature, emptyAfterPersian.signature);
 const persianAfterEnglish = direction.paragraphLayout('salam.\nس');
 assert.deepEqual(Array.from(persianAfterEnglish.directions), ['left', 'right']);
 
+const englishAfterLeadingBlanks = direction.paragraphLayout('\n\n\nsalam.');
+assert.deepEqual(Array.from(englishAfterLeadingBlanks.directions), ['right', 'right', 'right', 'left']);
+assert.notEqual(englishAfterLeadingBlanks.signature, direction.paragraphLayout('\n\n\n').signature);
+
 assert.equal(direction.isParagraphBreakInsertion('سلام.', 'سلام.\u2029'), true);
 assert.equal(direction.isParagraphBreakInsertion('سلام.\n', 'سلام.\n\n'), true);
 assert.equal(direction.isParagraphBreakInsertion('سلام.\n\n', 'سلام.\n\n\n'), true);

@@ -148,6 +148,8 @@ assert.ok(!menu.includes('button.rtl'));
 assert.ok(menu.includes('function paragraphLayout'));
 assert.ok(menu.includes('Direction.EditorDirection.paragraphLayout(value)'));
 assert.ok(menu.includes('requestedLayout.signature !== root.editorDirectionSignature'));
+assert.ok(menu.includes('root.conversionText() === requested'));
+assert.ok(!menu.includes('root.rawEditorText() === requested'));
 assert.ok(menu.includes('function formattedEditorText'));
 assert.ok(menu.includes('reformatEditor(draft, null, host.sourceHistory.current.cursor, host.sourceHistory.current.anchor)'));
 assert.ok(!menu.includes('text: root.host ? root.host.draftText : ""'));

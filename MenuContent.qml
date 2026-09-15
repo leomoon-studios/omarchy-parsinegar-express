@@ -829,7 +829,7 @@ FocusScope {
                             }
                             if (requestedLayout.signature !== root.editorDirectionSignature) {
                                 Qt.callLater(function() {
-                                    if (!root.formattingEditor && root.rawEditorText() === requested)
+                                    if (!root.formattingEditor && root.conversionText() === requested)
                                         root.reformatEditor(requested, requestedLayout)
                                 })
                             }
