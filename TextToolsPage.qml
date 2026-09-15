@@ -21,15 +21,6 @@ FocusScope {
     function toolsForGroup(group) { return TextTools.TextTools.groups(group) }
     function focusPage() { backButton.forceActiveFocus() }
 
-    component ActionButton: Ui.Button {
-        fontFamily: root.fontFamily
-        fontSize: Style.font.body
-        foreground: root.foreground
-        accent: Color.accent
-        bordered: true
-        focusable: true
-    }
-
     Keys.onEscapePressed: function(event) {
         root.backRequested()
         event.accepted = true
@@ -104,16 +95,6 @@ FocusScope {
                         font.family: root.fontFamily
                         font.pixelSize: Style.font.body
                         wrapMode: Text.WordWrap
-                    }
-                }
-
-                RowLayout {
-                    width: parent.width
-                    layoutDirection: Qt.RightToLeft
-                    ActionButton {
-                        visible: root.controller.textToolsUndoText !== ""
-                        text: root.uiText("tools.undo")
-                        onClicked: root.controller.undoTextTools()
                     }
                 }
 

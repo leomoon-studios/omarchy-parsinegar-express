@@ -27,6 +27,8 @@ assert.ok(typography.includes('readonly property string iconTools'));
 assert.ok(typography.includes('"\\uf10b"'));
 assert.ok(typography.includes('readonly property string iconBack'));
 assert.ok(typography.includes('readonly property string iconForward'));
+assert.ok(typography.includes('readonly property string iconUndo'));
+assert.ok(typography.includes('readonly property string iconRedo'));
 assert.ok(panel.includes('Ui.WidgetButton {'));
 assert.ok(panel.includes('Ui.KeyboardPanel {'));
 assert.ok(panel.includes('active: root.opened || root.filePickerActive'));
@@ -42,6 +44,7 @@ assert.doesNotMatch(menu, /import "LibraryAdapter\.js"/);
 assert.ok(menu.includes('import "EditorDirection.js" as Direction'));
 assert.ok(menu.includes('import "ReshaperSettings.js" as Settings'));
 assert.ok(menu.includes('import "TextTools.js" as TextTools'));
+assert.ok(menu.includes('import "SourceHistory.js" as History'));
 assert.ok(menu.includes('component ActionButton: Ui.Button'));
 assert.ok(menu.includes('component ConvertButton: Ui.Button'));
 assert.ok(menu.includes('component ModeCard: Item'));
@@ -98,6 +101,17 @@ assert.ok(headerAction.includes('Ui.PanelActionButton'));
 assert.ok(menu.includes('id: exportHeaderButton'));
 assert.ok(menu.includes('id: settingsHeaderButton'));
 assert.ok(menu.includes('id: textToolsHeaderButton'));
+assert.ok(menu.includes('id: undoHeaderButton'));
+assert.ok(menu.includes('id: redoHeaderButton'));
+assert.ok(menu.indexOf('id: settingsHeaderButton') < menu.indexOf('id: textToolsHeaderButton'));
+assert.ok(menu.indexOf('id: textToolsHeaderButton') < menu.indexOf('id: exportHeaderButton'));
+assert.ok(menu.indexOf('id: exportHeaderButton') < menu.indexOf('id: undoHeaderButton'));
+assert.ok(menu.indexOf('id: undoHeaderButton') < menu.indexOf('id: redoHeaderButton'));
+assert.ok(menu.includes('enabled: root.canUndo'));
+assert.ok(menu.includes('enabled: root.canRedo'));
+assert.ok(menu.includes('function undoSourceEdit()'));
+assert.ok(menu.includes('function redoSourceEdit()'));
+assert.ok(menu.includes('event.key === Qt.Key_Y'));
 assert.ok(menu.includes('function openTextTools()'));
 assert.ok(menu.includes('page === "tools"'));
 assert.ok(menu.includes('function applyTextToolsToSource()'));
@@ -119,7 +133,7 @@ assert.ok(menu.includes('function paragraphLayout'));
 assert.ok(menu.includes('Direction.EditorDirection.paragraphLayout(value)'));
 assert.ok(menu.includes('requestedLayout.signature !== root.editorDirectionSignature'));
 assert.ok(menu.includes('function formattedEditorText'));
-assert.ok(menu.includes('reformatEditor(host ? host.draftText : "")'));
+assert.ok(menu.includes('reformatEditor(draft, null, host.sourceHistory.current.cursor, host.sourceHistory.current.anchor)'));
 assert.ok(!menu.includes('text: root.host ? root.host.draftText : ""'));
 assert.ok(menu.includes('text.replace(/\\u200b/g, "")'));
 assert.ok(menu.includes('paragraph === "" ? "&#8203;" : escapeHtml(paragraph)'));
@@ -168,7 +182,7 @@ for (const source of [panel, read('Typography.qml'), read('LetterBadge.qml'), he
     assert.ok(!/\b(?:Timer|Process|FileView)\s*\{|Quickshell\.exec/.test(source));
 }
 for (const source of [menu, settings]) assert.ok(!/\bTimer\s*\{|Quickshell\.exec/.test(source));
-for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'TextTools.js', 'InterfaceStrings.js', 'ResourceLimits.js', 'LocalPath.js', 'BusySpinner.qml', 'HeaderActionButton.qml', 'SectionHeading.qml', 'SettingsContent.qml', 'TextToolsPage.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
+for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'SourceHistory.js', 'TextTools.js', 'InterfaceStrings.js', 'ResourceLimits.js', 'LocalPath.js', 'BusySpinner.qml', 'HeaderActionButton.qml', 'SectionHeading.qml', 'SettingsContent.qml', 'TextToolsPage.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
     assert.ok(fs.statSync(path.join(root, file)).isFile(), file);
 }
 const curveController = read('SvgCurveExportController.qml');

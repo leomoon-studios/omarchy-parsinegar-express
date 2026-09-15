@@ -39,7 +39,7 @@ assert.ok(strings.text('en', 'settings.profileDescription.hebrew').includes('bid
 assert.ok(strings.text('fa', 'settings.profileDescription.hebrew').includes('عبری'));
 assert.equal(strings.text('en', 'toggle.reverse'), 'Apply bidi visual ordering');
 assert.equal(strings.text('fa', 'toggle.reverse'), 'اعمال ترتیب نمایشی دوجهته');
-for (const key of ['tools.title', 'tools.intro', 'tools.undo', 'tools.appliedStatus', 'tools.arabicYehToPersian', 'tools.englishDigits']) {
+for (const key of ['history.undo', 'history.redo', 'tools.title', 'tools.intro', 'tools.appliedStatus', 'tools.arabicYehToPersian', 'tools.englishDigits']) {
     assert.notEqual(strings.text('en', key), key, key + ' English');
     assert.notEqual(strings.text('fa', key), key, key + ' Persian');
 }

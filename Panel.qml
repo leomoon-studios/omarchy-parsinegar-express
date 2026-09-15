@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.Ui as Ui
 import qs.Commons
+import "SourceHistory.js" as History
 
 Ui.Panel {
     id: root
@@ -12,6 +13,8 @@ Ui.Panel {
 
     // Only draft/options survive menu closure; no conversion imports here.
     property string draftText: ""
+    property int sourceHistoryLimit: 100
+    property var sourceHistory: History.SourceHistory.create({ text: "", cursor: 0, anchor: 0 }, sourceHistoryLimit)
     property bool reverseWords: true
     property bool videoStudioPro: false
     property string conversionMode: "unicode"

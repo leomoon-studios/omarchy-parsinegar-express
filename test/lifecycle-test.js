@@ -11,6 +11,7 @@ const menu = read('MenuContent.qml');
 assert.match(panel, /active: root\.opened \|\| root\.filePickerActive\s+visible: active\s+enabled: active/);
 assert.match(panel, /open: root\.opened && !root\.filePickerActive/);
 assert.match(panel, /if \(root\.opened && !root\.filePickerActive && menuLoader\.item\)/);
+assert.match(panel, /property var sourceHistory: History\.SourceHistory\.create/);
 assert.match(panel, /focusTarget: menuLoader\.item \? menuLoader\.item\.focusItem : null/);
 assert.match(panel, /if \(menuLoader\.item\) menuLoader\.item\.focusCurrentPage\(\)/);
 assert.equal((menu.match(/conversionWorker\.sendMessage\(/g) || []).length, 2);
@@ -21,7 +22,7 @@ for (const file of ['Panel.qml', 'Typography.qml', 'LetterBadge.qml', 'HeaderAct
 }
 assert.doesNotMatch(read('MenuContent.qml'), /SvgCurve(?:Exporter|Adapter|ExportController)|vendor\/typr/i);
 assert.doesNotMatch(read('SettingsContent.qml'), /SvgCurve|typr/i);
-for (const file of ['Panel.qml', 'Typography.qml', 'LetterBadge.qml', 'LibraryAdapter.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'InterfaceStrings.js', 'EditorDirection.js', 'SettingsContent.qml']) {
+for (const file of ['Panel.qml', 'Typography.qml', 'LetterBadge.qml', 'LibraryAdapter.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'SourceHistory.js', 'InterfaceStrings.js', 'EditorDirection.js', 'SettingsContent.qml']) {
     assert.doesNotMatch(read(file), /\b(?:Timer|Process|FileView|Connections|WorkerScript)\s*\{|\b(?:setInterval|setTimeout|fetch)\s*\(|Quickshell\.exec|XMLHttpRequest/);
 }
 assert.doesNotMatch(menu, /\bTimer\s*\{|\b(?:setInterval|setTimeout|fetch)\s*\(|Quickshell\.exec|XMLHttpRequest/);
@@ -46,6 +47,10 @@ assert.match(menu, /function openExport\(\)[\s\S]*page = "export"/);
 assert.match(menu, /ExportSection\s*\{[\s\S]*visible: root\.page === "export"/);
 assert.match(menu, /function convertAndCopy\(\)[\s\S]*conversionWorker\.sendMessage/);
 assert.match(menu, /function finishConversion\(message\)[\s\S]*Quickshell\.clipboardText = message\.output/);
+assert.match(menu, /function applyTextToolsToSource\(\)[\s\S]*replaceSourceText\(result\.text/);
+assert.match(menu, /function undoSourceEdit\(\)[\s\S]*History\.SourceHistory\.undo/);
+assert.match(menu, /function redoSourceEdit\(\)[\s\S]*History\.SourceHistory\.redo/);
+assert.doesNotMatch(menu, /textToolsUndoText|undoTextTools/);
 assert.match(read('ConversionWorker.js'), /WorkerScript\.onMessage[\s\S]*ParsiNegar\.convert[\s\S]*WorkerScript\.sendMessage/);
 assert.match(read('SvgCurveWorker.js'), /WorkerScript\.onMessage/);
 assert.match(read('SvgCurveWorker.js'), /SvgCurveExporter\.exportSvg[\s\S]*WorkerScript\.sendMessage/);

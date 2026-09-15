@@ -11,6 +11,7 @@ Ui.PanelActionButton {
 
     bordered: true
     focusable: true
+    opacity: enabled ? 1 : 0.45
     onHovered: function(isHovered) { pointerHovered = isHovered }
 
     Ui.PanelToolTip {

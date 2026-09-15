@@ -30,4 +30,4 @@ Bundled file: `assets/fonts/Vazirmatn[wght].ttf`. Download replacement font file
 
 The plugin bundles a subset of [Material Symbols Rounded](https://github.com/google/material-design-icons) from commit `40a7a292a79d9394157e1ea24f83d52d5e17c556`. Copyright Google LLC. Material Symbols is distributed under the Apache License 2.0 retained at `assets/fonts/MaterialSymbols-LICENSE.txt`.
 
-Bundled file: `assets/fonts/MaterialSymbolsRounded.ttf`. It was generated from the unchanged upstream variable font with fonttools `pyftsubset` and contains only settings, light mode, dark mode, export, back, forward, left-to-right text direction, right-to-left text direction, and handyman glyphs. No outlines were modified.
+Bundled file: `assets/fonts/MaterialSymbolsRounded.ttf`. It was generated from the unchanged upstream variable font with fonttools `pyftsubset` and contains only settings, light mode, dark mode, export, back, forward, undo, redo, left-to-right text direction, right-to-left text direction, and handyman glyphs. No outlines were modified.

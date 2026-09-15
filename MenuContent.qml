@@ -7,6 +7,7 @@ import qs.Ui as Ui
 import qs.Commons
 import "EditorDirection.js" as Direction
 import "ReshaperSettings.js" as Settings
+import "SourceHistory.js" as History
 import "TextTools.js" as TextTools
 import "InterfaceStrings.js" as Strings
 import "ResourceLimits.js" as Limits
@@ -23,6 +24,10 @@ FocusScope {
         : page === "export" ? exportSection.focusItem
         : page === "tools" ? textToolsPage.focusItem : editor
     readonly property string sourceText: conversionText()
+    readonly property bool canUndo: host && host.sourceHistory
+        ? History.SourceHistory.canUndo(host.sourceHistory) : false
+    readonly property bool canRedo: host && host.sourceHistory
+        ? History.SourceHistory.canRedo(host.sourceHistory) : false
     readonly property color foreground: host && host.bar ? host.bar.foreground : Color.foreground
     readonly property string fontFamily: typography ? typography.family : ""
     readonly property string iconFontFamily: typography ? typography.iconFamily : fontFamily
@@ -49,7 +54,6 @@ FocusScope {
     property bool formattingEditor: false
     property string editorDirectionSignature: ""
     property string editorPlainSnapshot: ""
-    property string textToolsUndoText: ""
     property var lastAppliedTextTools: []
     signal closeRequested()
     signal exportConversionReady(string output)
@@ -82,25 +86,77 @@ FocusScope {
         }
         return markup.join("")
     }
-    function reformatEditor(value, layout) {
+    function reformatEditor(value, layout, restoredCursor, restoredAnchor) {
         var plain = value === undefined ? rawEditorText() : String(value)
         var effectiveLayout = layout || paragraphLayout(plain)
+        var documentText = editor.getText(0, editor.length)
+        var cursor = restoredCursor === undefined
+            ? Direction.EditorDirection.logicalPosition(documentText, editor.cursorPosition)
+            : restoredCursor
+        var anchor
+        if (restoredAnchor !== undefined) {
+            anchor = restoredAnchor
+        } else {
+            var selectionStart = Direction.EditorDirection.logicalPosition(documentText, editor.selectionStart)
+            var selectionEnd = Direction.EditorDirection.logicalPosition(documentText, editor.selectionEnd)
+            anchor = selectionStart === selectionEnd
+                ? cursor : cursor === selectionStart ? selectionEnd : selectionStart
+        }
+        formattingEditor = true
+        editor.text = formattedEditorText(plain, effectiveLayout)
+        documentText = editor.getText(0, editor.length)
+        editor.cursorPosition = Direction.EditorDirection.documentPosition(documentText, anchor)
+        if (cursor !== anchor)
+            editor.moveCursorSelection(
+                Direction.EditorDirection.documentPosition(documentText, cursor),
+                TextEdit.SelectCharacters)
+        editorDirectionSignature = effectiveLayout.signature
+        editorPlainSnapshot = plain
+        formattingEditor = false
+    }
+
+    function reportEditorSelection() {
+        if (formattingEditor || !host || !host.sourceHistory) return
         var documentText = editor.getText(0, editor.length)
         var cursor = Direction.EditorDirection.logicalPosition(documentText, editor.cursorPosition)
         var selectionStart = Direction.EditorDirection.logicalPosition(documentText, editor.selectionStart)
         var selectionEnd = Direction.EditorDirection.logicalPosition(documentText, editor.selectionEnd)
-        formattingEditor = true
-        editor.text = formattedEditorText(plain, effectiveLayout)
-        documentText = editor.getText(0, editor.length)
-        editor.cursorPosition = Direction.EditorDirection.documentPosition(documentText, cursor)
-        if (selectionStart !== selectionEnd) {
-            editor.select(
-                Direction.EditorDirection.documentPosition(documentText, selectionStart),
-                Direction.EditorDirection.documentPosition(documentText, selectionEnd))
-        }
-        editorDirectionSignature = effectiveLayout.signature
-        editorPlainSnapshot = plain
-        formattingEditor = false
+        var anchor = selectionStart === selectionEnd
+            ? cursor : cursor === selectionStart ? selectionEnd : selectionStart
+        host.sourceHistory = History.SourceHistory.updateSelection(host.sourceHistory, cursor, anchor)
+    }
+
+    function replaceSourceText(value, cursor, anchor) {
+        if (!host || !host.sourceHistory) return false
+        var text = String(value === undefined || value === null ? "" : value)
+        var next = History.SourceHistory.record(host.sourceHistory, {
+            text: text,
+            cursor: cursor,
+            anchor: anchor
+        })
+        if (next === host.sourceHistory) return false
+        host.sourceHistory = next
+        host.draftText = text
+        reformatEditor(text, null, next.current.cursor, next.current.anchor)
+        return true
+    }
+
+    function restoreSourceHistory(result) {
+        if (!result.changed || !host) return false
+        host.sourceHistory = result.history
+        host.draftText = result.state.text
+        reformatEditor(result.state.text, null, result.state.cursor, result.state.anchor)
+        return true
+    }
+
+    function undoSourceEdit() {
+        return host && host.sourceHistory
+            ? restoreSourceHistory(History.SourceHistory.undo(host.sourceHistory)) : false
+    }
+
+    function redoSourceEdit() {
+        return host && host.sourceHistory
+            ? restoreSourceHistory(History.SourceHistory.redo(host.sourceHistory)) : false
     }
 
     function applySettings(value, save) {
@@ -223,7 +279,15 @@ FocusScope {
             ensureProfileMode()
         }
         else settingsDirectoryCreator.running = true
-        reformatEditor(host ? host.draftText : "")
+        var draft = host ? String(host.draftText || "").replace(/\u2029/g, "\n") : ""
+        if (host) {
+            host.draftText = draft
+            if (!host.sourceHistory || host.sourceHistory.current.text !== draft)
+                host.sourceHistory = History.SourceHistory.create({ text: draft, cursor: draft.length, anchor: draft.length }, host.sourceHistoryLimit)
+            reformatEditor(draft, null, host.sourceHistory.current.cursor, host.sourceHistory.current.anchor)
+        } else {
+            reformatEditor("")
+        }
     }
     function focusEditor() { page = "editor"; editor.forceActiveFocus() }
     function focusCurrentPage() {
@@ -261,21 +325,8 @@ FocusScope {
         var result = TextTools.TextTools.applyEnabled(input, host ? host.textTools : {})
         lastAppliedTextTools = result.applied
         if (result.text === input) return result
-        textToolsUndoText = input
-        reformatEditor(result.text)
-        if (host) host.draftText = result.text
+        replaceSourceText(result.text, host.sourceHistory.current.cursor, host.sourceHistory.current.anchor)
         return result
-    }
-    function undoTextTools() {
-        if (textToolsUndoText === "") return
-        var previous = textToolsUndoText
-        textToolsUndoText = ""
-        reformatEditor(previous)
-        if (host) host.draftText = previous
-        statusError = false
-        statusWarning = false
-        statusText = uiText("tools.undoStatus")
-        focusEditor()
     }
     function conversionOptions() {
         return {
@@ -583,6 +634,23 @@ FocusScope {
             }
 
             HeaderActionButton {
+                id: settingsHeaderButton
+                objectName: "settingsButton"
+                iconText: root.typography ? root.typography.iconSettings : "\ue8b8"
+                fontFamily: root.iconFontFamily
+                fontSize: Style.font.heading
+                size: Style.space(42)
+                enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
+                toolTipText: root.uiText("button.settings")
+                toolTipFontFamily: root.fontFamily
+                Accessible.name: root.uiText("button.settings")
+                onClicked: {
+                    pointerHovered = false
+                    root.openSettings()
+                }
+            }
+
+            HeaderActionButton {
                 id: textToolsHeaderButton
                 objectName: "textToolsButton"
                 iconText: root.typography ? root.typography.iconTools : "\uf10b"
@@ -617,19 +685,38 @@ FocusScope {
             }
 
             HeaderActionButton {
-                id: settingsHeaderButton
-                objectName: "settingsButton"
-                iconText: root.typography ? root.typography.iconSettings : "\ue8b8"
+                id: undoHeaderButton
+                objectName: "undoButton"
+                iconText: root.typography ? root.typography.iconUndo : "\ue166"
                 fontFamily: root.iconFontFamily
                 fontSize: Style.font.heading
                 size: Style.space(42)
-                enabled: root.settingsReady
-                toolTipText: root.uiText("button.settings")
+                enabled: root.canUndo && !root.busy && !exportSection.exportBusy
+                toolTipText: root.uiText("history.undo")
                 toolTipFontFamily: root.fontFamily
-                Accessible.name: root.uiText("button.settings")
+                Accessible.name: root.uiText("history.undo")
                 onClicked: {
                     pointerHovered = false
-                    root.openSettings()
+                    root.undoSourceEdit()
+                    root.focusEditor()
+                }
+            }
+
+            HeaderActionButton {
+                id: redoHeaderButton
+                objectName: "redoButton"
+                iconText: root.typography ? root.typography.iconRedo : "\ue15a"
+                fontFamily: root.iconFontFamily
+                fontSize: Style.font.heading
+                size: Style.space(42)
+                enabled: root.canRedo && !root.busy && !exportSection.exportBusy
+                toolTipText: root.uiText("history.redo")
+                toolTipFontFamily: root.fontFamily
+                Accessible.name: root.uiText("history.redo")
+                onClicked: {
+                    pointerHovered = false
+                    root.redoSourceEdit()
+                    root.focusEditor()
                 }
             }
         }
@@ -678,10 +765,18 @@ FocusScope {
                         text: ""
                         onTextChanged: {
                             if (root.formattingEditor) return
-                            var plain = root.rawEditorText()
+                            var plain = root.conversionText()
                             var previousPlain = root.editorPlainSnapshot
                             root.editorPlainSnapshot = plain
-                            if (root.host && root.host.draftText !== plain) root.host.draftText = plain
+                            if (root.host && root.host.draftText !== plain) {
+                                var current = root.host.sourceHistory.current
+                                root.host.sourceHistory = History.SourceHistory.record(root.host.sourceHistory, {
+                                    text: plain,
+                                    cursor: current.cursor,
+                                    anchor: current.anchor
+                                })
+                                root.host.draftText = plain
+                            }
                             root.statusText = ""
                             var requested = plain
                             var requestedLayout = root.paragraphLayout(requested)
@@ -696,6 +791,9 @@ FocusScope {
                                 })
                             }
                         }
+                        onCursorPositionChanged: root.reportEditorSelection()
+                        onSelectionStartChanged: root.reportEditorSelection()
+                        onSelectionEndChanged: root.reportEditorSelection()
                         font.family: root.fontFamily
                         font.pixelSize: Style.font.body
                         placeholderText: root.uiText("placeholder")
@@ -709,6 +807,24 @@ FocusScope {
                         persistentSelection: true
                         horizontalAlignment: TextEdit.AlignRight
                         padding: Style.space(10)
+                        Keys.onPressed: function(event) {
+                            var primaryModifier = Qt.platform.os === "osx" ? Qt.MetaModifier : Qt.ControlModifier
+                            var hasPrimaryModifier = (event.modifiers & primaryModifier) !== 0
+                            var hasShift = (event.modifiers & Qt.ShiftModifier) !== 0
+                            var undoShortcut = event.matches(StandardKey.Undo)
+                                || (hasPrimaryModifier && !hasShift && event.key === Qt.Key_Z)
+                            var redoShortcut = event.matches(StandardKey.Redo)
+                                || (hasPrimaryModifier && !hasShift && event.key === Qt.Key_Y)
+                                || (hasPrimaryModifier && hasShift && event.key === Qt.Key_Z)
+
+                            if (undoShortcut) {
+                                root.undoSourceEdit()
+                                event.accepted = true
+                            } else if (redoShortcut) {
+                                root.redoSourceEdit()
+                                event.accepted = true
+                            }
+                        }
                         background: Rectangle {
                             color: Util.alpha(root.foreground, 0.03)
                             border.color: editor.activeFocus ? Color.accent : Util.alpha(root.foreground, 0.25)
