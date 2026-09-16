@@ -356,6 +356,23 @@ FocusScope {
             if (page === "help") helpPage.focusPage()
         })
     }
+    function togglePage(target) {
+        if (page === target) {
+            if (target === "settings") settingsContent.closeGroup()
+            focusEditor()
+            return
+        }
+        if (target === "settings") {
+            settingsContent.closeGroup()
+            openSettings()
+        } else if (target === "export") {
+            openExport()
+        } else if (target === "tools") {
+            openTextTools()
+        } else if (target === "help") {
+            openHelp()
+        }
+    }
     function textToolEnabled(id) { return host && host.textTools && host.textTools[id] === true }
     function toggleTextTool(id) {
         if (!host) return
@@ -463,6 +480,48 @@ FocusScope {
         id: conversionWorker
         source: "ConversionWorker.js"
         onMessage: function(message) { root.finishConversion(message) }
+    }
+
+    Shortcut {
+        objectName: "convertShortcut"
+        sequences: ["Ctrl+Return", "Ctrl+Enter"]
+        context: Qt.WindowShortcut
+        enabled: root.page === "editor" && root.settingsReady && !root.busy
+            && !exportSection.exportBusy && root.host && root.host.opened
+            && root.typography && root.typography.ready
+        onActivated: root.convertAndCopy()
+    }
+
+    Shortcut {
+        objectName: "settingsShortcut"
+        sequence: "Ctrl+,"
+        context: Qt.WindowShortcut
+        enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
+        onActivated: root.togglePage("settings")
+    }
+
+    Shortcut {
+        objectName: "textToolsShortcut"
+        sequence: "Ctrl+T"
+        context: Qt.WindowShortcut
+        enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
+        onActivated: root.togglePage("tools")
+    }
+
+    Shortcut {
+        objectName: "exportShortcut"
+        sequence: "Ctrl+E"
+        context: Qt.WindowShortcut
+        enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
+        onActivated: root.togglePage("export")
+    }
+
+    Shortcut {
+        objectName: "helpShortcut"
+        sequence: "Ctrl+H"
+        context: Qt.WindowShortcut
+        enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
+        onActivated: root.togglePage("help")
     }
 
     Keys.onEscapePressed: function(event) {
@@ -719,7 +778,7 @@ FocusScope {
                 fontSize: Style.font.heading
                 size: Style.space(42)
                 enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
-                toolTipText: root.uiText("export.title")
+                toolTipText: root.uiText("export.title") + " (Ctrl+E)"
                 toolTipFontFamily: root.fontFamily
                 Accessible.name: root.uiText("export.title")
                 onClicked: {
@@ -736,7 +795,7 @@ FocusScope {
                 fontSize: Style.font.heading
                 size: Style.space(42)
                 enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
-                toolTipText: root.uiText("tools.title")
+                toolTipText: root.uiText("tools.title") + " (Ctrl+T)"
                 toolTipFontFamily: root.fontFamily
                 Accessible.name: root.uiText("tools.title")
                 onClicked: {
@@ -753,7 +812,7 @@ FocusScope {
                 fontSize: Style.font.heading
                 size: Style.space(42)
                 enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
-                toolTipText: root.uiText("button.settings")
+                toolTipText: root.uiText("button.settings") + " (Ctrl+,)"
                 toolTipFontFamily: root.fontFamily
                 Accessible.name: root.uiText("button.settings")
                 onClicked: {
@@ -770,7 +829,7 @@ FocusScope {
                 fontSize: Style.font.heading
                 size: Style.space(42)
                 enabled: root.settingsReady && !root.busy && !exportSection.exportBusy
-                toolTipText: root.uiText("help.title")
+                toolTipText: root.uiText("help.title") + " (Ctrl+H)"
                 toolTipFontFamily: root.fontFamily
                 Accessible.name: root.uiText("help.title")
                 onClicked: {

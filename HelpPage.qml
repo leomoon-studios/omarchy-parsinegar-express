@@ -39,7 +39,7 @@ FocusScope {
         },
         {
             heading: "Undo, Redo, and panel lifetime",
-            body: "Use the header buttons or Ctrl+Z, Ctrl+Y, and Ctrl+Shift+Z to undo and redo source edits. Hold Ctrl and scroll over the editor to change its text size. The selected size is saved. Express retains up to 100 history states while the panel remains loaded.\n\nExpress intentionally has no New, Open, Save, or Save As commands. Draft text and undo history stay in memory and are not written to disk."
+            body: "Use the header buttons or Ctrl+Z, Ctrl+Y, and Ctrl+Shift+Z to undo and redo source edits. Ctrl+Enter converts; Ctrl+, opens or closes Settings; Ctrl+T toggles Text Tools; Ctrl+E toggles Export; and Ctrl+H toggles Help. Hold Ctrl and scroll over the editor to change its text size. The selected size is saved. Express retains up to 100 history states while the panel remains loaded.\n\nExpress intentionally has no New, Open, Save, or Save As commands. Draft text and undo history stay in memory and are not written to disk."
         },
         {
             heading: "Troubleshooting, settings, and privacy",
@@ -70,7 +70,7 @@ FocusScope {
         },
         {
             heading: "واگردانی و ماندگاری پنل",
-            body: "با کلیدهای بالای پنل یا Ctrl+Z، Ctrl+Y و Ctrl+Shift+Z می‌توانید ویرایش‌های متن را واگردانی یا دوباره انجام دهید. برای تغییر اندازهٔ متن، Ctrl را نگه دارید و روی ویرایشگر پیمایش کنید. اندازهٔ انتخاب‌شده ذخیره می‌شود. اکسپرس تا ۱۰۰ وضعیت را در زمان بارگذاری‌بودن پنل نگه می‌دارد.\n\nاکسپرس عمداً گزینه‌های پروندهٔ نو، باز کردن، ذخیره و ذخیره با نام ندارد. پیش‌نویس و تاریخچهٔ واگردانی فقط در حافظه می‌مانند."
+            body: "با کلیدهای بالای پنل یا Ctrl+Z، Ctrl+Y و Ctrl+Shift+Z می‌توانید ویرایش‌های متن را واگردانی یا دوباره انجام دهید. Ctrl+Enter تبدیل را اجرا می‌کند؛ Ctrl+, تنظیمات را باز یا بسته می‌کند؛ Ctrl+T ابزارهای متن، Ctrl+E خروجی و Ctrl+H راهنما را باز یا بسته می‌کنند. برای تغییر اندازهٔ متن، Ctrl را نگه دارید و روی ویرایشگر پیمایش کنید. اندازهٔ انتخاب‌شده ذخیره می‌شود. اکسپرس تا ۱۰۰ وضعیت را در زمان بارگذاری‌بودن پنل نگه می‌دارد.\n\nاکسپرس عمداً گزینه‌های پروندهٔ نو، باز کردن، ذخیره و ذخیره با نام ندارد. پیش‌نویس و تاریخچهٔ واگردانی فقط در حافظه می‌مانند."
         },
         {
             heading: "رفع اشکال، تنظیمات و حریم خصوصی",

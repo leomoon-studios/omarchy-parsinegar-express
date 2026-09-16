@@ -10,6 +10,15 @@ The **Hebrew** shaping profile is Unicode-only. Hebrew does not require contextu
 
 Click **پ** in the bar, type or paste your text, choose a mode, and click **Convert** to copy the result. The header provides Undo, Redo, Export SVG, Text Tools, Settings, and Help actions, with `Ctrl+Z`, `Ctrl+Y`, and `Ctrl+Shift+Z` shortcuts while editing. Hold `Ctrl` while scrolling over the editor to change its text size from 10 to 48 pixels; the selected size persists in the plugin settings. Help opens a dedicated localized reference page inside the panel. Source history is limited to the latest 100 edits and remains available while the panel keeps the draft in memory. Use the header’s **Export SVG** action to open the dedicated export page and save the converted text as font-specific vector curves; Unicode starts with bundled Vazirmatn, while Compatibility export requires choosing a Maryam-compatible font. **Apply bidi visual ordering** is enabled by default and each hard-separated paragraph is ordered independently, so mixed Persian and Latin paragraphs keep their own direction. Each editor paragraph uses its first strong character for direction, with left alignment for Latin text and right alignment for Persian, Arabic, Urdu, Kurdish, and Hebrew text. The Settings view provides interface language, shaping profiles, and applicable shaping and named-ligature options; these and the editor font size are saved in `~/.config/leomoon-studios.omarchy-parsinegar-express/settings.json`, while draft text and its undo history are never saved to disk. The plugin UI uses bundled Vazirmatn, so no separate UI font installation is needed.
 
+## Keyboard shortcuts
+
+- `Ctrl+Enter`: Convert
+- `Ctrl+,`: Toggle Settings
+- `Ctrl+T`: Toggle Text Tools
+- `Ctrl+E`: Toggle Export
+- `Ctrl+H`: Toggle Help
+- `Ctrl+wheel`: Change editor text size
+
 ## Preview
 
 **ParsiNegar Express - English**

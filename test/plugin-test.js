@@ -132,6 +132,19 @@ assert.ok(menu.includes('onWheel: function(wheel)'));
 assert.ok(menu.includes('font.pixelSize: root.host ? root.host.editorFontSize : Style.font.body'));
 assert.ok(menu.includes('function openTextTools()'));
 assert.ok(menu.includes('function openHelp()'));
+assert.ok(menu.includes('function togglePage(target)'));
+for (const [objectName, sequence, page] of [
+    ['convertShortcut', 'Ctrl+Return', null],
+    ['settingsShortcut', 'Ctrl+,', 'settings'],
+    ['textToolsShortcut', 'Ctrl+T', 'tools'],
+    ['exportShortcut', 'Ctrl+E', 'export'],
+    ['helpShortcut', 'Ctrl+H', 'help']
+]) {
+    assert.ok(menu.includes(`objectName: "${objectName}"`), objectName);
+    assert.ok(menu.includes(`"${sequence}"`), sequence);
+    if (page) assert.ok(menu.includes(`root.togglePage("${page}")`), page);
+}
+assert.ok(menu.includes('context: Qt.WindowShortcut'));
 assert.ok(menu.includes('page === "help"'));
 assert.ok(menu.includes('page === "tools"'));
 assert.ok(menu.includes('function applyTextToolsToSource()'));
