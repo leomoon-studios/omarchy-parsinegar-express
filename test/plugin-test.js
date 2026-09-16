@@ -242,7 +242,7 @@ assert.ok(settings.includes('root.controller.toggleLigature(modelData.name)'));
 assert.match(readme, /Hebrew[^\n]*Unicode-only/);
 assert.ok(readme.includes('bypasses JsParsiReshaper and uses JsBidi only'));
 assert.ok(readme.includes('this mode does not support Hebrew'));
-assert.ok(readme.includes('destination application already supports bidi'));
+assert.ok(readme.includes('destination application already handles bidirectional text correctly'));
 for (const source of [panel, read('Typography.qml'), read('LetterBadge.qml'), headerAction]) {
     assert.ok(!/\b(?:Timer|Process|FileView)\s*\{|Quickshell\.exec/.test(source));
 }

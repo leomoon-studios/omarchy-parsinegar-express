@@ -1,14 +1,38 @@
 # Omarchy ParsiNegar Express
 
-An Omarchy 4 shell plugin by LeoMoon Studios that prepares Persian and other supported right-to-left text for applications that display it disconnected or in the wrong direction, such as some graphics, video-editing, and older applications.
+An Omarchy 4 shell plugin by LeoMoon Studios that prepares Persian, Arabic, Kurdish, Urdu, and Hebrew text for applications with incomplete shaping or bidirectional-text support.
 
-**Unicode mode** converts the text into contextually shaped Unicode characters, joining letters into their appropriate forms and optionally rearranging them for right-to-left display. Use this mode when the destination application accepts Unicode but does not handle Persian shaping or text direction correctly. Use a Persian-capable Unicode font in that application.
+## What it does
 
-The **Hebrew** shaping profile is Unicode-only. Hebrew does not require contextual letter shaping, so this profile bypasses JsParsiReshaper and uses JsBidi only to produce visual-order text. Enable **Apply bidi visual ordering** for destination applications that do not handle right-to-left layout; leave it disabled when the destination application already supports bidi. For SVG export, choose a font that includes Hebrew glyphs; the plugin warns about missing glyphs without blocking the export.
+Use **Unicode mode** for applications that accept Unicode text but do not shape or order right-to-left text correctly. It prepares the text before copying it, while the destination application still uses its own suitable Unicode font.
 
-**Compatibility mode** converts the shaped text into a legacy character mapping for special Maryam-compatible fonts. Use this mode for older applications that cannot use the Unicode output. After pasting, select the appropriate Maryam font in the destination application; otherwise the text will appear as unrelated characters. Maryam fonts are not bundled with the plugin, and this mode does not support Hebrew.
+Use **Compatibility mode** for older applications that do not support Unicode text and require legacy Maryam/LMN-compatible fonts. Select the matching font in the destination application after pasting; this mode does not support Hebrew.
 
-Click **پ** in the bar, type or paste your text, choose a mode, and click **Convert** to copy the result. The header provides Undo, Redo, Export SVG, Text Tools, Settings, and Help actions, with `Ctrl+Z`, `Ctrl+Y`, and `Ctrl+Shift+Z` shortcuts while editing. Hold `Ctrl` while scrolling over the editor to change its text size from 10 to 48 pixels; the selected size persists in the plugin settings. Help opens a dedicated localized reference page inside the panel. Source history is limited to the latest 100 edits and remains available while the panel keeps the draft in memory. Use the header’s **Export SVG** action to open the dedicated export page and save the converted text as font-specific vector curves; Unicode starts with bundled Vazirmatn, while Compatibility export requires choosing a Maryam-compatible font. **Apply bidi visual ordering** is enabled by default and each hard-separated paragraph is ordered independently, so mixed Persian and Latin paragraphs keep their own direction. Each editor paragraph uses its first strong character for direction, with left alignment for Latin text and right alignment for Persian, Arabic, Urdu, Kurdish, and Hebrew text. The Settings view provides interface language, shaping profiles, and applicable shaping and named-ligature options; these and the editor font size are saved in `~/.config/leomoon-studios.omarchy-parsinegar-express/settings.json`, while draft text and its undo history are never saved to disk. The plugin UI uses bundled Vazirmatn, so no separate UI font installation is needed.
+The **Hebrew** shaping profile is Unicode-only. It bypasses JsParsiReshaper and uses JsBidi only for bidirectional visual ordering, without Arabic-style contextual shaping.
+
+## Use
+
+Click **پ** in the bar, type or paste text, choose a shaping profile and conversion mode, then click **Convert**. The converted result is copied to the clipboard.
+
+The header provides Document, Undo, Redo, Export SVG, Text Tools, Settings, and Help actions. Source history retains up to 100 edits while the panel remains loaded. The localized Help page describes every option and workflow.
+
+### Direction and text tools
+
+**Apply bidi visual ordering** is enabled by default. It processes each hard-separated paragraph independently, which preserves the direction of mixed Persian and Latin text. Leave it disabled when the destination application already handles bidirectional text correctly.
+
+Each editor paragraph uses its first strong character for direction. Latin text is left-aligned, while Persian, Arabic, Urdu, Kurdish, and Hebrew text is right-aligned.
+
+Text Tools update the source text immediately before conversion. They include Persian normalization, writing cleanup, and alternate character forms.
+
+### Export SVG
+
+Use **Export SVG** to create editable, font-specific vector curves from converted text. Unicode export starts with bundled Vazirmatn. Compatibility export requires selecting a Maryam-compatible font. The exporter reports missing glyphs and can save warnings separately from the editor conversion status.
+
+### Settings and privacy
+
+Settings provides the interface language, shaping profiles, applicable text-shaping and named-ligature options, and the persistent editor text size. Hold `Ctrl` while scrolling over the editor to change its text size from 10 to 48 pixels.
+
+The plugin saves those preferences in `~/.config/leomoon-studios.omarchy-parsinegar-express/settings.json`. It does not save drafts, converted text, clipboard contents, or undo history. The UI uses bundled Vazirmatn, so no separate UI-font installation is needed.
 
 ## Keyboard shortcuts
 
@@ -45,7 +69,7 @@ Click **پ** in the bar, type or paste your text, choose a mode, and click **Con
 - Persian/Arabic and Kurdish/Urdu contextual-shaping profiles, plus a Hebrew bidi-only profile
 - Configurable diacritics, tatweel, ZWJ, and named ligatures including the Rial sign for applicable shaping profiles
 - SVG curve export using the selected Unicode or compatibility font, with missing-glyph warnings
-- English and Persian interfaces with persistent settings
+- English, Persian, and Arabic interfaces with persistent settings
 - Lazy-loaded background processing with no activity while the menu is closed
 
 ## Install
@@ -62,7 +86,10 @@ The plugin defaults to the right side of the bar. It bundles Vazirmatn v33.003 f
 
 ```sh
 omarchy plugin remove leomoon-studios.omarchy-parsinegar-express
+rm -rf ~/.config/leomoon-studios.omarchy-parsinegar-express
 ```
+
+The second command is optional and permanently removes the plugin's saved settings.
 
 ## Compatibility
 
