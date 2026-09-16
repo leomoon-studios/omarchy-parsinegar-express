@@ -39,7 +39,11 @@ FocusScope {
         },
         {
             heading: "Undo, Redo, and panel lifetime",
-            body: "Use the header buttons or Ctrl+Z, Ctrl+Y, and Ctrl+Shift+Z to undo and redo source edits. Ctrl+Enter converts; Ctrl+, opens or closes Settings; Ctrl+T toggles Text Tools; Ctrl+E toggles Export; and Ctrl+H toggles Help. Hold Ctrl and scroll over the editor to change its text size. The selected size is saved. Express retains up to 100 history states while the panel remains loaded.\n\nExpress intentionally has no New, Open, Save, or Save As commands. Draft text and undo history stay in memory and are not written to disk."
+            body: "Use the header buttons to undo and redo source edits. Express retains up to 100 history states while the panel remains loaded. The selected editor text size is also saved."
+        },
+        {
+            heading: "Keyboard shortcuts",
+            body: "Ctrl+Enter: Convert\nCtrl+,: Toggle Settings\nCtrl+T: Toggle Text Tools\nCtrl+E: Toggle Export\nCtrl+H: Toggle Help\nCtrl+Z: Undo\nCtrl+Y or Ctrl+Shift+Z: Redo\nCtrl+Scroll up: Increase editor text size\nCtrl+Scroll down: Decrease editor text size"
         },
         {
             heading: "Troubleshooting, settings, and privacy",
@@ -70,7 +74,11 @@ FocusScope {
         },
         {
             heading: "واگردانی و ماندگاری پنل",
-            body: "با کلیدهای بالای پنل یا Ctrl+Z، Ctrl+Y و Ctrl+Shift+Z می‌توانید ویرایش‌های متن را واگردانی یا دوباره انجام دهید. Ctrl+Enter تبدیل را اجرا می‌کند؛ Ctrl+, تنظیمات را باز یا بسته می‌کند؛ Ctrl+T ابزارهای متن، Ctrl+E خروجی و Ctrl+H راهنما را باز یا بسته می‌کنند. برای تغییر اندازهٔ متن، Ctrl را نگه دارید و روی ویرایشگر پیمایش کنید. اندازهٔ انتخاب‌شده ذخیره می‌شود. اکسپرس تا ۱۰۰ وضعیت را در زمان بارگذاری‌بودن پنل نگه می‌دارد.\n\nاکسپرس عمداً گزینه‌های پروندهٔ نو، باز کردن، ذخیره و ذخیره با نام ندارد. پیش‌نویس و تاریخچهٔ واگردانی فقط در حافظه می‌مانند."
+            body: "با کلیدهای بالای پنل می‌توانید ویرایش‌های متن را واگردانی یا دوباره انجام دهید. اکسپرس تا ۱۰۰ وضعیت را در زمان بارگذاری‌بودن پنل نگه می‌دارد. اندازهٔ انتخاب‌شدهٔ متن ویرایشگر نیز ذخیره می‌شود."
+        },
+        {
+            heading: "میان‌برهای صفحه‌کلید",
+            body: "Ctrl+Enter: تبدیل\n,+Ctrl: باز یا بستن تنظیمات\nCtrl+T: باز یا بستن ابزارهای متن\nCtrl+E: باز یا بستن خروجی\nCtrl+H: باز یا بستن راهنما\nCtrl+Z: واگردانی\nCtrl+Y یا Ctrl+Shift+Z: انجام دوباره\nCtrl+پیمایش به بالا: افزایش اندازهٔ متن ویرایشگر\nCtrl+پیمایش به پایین: کاهش اندازهٔ متن ویرایشگر"
         },
         {
             heading: "رفع اشکال، تنظیمات و حریم خصوصی",

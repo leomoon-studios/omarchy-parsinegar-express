@@ -132,6 +132,13 @@ assert.ok(menu.includes('onWheel: function(wheel)'));
 assert.ok(menu.includes('font.pixelSize: root.host ? root.host.editorFontSize : Style.font.body'));
 assert.ok(menu.includes('function openTextTools()'));
 assert.ok(menu.includes('function openHelp()'));
+assert.ok(helpPage.includes('heading: "Keyboard shortcuts"'));
+assert.ok(helpPage.includes('heading: "میان‌برهای صفحه‌کلید"'));
+assert.ok(helpPage.includes('Ctrl+Enter: Convert'));
+assert.ok(helpPage.includes('Ctrl+Enter: تبدیل'));
+assert.ok(helpPage.includes('Ctrl+Scroll up: Increase editor text size'));
+assert.ok(helpPage.includes('Ctrl+Scroll down: Decrease editor text size'));
+assert.ok(!helpPage.includes('intentionally has no New, Open, Save, or Save As'));
 assert.ok(menu.includes('function togglePage(target)'));
 for (const [objectName, sequence, page] of [
     ['convertShortcut', 'Ctrl+Return', null],
