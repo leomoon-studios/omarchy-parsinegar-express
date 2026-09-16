@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls.Basic as Controls
-import QtQuick.Layouts
 import qs.Commons
 
 Controls.Menu {
@@ -32,33 +31,49 @@ Controls.Menu {
         id: control
 
         property string shortcutText: ""
+        readonly property alias actionLabel: actionLabel
+        readonly property alias shortcutLabel: shortcutLabel
 
         implicitHeight: Style.space(38)
         leftPadding: Style.space(12)
         rightPadding: Style.space(12)
         opacity: enabled ? 1 : 0.42
 
-        contentItem: RowLayout {
-            spacing: Style.space(14)
-            LayoutMirroring.enabled: root.rightToLeft
-            LayoutMirroring.childrenInherit: true
+        contentItem: Item {
+            width: control.availableWidth
+            height: control.availableHeight
+            implicitWidth: actionLabel.implicitWidth + shortcutLabel.implicitWidth + Style.space(14)
+            implicitHeight: Math.max(actionLabel.implicitHeight, shortcutLabel.implicitHeight)
 
             Text {
-                Layout.fillWidth: true
+                id: actionLabel
+                x: root.rightToLeft && shortcutLabel.visible
+                    ? shortcutLabel.width + Style.space(14)
+                    : 0
+                width: Math.max(0, parent.width - (shortcutLabel.visible
+                    ? shortcutLabel.width + Style.space(14)
+                    : 0))
+                height: parent.height
                 text: control.text
                 color: root.foreground
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.body
                 horizontalAlignment: root.rightToLeft ? Text.AlignRight : Text.AlignLeft
+                verticalAlignment: Text.AlignVCenter
                 elide: Text.ElideRight
             }
 
             Text {
-                visible: text !== ""
+                id: shortcutLabel
+                x: root.rightToLeft ? 0 : parent.width - width
+                width: visible ? implicitWidth : 0
+                height: parent.height
+                visible: control.shortcutText !== ""
                 text: control.shortcutText
                 color: Util.alpha(root.foreground, 0.68)
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.caption
+                verticalAlignment: Text.AlignVCenter
             }
         }
 
