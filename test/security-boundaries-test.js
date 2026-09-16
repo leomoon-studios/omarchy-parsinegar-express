@@ -63,7 +63,7 @@ const controller = read('SvgCurveExportController.qml');
 assert.doesNotMatch(exportSection, /--confirm-overwrite/);
 assert.doesNotMatch(exportSection, /destinationCheck|overwriteConfirmation|zenity", "--question|\/usr\/bin\/test/);
 assert.match(exportSection, /kind === "font"[\s\S]*else continueExport\(svgPath\(output\)\)/);
-assert.match(exportSection, /function continueExport\(destination\)[\s\S]*controller\.setExportStatus\(uiText\("export\.processing"\)[\s\S]*Qt\.callLater/);
+assert.match(exportSection, /function continueExport\(destination\)[\s\S]*setStatus\(uiText\("export\.processing"\)[\s\S]*Qt\.callLater/);
 assert.ok(menu.indexOf('Limits.ResourceLimits.assertSettingsSize(raw)') < menu.indexOf('Settings.ReshaperSettings.parse(reshaperMetadata, raw)'));
 assert.ok(controller.includes('outputPath = Paths.LocalPath.absolute(destinationPath)'));
 assert.ok(controller.includes('outputFile.path = outputPath'));

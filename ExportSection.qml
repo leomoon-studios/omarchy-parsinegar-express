@@ -19,6 +19,9 @@ FocusScope {
     property bool automaticWidth: true
     property bool automaticHeight: true
     property bool preparingExport: false
+    property string exportStatusText: ""
+    property bool exportStatusError: false
+    property bool exportStatusWarning: false
     readonly property string bundledUnicodeFontPath: String(Qt.resolvedUrl("assets/fonts/Vazirmatn[wght].ttf"))
     property string unicodeFontPath: bundledUnicodeFontPath
     property string compatibilityFontPath: ""
@@ -40,6 +43,11 @@ FocusScope {
     LayoutMirroring.childrenInherit: true
 
     function uiText(key) { return Strings.InterfaceStrings.text(controller ? controller.uiLanguage : "en", key) }
+    function setStatus(message, isError, isWarning) {
+        exportStatusText = String(message || "")
+        exportStatusError = isError === true
+        exportStatusWarning = isWarning === true
+    }
     function selectedFontLabel() {
         if (activeMode === "unicode" && Paths.LocalPath.absolute(selectedFontPath) === Paths.LocalPath.absolute(bundledUnicodeFontPath))
             return uiText("export.bundledFont")
@@ -163,7 +171,7 @@ FocusScope {
             for (var i = 0; i < details.length; i++) labels.push(details[i].label)
             suffix = " " + labels.join(", ")
         }
-        controller.setExportStatus(uiText(key) + suffix, true)
+        setStatus(uiText(key) + suffix, true)
         cleanupExport()
     }
     function cleanupExport() {
@@ -206,7 +214,7 @@ FocusScope {
     function continueExport(destination) {
         pendingDestination = destination
         preparingExport = true
-        controller.setExportStatus(uiText("export.processing"), false)
+        setStatus(uiText("export.processing"), false)
         setHostPickerActive(false)
         Qt.callLater(function() {
             if (root.preparingExport) root.beginExport()
@@ -226,16 +234,16 @@ FocusScope {
                     if (activeMode === "compatibility") compatibilityFontPath = output
                     else unicodeFontPath = output
                     saveSettings()
-                    controller.setExportStatus("", false)
+                    setStatus("", false)
                 } else continueExport(svgPath(output))
             } catch (error) {
                 setHostPickerActive(false)
-                controller.setExportStatus(uiText("export.error.invalidPath"), true)
+                setStatus(uiText("export.error.invalidPath"), true)
                 cleanupExport()
             }
         } else if (exitCode !== 0 && exitCode !== 1) {
             setHostPickerActive(false)
-            controller.setExportStatus(uiText("export.error.picker"), true)
+            setStatus(uiText("export.error.picker"), true)
             cleanupExport()
         } else setHostPickerActive(false)
     }
@@ -251,11 +259,11 @@ FocusScope {
     function focusPage() { backButton.forceActiveFocus() }
     function chooseDestination() {
         if (!controller || controller.sourceText.length === 0) {
-            controller.setExportStatus(uiText("export.error.noText"), true)
+            setStatus(uiText("export.error.noText"), true)
             return
         }
         if (selectedFontPath === "") {
-            controller.setExportStatus(uiText("export.error.fontRequired"), true)
+            setStatus(uiText("export.error.fontRequired"), true)
             return
         }
         try {
@@ -263,7 +271,7 @@ FocusScope {
             exportOptions()
         }
         catch (error) {
-            controller.setExportStatus(uiText(error && error.code === "EXPORT_TEXT_TOO_LARGE"
+            setStatus(uiText(error && error.code === "EXPORT_TEXT_TOO_LARGE"
                 ? "export.error.textTooLarge" : "export.error.invalidOption"), true)
             return
         }
@@ -275,7 +283,7 @@ FocusScope {
             pendingOptions = exportOptions()
             if (!controller.requestExportConversion()) throw new Error("Export conversion is busy")
         } catch (error) {
-            controller.setExportStatus(uiText(error && error.code === "EXPORT_TEXT_TOO_LARGE"
+            setStatus(uiText(error && error.code === "EXPORT_TEXT_TOO_LARGE"
                 ? "export.error.textTooLarge" : "export.error.generic"), true)
             cleanupExport()
         }
@@ -718,27 +726,22 @@ FocusScope {
             }
         }
 
-        RowLayout {
+        Item {
+            id: exportStatusSlot
             Layout.fillWidth: true
-            Layout.minimumHeight: Style.space(28)
-            Layout.preferredHeight: Style.space(28)
-            Layout.maximumHeight: Style.space(28)
-            spacing: Style.space(6)
-            BusySpinner {
-                running: root.preparingExport || exportLoader.active
+            Layout.minimumHeight: Style.space(32)
+            Layout.preferredHeight: Style.space(32)
+            Layout.maximumHeight: Style.space(32)
+
+            StatusMessage {
+                objectName: "exportStatus"
+                anchors.fill: parent
+                message: root.exportStatusText
+                error: root.exportStatusError
+                warning: root.exportStatusWarning
+                busy: root.preparingExport || exportLoader.active
                 fontFamily: root.typography ? root.typography.family : ""
                 foreground: root.controller ? root.controller.foreground : Color.foreground
-            }
-            Text {
-                Layout.fillWidth: true
-                text: root.controller ? root.controller.statusText : ""
-                textFormat: Text.PlainText
-                color: root.controller && root.controller.statusError ? Color.urgent
-                    : root.controller && root.controller.statusWarning ? Color.accent
-                    : (root.controller ? root.controller.foreground : Color.foreground)
-                font.family: root.typography ? root.typography.family : ""
-                font.pixelSize: Style.font.caption
-                wrapMode: Text.WordWrap
             }
         }
     }
@@ -777,9 +780,9 @@ FocusScope {
                     var labels = []
                     for (var index = 0; index < warnings.length; index++)
                         labels.push(warnings[index].character + " (" + warnings[index].label + ")")
-                    root.controller.setExportStatus(root.uiText("export.warning.missingGlyphs") + " " + labels.join(", "), false, true)
+                    root.setStatus(root.uiText("export.warning.missingGlyphs") + " " + labels.join(", "), false, true)
                 } else {
-                    root.controller.setExportStatus(root.uiText("export.success"), false)
+                    root.setStatus(root.uiText("export.success"), false)
                 }
                 Qt.callLater(root.cleanupExport)
             })

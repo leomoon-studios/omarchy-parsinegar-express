@@ -18,6 +18,7 @@ const textToolsPage = read('TextToolsPage.qml');
 const helpPage = read('HelpPage.qml');
 const textEditorContextMenu = read('TextEditorContextMenu.qml');
 const headerAction = read('HeaderActionButton.qml');
+const statusMessage = read('StatusMessage.qml');
 const readme = read('README.md');
 assert.ok(fs.existsSync(path.join(root, 'assets/fonts/MaterialSymbolsRounded.ttf')));
 assert.ok(fs.existsSync(path.join(root, 'assets/fonts/MaterialSymbols-LICENSE.txt')));
@@ -102,11 +103,11 @@ assert.ok(settings.includes('settings.profileLabel.'));
 assert.ok(menu.includes('id: conversionActions'));
 assert.match(menu, /id: conversionActions[\s\S]*?Layout\.maximumHeight: implicitHeight/);
 assert.match(menu, /id: statusSlot[\s\S]*?Layout\.minimumHeight: Style\.space\(32\)/);
-assert.match(menu, /id: statusBox[\s\S]*?visible: root\.busy \|\| root\.statusText !== ""/);
 assert.ok(menu.includes('objectName: "conversionStatus"'));
-assert.ok(menu.includes('color: Util.alpha(statusSlot.statusColor, 0.12)'));
-assert.ok(menu.includes('border.color: Util.alpha(statusSlot.statusColor, 0.48)'));
-assert.ok(menu.includes('radius: 0'));
+assert.ok(statusMessage.includes('visible: busy || message !== ""'));
+assert.ok(statusMessage.includes('color: Util.alpha(statusColor, 0.12)'));
+assert.ok(statusMessage.includes('border.color: Util.alpha(statusColor, 0.48)'));
+assert.ok(statusMessage.includes('radius: 0'));
 assert.ok(menu.includes('layoutDirection: root.uiLanguage === "fa" ? Qt.RightToLeft : Qt.LeftToRight'));
 assert.ok(menu.includes('Layout.minimumWidth: Style.space(120)'));
 assert.ok(menu.includes('Layout.preferredWidth: Style.space(170)'));
@@ -240,7 +241,7 @@ for (const source of [panel, read('Typography.qml'), read('LetterBadge.qml'), he
     assert.ok(!/\b(?:Timer|Process|FileView)\s*\{|Quickshell\.exec/.test(source));
 }
 for (const source of [menu, settings]) assert.ok(!/\bTimer\s*\{|Quickshell\.exec/.test(source));
-for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'SourceHistory.js', 'TextTools.js', 'InterfaceStrings.js', 'ResourceLimits.js', 'LocalPath.js', 'BusySpinner.qml', 'HeaderActionButton.qml', 'SectionHeading.qml', 'SettingsContent.qml', 'TextToolsPage.qml', 'HelpPage.qml', 'TextEditorContextMenu.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
+for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'SourceHistory.js', 'TextTools.js', 'InterfaceStrings.js', 'ResourceLimits.js', 'LocalPath.js', 'BusySpinner.qml', 'StatusMessage.qml', 'HeaderActionButton.qml', 'SectionHeading.qml', 'SettingsContent.qml', 'TextToolsPage.qml', 'HelpPage.qml', 'TextEditorContextMenu.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
     assert.ok(fs.statSync(path.join(root, file)).isFile(), file);
 }
 const curveController = read('SvgCurveExportController.qml');
@@ -305,14 +306,18 @@ assert.doesNotMatch(exportSection, /TextTools|applyTextToolsToSource/);
 assert.match(menu, /function requestExportConversion\(\)[\s\S]*text: sourceText/);
 assert.match(menu, /function convertAndCopy\(\)[\s\S]*var prepared = applyTextToolsToSource\(\)/);
 assert.doesNotMatch(exportSection, /property bool expanded|root\.expanded/);
-assert.ok(exportSection.includes('root.controller.statusText'));
-assert.ok(exportSection.includes('root.controller.statusWarning ? Color.accent'));
+assert.ok(exportSection.includes('property string exportStatusText: ""'));
+assert.ok(exportSection.includes('property bool exportStatusWarning: false'));
+assert.ok(exportSection.includes('objectName: "exportStatus"'));
+assert.ok(exportSection.includes('message: root.exportStatusText'));
+assert.ok(!exportSection.includes('root.controller.statusText'));
+assert.ok(!menu.includes('function setExportStatus('));
 assert.ok(menu.includes('property bool statusWarning: false'));
 assert.ok(menu.includes('id: statusSlot'));
 assert.ok(menu.includes('source: "ConversionWorker.js"'));
-assert.ok(menu.includes('BusySpinner {'));
-assert.ok(exportSection.includes('controller.setExportStatus(uiText("export.processing"), false)'));
-assert.ok(exportSection.includes('running: root.preparingExport || exportLoader.active'));
+assert.ok(statusMessage.includes('BusySpinner {'));
+assert.ok(exportSection.includes('setStatus(uiText("export.processing"), false)'));
+assert.ok(exportSection.includes('busy: root.preparingExport || exportLoader.active'));
 assert.ok(exportSection.indexOf('export.title') < exportSection.indexOf('export.moreOptions'));
 assert.ok(exportSection.indexOf('export.moreOptions') < exportSection.lastIndexOf('export.save'));
 assert.doesNotMatch(exportSection, /Quickshell\.clipboardText|SvgCurveAdapter|SvgCurveExporter|vendor\/typr|\b(?:Timer|FileView|WorkerScript)\s*\{|Quickshell\.exec|setInterval|setTimeout|fetch\s*\(/);

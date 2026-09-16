@@ -413,11 +413,6 @@ FocusScope {
         })
         return true
     }
-    function setExportStatus(message, isError, isWarning) {
-        statusText = message
-        statusError = isError
-        statusWarning = isWarning === true
-    }
     function convertAndCopy() {
         if (conversionInFlight || exportSection.exportBusy || !settingsReady || !host || !host.opened || !typography || !typography.ready) return
         ensureProfileMode()
@@ -1058,42 +1053,15 @@ FocusScope {
                     Layout.minimumHeight: Style.space(32)
                     Layout.preferredHeight: Style.space(32)
                     Layout.maximumHeight: Style.space(32)
-                    readonly property color statusColor: root.statusError ? Color.urgent
-                        : root.statusWarning || root.busy ? Color.accent : "#4fb783"
-
-                    Rectangle {
-                        id: statusBox
+                    StatusMessage {
                         objectName: "conversionStatus"
                         anchors.fill: parent
-                        visible: root.busy || root.statusText !== ""
-                        color: Util.alpha(statusSlot.statusColor, 0.12)
-                        border.color: Util.alpha(statusSlot.statusColor, 0.48)
-                        border.width: Math.max(1, Style.normalBorderWidth)
-                        radius: 0
-                    }
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: Style.space(8)
-                        anchors.rightMargin: Style.space(8)
-                        spacing: Style.space(6)
-                        visible: statusBox.visible
-
-                        BusySpinner {
-                            running: root.busy
-                            fontFamily: root.fontFamily
-                            foreground: statusSlot.statusColor
-                        }
-                        Text {
-                            Layout.fillWidth: true
-                            text: root.statusText
-                            textFormat: Text.PlainText
-                            font.family: root.fontFamily
-                            font.pixelSize: Style.font.caption
-                            color: statusSlot.statusColor
-                            wrapMode: Text.WordWrap
-                            verticalAlignment: Text.AlignVCenter
-                        }
+                        message: root.statusText
+                        error: root.statusError
+                        warning: root.statusWarning
+                        busy: root.busy
+                        fontFamily: root.fontFamily
+                        foreground: root.foreground
                     }
                 }
             }
