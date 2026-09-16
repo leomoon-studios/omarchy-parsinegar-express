@@ -58,5 +58,5 @@ QtObject {
     readonly property font placeholderFont: editorFont
     readonly property font tooltipFont: sizedFont(0.917, Font.Normal)
     readonly property font statusFont: bodyFont
-    readonly property font badgeFont: sizedFont(0.917, Font.Bold)
+    readonly property font badgeFont: Qt.font({ family: root.family, pixelSize: 17, weight: Font.Bold })
 }

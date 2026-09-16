@@ -5,11 +5,21 @@ Item {
     id: root
     required property Typography typography
     property color foreground: typography.foreground
+    property color background: "#9b8cff"
     property real spacingScale: 1
-    // Keep the compact bar slot without drawing an outline.
-    implicitWidth: letter.implicitWidth + 4 * spacingScale
-    implicitHeight: Math.max(12 * spacingScale, letter.font.pixelSize + 3 * spacingScale)
+    property bool framed: false
+    property real frameSize: 26 * spacingScale
+    property int compactPixelSize: 12
+    implicitWidth: framed ? frameSize : letter.implicitWidth + 4 * spacingScale
+    implicitHeight: framed ? frameSize : Math.max(12 * spacingScale, letter.font.pixelSize + 3 * spacingScale)
     visible: typography.ready
+
+    Rectangle {
+        anchors.fill: parent
+        radius: root.framed ? root.frameSize / 4 : 7 * root.spacingScale
+        color: root.background
+        visible: root.framed
+    }
 
     TextMetrics {
         id: glyphMetrics
@@ -21,10 +31,13 @@ Item {
         id: letter
         objectName: "badgeLetter"
         anchors.centerIn: parent
-        // Center the visible glyph, excluding the font's side bearings.
         anchors.horizontalCenterOffset: (width - glyphMetrics.tightBoundingRect.width) / 2 - glyphMetrics.tightBoundingRect.x
         text: "پ"
-        font: root.typography.badgeFont
+        font: root.framed ? root.typography.badgeFont : Qt.font({
+            family: root.typography.family,
+            pixelSize: root.compactPixelSize,
+            weight: Font.Bold
+        })
         color: root.foreground
         renderType: Text.NativeRendering
     }

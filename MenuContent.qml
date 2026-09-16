@@ -717,6 +717,17 @@ FocusScope {
             spacing: Style.space(6)
             LayoutMirroring.enabled: root.uiLanguage === "fa"
             LayoutMirroring.childrenInherit: true
+
+            LetterBadge {
+                id: headerBadge
+                typography: root.typography
+                framed: true
+                frameSize: Style.space(42)
+                spacingScale: Style.effectiveSpacingScale
+                foreground: Color.background
+                Layout.alignment: Qt.AlignVCenter
+            }
+
             Text {
                 Layout.fillWidth: true
                 text: root.uiText("editor.title")
