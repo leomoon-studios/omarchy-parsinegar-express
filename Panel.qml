@@ -18,6 +18,7 @@ Ui.Panel {
     property bool reverseWords: true
     property bool videoStudioPro: false
     property string conversionMode: "unicode"
+    property int editorFontSize: Style.font.body
     // Loaded on first menu open; kept in memory after the lazy menu closes.
     property bool reshaperSettingsLoaded: false
     property var reshaperSettings: ({})

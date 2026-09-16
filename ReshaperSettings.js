@@ -1502,6 +1502,7 @@ var ReshaperSettings = (function () {
   function defaultAppState() {
     return {
       conversionMode: "unicode", reverseWords: true, videoStudioPro: false,
+      editorFontSize: 0,
       exportSettings: {
         advancedExpanded: false, automaticWidth: true, automaticHeight: true,
         unicodeFontPath: "", compatibilityFontPath: "", alignment: "right",
@@ -1532,6 +1533,9 @@ var ReshaperSettings = (function () {
     if (value.conversionMode === "unicode" || value.conversionMode === "compatibility") result.conversionMode = value.conversionMode;
     if (typeof value.reverseWords === "boolean") result.reverseWords = value.reverseWords;
     if (typeof value.videoStudioPro === "boolean") result.videoStudioPro = value.videoStudioPro;
+    if (typeof value.editorFontSize === "number" && isFinite(value.editorFontSize) &&
+        value.editorFontSize >= 10 && value.editorFontSize <= 48)
+      result.editorFontSize = Math.round(value.editorFontSize);
     result.exportSettings = sanitizeExportSettings(value.exportSettings);
     return result;
   }

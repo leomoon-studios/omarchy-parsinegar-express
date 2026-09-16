@@ -142,12 +142,16 @@ assert.deepEqual(plain(settings.parse(metadata, toolsSerialized).textTools), {
     persianDigits: true, englishDigits: false
 });
 const appStateSerialized = settings.serialize(metadata, custom, 'en', 'standardPersianArabic', {}, {
-    conversionMode: 'compatibility', reverseWords: false, videoStudioPro: true
+    conversionMode: 'compatibility', reverseWords: false, videoStudioPro: true,
+    editorFontSize: 22
 });
 assert.deepEqual(plain(settings.parse(metadata, appStateSerialized).appState), {
     conversionMode: 'compatibility', reverseWords: false, videoStudioPro: true,
+    editorFontSize: 22,
     exportSettings: plain(settings.defaultAppState().exportSettings)
 });
+assert.equal(settings.sanitizeAppState({ editorFontSize: 9 }).editorFontSize, 0);
+assert.equal(settings.sanitizeAppState({ editorFontSize: 49 }).editorFontSize, 0);
 const persianSerialized = settings.serialize(metadata, custom, 'fa');
 assert.equal(settings.parse(metadata, persianSerialized).uiLanguage, 'fa');
 const legacyArabic = settings.parse(metadata, JSON.stringify({ schemaVersion: 1, settings: { language: 'Arabic' } }));

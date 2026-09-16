@@ -39,11 +39,11 @@ FocusScope {
         },
         {
             heading: "Undo, Redo, and panel lifetime",
-            body: "Use the header buttons or Ctrl+Z, Ctrl+Y, and Ctrl+Shift+Z to undo and redo source edits. Express retains up to 100 history states while the panel remains loaded.\n\nExpress intentionally has no New, Open, Save, or Save As commands. Draft text and undo history stay in memory and are not written to disk."
+            body: "Use the header buttons or Ctrl+Z, Ctrl+Y, and Ctrl+Shift+Z to undo and redo source edits. Hold Ctrl and scroll over the editor to change its text size. The selected size is saved. Express retains up to 100 history states while the panel remains loaded.\n\nExpress intentionally has no New, Open, Save, or Save As commands. Draft text and undo history stay in memory and are not written to disk."
         },
         {
             heading: "Troubleshooting, settings, and privacy",
-            body: "If output is disconnected, reversed, or appears as unrelated symbols, check the shaping profile, conversion mode, destination font, and bidi option. Compatibility output requires its matching Maryam-compatible font.\n\nExpress saves interface, shaping, Text tool, and SVG choices in ~/.config/leomoon-studios.omarchy-parsinegar-express/settings.json. It does not save drafts, converted text, clipboard contents, or undo history."
+            body: "If output is disconnected, reversed, or appears as unrelated symbols, check the shaping profile, conversion mode, destination font, and bidi option. Compatibility output requires its matching Maryam-compatible font.\n\nExpress saves interface, editor font size, shaping, Text tool, and SVG choices in ~/.config/leomoon-studios.omarchy-parsinegar-express/settings.json. It does not save drafts, converted text, clipboard contents, or undo history."
         }
     ]
 
@@ -70,11 +70,11 @@ FocusScope {
         },
         {
             heading: "واگردانی و ماندگاری پنل",
-            body: "با کلیدهای بالای پنل یا Ctrl+Z، Ctrl+Y و Ctrl+Shift+Z می‌توانید ویرایش‌های متن را واگردانی یا دوباره انجام دهید. اکسپرس تا ۱۰۰ وضعیت را در زمان بارگذاری‌بودن پنل نگه می‌دارد.\n\nاکسپرس عمداً گزینه‌های پروندهٔ نو، باز کردن، ذخیره و ذخیره با نام ندارد. پیش‌نویس و تاریخچهٔ واگردانی فقط در حافظه می‌مانند."
+            body: "با کلیدهای بالای پنل یا Ctrl+Z، Ctrl+Y و Ctrl+Shift+Z می‌توانید ویرایش‌های متن را واگردانی یا دوباره انجام دهید. برای تغییر اندازهٔ متن، Ctrl را نگه دارید و روی ویرایشگر پیمایش کنید. اندازهٔ انتخاب‌شده ذخیره می‌شود. اکسپرس تا ۱۰۰ وضعیت را در زمان بارگذاری‌بودن پنل نگه می‌دارد.\n\nاکسپرس عمداً گزینه‌های پروندهٔ نو، باز کردن، ذخیره و ذخیره با نام ندارد. پیش‌نویس و تاریخچهٔ واگردانی فقط در حافظه می‌مانند."
         },
         {
             heading: "رفع اشکال، تنظیمات و حریم خصوصی",
-            body: "اگر خروجی جدا، وارونه یا شبیه نمادهای نامرتبط است، نمایهٔ شکل‌دهی، حالت تبدیل، فونت مقصد و گزینهٔ دوجهته را بررسی کنید. خروجی سازگاری به فونت مریم هماهنگ نیاز دارد.\n\nاکسپرس زبان رابط، گزینه‌های شکل‌دهی، ابزارهای متن و انتخاب‌های SVG را در ~/.config/leomoon-studios.omarchy-parsinegar-express/settings.json ذخیره می‌کند. پیش‌نویس، متن تبدیل‌شده، کلیپ‌بورد و تاریخچهٔ واگردانی ذخیره نمی‌شوند."
+            body: "اگر خروجی جدا، وارونه یا شبیه نمادهای نامرتبط است، نمایهٔ شکل‌دهی، حالت تبدیل، فونت مقصد و گزینهٔ دوجهته را بررسی کنید. خروجی سازگاری به فونت مریم هماهنگ نیاز دارد.\n\nاکسپرس زبان رابط، اندازهٔ فونت ویرایشگر، گزینه‌های شکل‌دهی، ابزارهای متن و انتخاب‌های SVG را در ~/.config/leomoon-studios.omarchy-parsinegar-express/settings.json ذخیره می‌کند. پیش‌نویس، متن تبدیل‌شده، کلیپ‌بورد و تاریخچهٔ واگردانی ذخیره نمی‌شوند."
         }
     ]
 

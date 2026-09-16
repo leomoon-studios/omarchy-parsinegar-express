@@ -218,6 +218,7 @@ FocusScope {
             conversionMode: host ? host.conversionMode : "unicode",
             reverseWords: host ? host.reverseWords : true,
             videoStudioPro: host ? host.videoStudioPro : false,
+            editorFontSize: host ? host.editorFontSize : Style.font.body,
             exportSettings: host ? host.exportSettings : ({})
         }
     }
@@ -227,7 +228,22 @@ FocusScope {
         host.conversionMode = state.conversionMode
         host.reverseWords = state.reverseWords
         host.videoStudioPro = state.videoStudioPro
+        host.editorFontSize = state.editorFontSize >= 10
+            ? state.editorFontSize : Style.font.body
         host.exportSettings = state.exportSettings
+    }
+
+    function setEditorFontSize(value) {
+        if (!host) return false
+        var next = Math.max(10, Math.min(48, Math.round(Number(value))))
+        if (!isFinite(next) || host.editorFontSize === next) return false
+        host.editorFontSize = next
+        saveSettings()
+        return true
+    }
+
+    function adjustEditorFontSize(delta) {
+        return setEditorFontSize(host.editorFontSize + (delta < 0 ? -1 : 1))
     }
     function setConversionMode(value) {
         if (!host || (value !== "unicode" && value !== "compatibility") || (value === "compatibility" && hebrewProfile)) return
@@ -838,7 +854,7 @@ FocusScope {
                         onSelectionStartChanged: root.reportEditorSelection()
                         onSelectionEndChanged: root.reportEditorSelection()
                         font.family: root.fontFamily
-                        font.pixelSize: Style.font.body
+                        font.pixelSize: root.host ? root.host.editorFontSize : Style.font.body
                         placeholderText: root.uiText("placeholder")
                         placeholderTextColor: Qt.darker(root.foreground, 1.45)
                         color: root.foreground
@@ -900,6 +916,22 @@ FocusScope {
                                 editor.forceActiveFocus()
                                 editorContextMenu.openAt(editor, mouse.x, mouse.y)
                                 mouse.accepted = true
+                            }
+                            onWheel: function(wheel) {
+                                var primaryModifier = Qt.platform.os === "osx"
+                                    ? Qt.MetaModifier : Qt.ControlModifier
+                                if ((wheel.modifiers & primaryModifier) === 0) {
+                                    wheel.accepted = false
+                                    return
+                                }
+                                var delta = wheel.angleDelta.y !== 0
+                                    ? wheel.angleDelta.y : wheel.pixelDelta.y
+                                if (delta === 0) {
+                                    wheel.accepted = false
+                                    return
+                                }
+                                root.adjustEditorFontSize(delta)
+                                wheel.accepted = true
                             }
                         }
                     }
