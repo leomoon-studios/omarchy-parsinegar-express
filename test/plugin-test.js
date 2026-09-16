@@ -135,9 +135,12 @@ assert.ok(menu.includes('function openHelp()'));
 assert.ok(helpPage.includes('heading: "Keyboard shortcuts"'));
 assert.ok(helpPage.includes('heading: "میان‌برهای صفحه‌کلید"'));
 assert.ok(helpPage.includes('Ctrl+Enter: Convert'));
-assert.ok(helpPage.includes('Ctrl+Enter: تبدیل'));
+assert.ok(helpPage.includes('تبدیل: \\u2066Ctrl+Enter\\u2069'));
+assert.ok(helpPage.includes('باز یا بستن تنظیمات: \\u2066Ctrl+,\\u2069'));
+assert.ok(helpPage.includes('انجام دوباره: \\u2066Ctrl+Y\\u2069 یا \\u2066Ctrl+Shift+Z\\u2069'));
 assert.ok(helpPage.includes('Ctrl+Scroll up: Increase editor text size'));
 assert.ok(helpPage.includes('Ctrl+Scroll down: Decrease editor text size'));
+assert.ok(!helpPage.includes(',+Ctrl'));
 assert.ok(!helpPage.includes('intentionally has no New, Open, Save, or Save As'));
 assert.ok(menu.includes('function togglePage(target)'));
 for (const [objectName, sequence, page] of [

@@ -78,7 +78,7 @@ FocusScope {
         },
         {
             heading: "میان‌برهای صفحه‌کلید",
-            body: "Ctrl+Enter: تبدیل\n,+Ctrl: باز یا بستن تنظیمات\nCtrl+T: باز یا بستن ابزارهای متن\nCtrl+E: باز یا بستن خروجی\nCtrl+H: باز یا بستن راهنما\nCtrl+Z: واگردانی\nCtrl+Y یا Ctrl+Shift+Z: انجام دوباره\nCtrl+پیمایش به بالا: افزایش اندازهٔ متن ویرایشگر\nCtrl+پیمایش به پایین: کاهش اندازهٔ متن ویرایشگر"
+            body: "تبدیل و صفحه‌ها\nتبدیل: \u2066Ctrl+Enter\u2069\nباز یا بستن تنظیمات: \u2066Ctrl+,\u2069\nباز یا بستن ابزارهای متن: \u2066Ctrl+T\u2069\nباز یا بستن خروجی: \u2066Ctrl+E\u2069\nباز یا بستن راهنما: \u2066Ctrl+H\u2069\n\nویرایش\nواگردانی: \u2066Ctrl+Z\u2069\nانجام دوباره: \u2066Ctrl+Y\u2069 یا \u2066Ctrl+Shift+Z\u2069\nافزایش اندازهٔ متن ویرایشگر: \u2066Ctrl+Scroll Up\u2069\nکاهش اندازهٔ متن ویرایشگر: \u2066Ctrl+Scroll Down\u2069"
         },
         {
             heading: "رفع اشکال، تنظیمات و حریم خصوصی",
@@ -180,7 +180,7 @@ FocusScope {
                                 font.pixelSize: Style.font.body
                                 font.bold: true
                                 horizontalAlignment: root.controller.uiLanguage === "fa" ? Text.AlignRight : Text.AlignLeft
-                                wrapMode: Text.WordWrap
+                                wrapMode: Text.Wrap
                                 LayoutMirroring.enabled: false
                             }
 
@@ -192,7 +192,7 @@ FocusScope {
                                 font.family: root.fontFamily
                                 font.pixelSize: Style.font.body
                                 horizontalAlignment: root.controller.uiLanguage === "fa" ? Text.AlignRight : Text.AlignLeft
-                                wrapMode: Text.WordWrap
+                                wrapMode: Text.Wrap
                                 LayoutMirroring.enabled: false
                             }
                         }
