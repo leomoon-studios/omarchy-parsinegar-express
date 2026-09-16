@@ -42,9 +42,7 @@ FocusScope {
     property int settingsRevision: 0
     property bool settingsReady: false
     property string page: "editor"
-    implicitHeight: page === "settings" || page === "export" || page === "tools" || page === "help"
-        ? Style.space(500)
-        : editorHeader.implicitHeight + Style.space(14) + formColumn.implicitHeight
+    implicitHeight: Style.space(500)
     property bool busy: false
     property bool conversionInFlight: false
     property int conversionRequestId: 0
@@ -846,6 +844,7 @@ FocusScope {
             Layout.fillWidth: true
             Layout.fillHeight: true
             contentWidth: availableWidth
+            contentHeight: formColumn.height
             clip: true
             leftPadding: root.uiLanguage === "fa" ? scrollGutter : 0
             rightPadding: root.uiLanguage === "fa" ? 0 : scrollGutter
@@ -854,13 +853,14 @@ FocusScope {
             Controls.ScrollBar.horizontal.policy: Controls.ScrollBar.AlwaysOff
             Controls.ScrollBar.vertical.policy: Controls.ScrollBar.AsNeeded
 
-            Column {
+            ColumnLayout {
                 id: formColumn
                 width: formScroll.availableWidth
+                height: Math.max(implicitHeight, formScroll.availableHeight)
                 spacing: Style.space(14)
 
                 Text {
-                    width: parent.width
+                    Layout.fillWidth: true
                     visible: root.typography && root.typography.failed
                     text: root.typography ? root.typography.errorMessage : ""
                     font.family: root.fontFamily
@@ -871,8 +871,10 @@ FocusScope {
 
                 Controls.ScrollView {
                     id: editorScroll
-                    width: parent.width
-                    height: Style.space(180)
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.minimumHeight: Style.space(180)
+                    Layout.preferredHeight: Style.space(180)
                     clip: true
                     LayoutMirroring.enabled: false
                     LayoutMirroring.childrenInherit: true
@@ -998,7 +1000,11 @@ FocusScope {
 
                 RowLayout {
                     id: conversionActions
-                    width: parent.width
+                    Layout.fillWidth: true
+                    Layout.fillHeight: false
+                    Layout.minimumHeight: implicitHeight
+                    Layout.preferredHeight: implicitHeight
+                    Layout.maximumHeight: implicitHeight
                     spacing: Style.space(8)
                     layoutDirection: root.uiLanguage === "fa" ? Qt.RightToLeft : Qt.LeftToRight
                     LayoutMirroring.enabled: false
@@ -1046,7 +1052,8 @@ FocusScope {
                 }
 
                 RowLayout {
-                    width: parent.width
+                    Layout.fillWidth: true
+                    Layout.fillHeight: false
                     visible: root.busy || root.statusText !== ""
                     spacing: Style.space(6)
                     BusySpinner {
