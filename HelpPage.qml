@@ -10,10 +10,11 @@ FocusScope {
     required property Typography typography
     readonly property color foreground: controller.foreground
     readonly property string fontFamily: typography.family
+    readonly property bool rightToLeft: controller.uiLanguage === "fa" || controller.uiLanguage === "ar"
     readonly property Item focusItem: backButton
     signal backRequested()
 
-    LayoutMirroring.enabled: controller.uiLanguage === "fa"
+    LayoutMirroring.enabled: rightToLeft
     LayoutMirroring.childrenInherit: true
 
     readonly property var englishSections: [
@@ -86,7 +87,42 @@ FocusScope {
         }
     ]
 
-    readonly property var sections: controller.uiLanguage === "fa" ? persianSections : englishSections
+    readonly property var arabicSections: [
+        {
+            heading: "ما الذي يفعله بارسي‌نگار إكسبرس؟",
+            body: "يُعدّ إكسبرس النصوص الفارسية والعربية والكردية والأردية والعبرية للتطبيقات التي لا تدعم التشكيل أو النص ثنائي الاتجاه دعمًا كاملًا. أدخل النص المصدر أو الصقه، واختر ملف التشكيل ووضع التحويل، ثم اختر تحويل. تُنسخ النتيجة إلى الحافظة.\n\nيغيّر إكسبرس أشكال الحروف وترتيبها المرئي، وليس خط التطبيق الهدف."
+        },
+        {
+            heading: "البدء السريع",
+            body: "1. أدخل النص المصدر أو الصقه. يلصق النص العادي من دون تنسيق مواقع الويب.\n2. اختر في الإعدادات الفارسي/العربي أو الكردي/الأردي أو العبري.\n3. اختر وضع Unicode ما لم يكن التطبيق الهدف يتطلب خطًا قديمًا متوافقًا مع Maryam.\n4. فعّل الترتيب المرئي ثنائي الاتجاه فقط عندما لا يدعم التطبيق الهدف النص من اليمين إلى اليسار.\n5. فعّل أدوات النص المطلوبة واختر تحويل.\n6. الصق النتيجة في التطبيق الهدف."
+        },
+        {
+            heading: "أوضاع التحويل واتجاه النص",
+            body: "وضع Unicode هو الاختيار المعتاد للتطبيقات الحديثة. وضع التوافق مخصص للتطبيقات القديمة التي تتطلب تعيينات Maryam أو LMN القديمة وخطًا مطابقًا. العبرية تعمل في وضع Unicode فقط.\n\nيستخدم كل فقرة في المحرر أول حرف قوي فيها لتحديد الاتجاه. يعالج الترتيب المرئي ثنائي الاتجاه الفقرات منفصلة، وينبغي أن يظل معطّلًا عندما يتعامل التطبيق الهدف مع النص ثنائي الاتجاه بصورة صحيحة."
+        },
+        {
+            heading: "أدوات النص",
+            body: "لكل أداة نص مفتاح خاص بها. تعمل الأدوات المفعّلة معًا مباشرة قبل التحويل، وتحدّث النص المصدر، ثم تصبح تعديلًا واحدًا قابلًا للتراجع. لا يمكن تفعيل التحويلات المتعاكسة معًا.\n\nتتعرف أداة ZWNJ على الأفعال الفارسية الشائعة، ولذلك تستطيع إصلاح «می خواهم» من دون تغيير كلمات غير مرتبطة مثل «میدان» بلا داعٍ."
+        },
+        {
+            heading: "تصدير SVG",
+            body: "يُنشئ تصدير SVG منحنيات متجهية قابلة للتحرير من النص المحوّل. اختر الخط وحجمه وتباعد الأسطر والمحاذاة، ثم احفظ الملف. يبدأ تصدير Unicode بخط Vazirmatn المضمّن. يتطلب تصدير التوافق خط TTF أو OTF متوافقًا مع Maryam.\n\nتوفّر الخيارات الإضافية أبعادًا ثابتة وحشوًا ودقة ولون تعبئة وفهرس خط ومحاور الخط المتغير. العرض والارتفاع التلقائيان مفعّلان افتراضيًا."
+        },
+        {
+            heading: "التراجع والإعادة واستمرار اللوحة",
+            body: "استخدم أزرار الرأس للتراجع عن تعديلات النص المصدر وإعادتها. يحتفظ إكسبرس بما يصل إلى 100 حالة محفوظة ما دامت اللوحة محمّلة. كما يُحفظ حجم النص المحدد للمحرر."
+        },
+        {
+            heading: "اختصارات لوحة المفاتيح",
+            body: "التحويل والصفحات\nتحويل: \u2066Ctrl+Enter\u2069\nفتح أو إغلاق الإعدادات: \u2066Ctrl+,\u2069\nفتح أو إغلاق أدوات النص: \u2066Ctrl+T\u2069\nفتح أو إغلاق التصدير: \u2066Ctrl+E\u2069\nفتح أو إغلاق المساعدة: \u2066Ctrl+H\u2069\n\nالتحرير\nتراجع: \u2066Ctrl+Z\u2069\nإعادة: \u2066Ctrl+Y\u2069 أو \u2066Ctrl+Shift+Z\u2069\nزيادة حجم نص المحرر: \u2066Ctrl+Scroll Up\u2069\nتقليل حجم نص المحرر: \u2066Ctrl+Scroll Down\u2069"
+        },
+        {
+            heading: "استكشاف الأخطاء والإعدادات والخصوصية",
+            body: "إذا كان الناتج مفصولًا أو معكوسًا أو يظهر كرموز غير مرتبطة، فتحقق من ملف التشكيل ووضع التحويل وخط التطبيق الهدف وخيار ثنائي الاتجاه. يتطلب ناتج التوافق خط Maryam مطابقًا.\n\nيحفظ إكسبرس لغة الواجهة وحجم خط المحرر وخيارات التشكيل وأدوات النص وخيارات SVG في ~/.config/leomoon-studios.omarchy-parsinegar-express/settings.json. لا يحفظ المسودات أو النص المحوّل أو محتويات الحافظة أو محفوظات التراجع."
+        }
+    ]
+
+    readonly property var sections: controller.uiLanguage === "fa" ? persianSections : controller.uiLanguage === "ar" ? arabicSections : englishSections
 
     function focusPage() { backButton.forceActiveFocus() }
 
@@ -111,13 +147,13 @@ FocusScope {
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.heading
                 font.bold: true
-                horizontalAlignment: root.controller.uiLanguage === "fa" ? Text.AlignRight : Text.AlignLeft
+                horizontalAlignment: root.rightToLeft ? Text.AlignRight : Text.AlignLeft
             }
 
             HeaderActionButton {
                 id: backButton
                 objectName: "helpBackButton"
-                iconText: root.controller.uiLanguage === "fa" ? root.typography.iconForward : root.typography.iconBack
+                iconText: root.rightToLeft ? root.typography.iconForward : root.typography.iconBack
                 fontFamily: root.typography.iconFamily
                 fontSize: Style.font.heading
                 size: Style.space(42)
@@ -136,8 +172,8 @@ FocusScope {
             Layout.fillHeight: true
             contentWidth: availableWidth
             clip: true
-            leftPadding: root.controller.uiLanguage === "fa" ? scrollGutter : 0
-            rightPadding: root.controller.uiLanguage === "fa" ? 0 : scrollGutter
+            leftPadding: root.rightToLeft ? scrollGutter : 0
+            rightPadding: root.rightToLeft ? 0 : scrollGutter
             ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
             ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
@@ -179,7 +215,7 @@ FocusScope {
                                 font.family: root.fontFamily
                                 font.pixelSize: Style.font.body
                                 font.bold: true
-                                horizontalAlignment: root.controller.uiLanguage === "fa" ? Text.AlignRight : Text.AlignLeft
+                                horizontalAlignment: root.rightToLeft ? Text.AlignRight : Text.AlignLeft
                                 wrapMode: Text.Wrap
                                 LayoutMirroring.enabled: false
                             }
@@ -191,7 +227,7 @@ FocusScope {
                                 color: Util.alpha(root.foreground, 0.78)
                                 font.family: root.fontFamily
                                 font.pixelSize: Style.font.body
-                                horizontalAlignment: root.controller.uiLanguage === "fa" ? Text.AlignRight : Text.AlignLeft
+                                horizontalAlignment: root.rightToLeft ? Text.AlignRight : Text.AlignLeft
                                 wrapMode: Text.Wrap
                                 LayoutMirroring.enabled: false
                             }

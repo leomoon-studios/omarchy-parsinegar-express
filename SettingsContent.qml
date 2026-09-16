@@ -12,9 +12,10 @@ FocusScope {
     property string ligatureGroupId: ""
     readonly property color foreground: controller.foreground
     readonly property string fontFamily: typography.family
+    readonly property bool rightToLeft: controller.uiLanguage === "fa" || controller.uiLanguage === "ar"
     readonly property Item focusItem: ligatureGroupId === "" ? backButton : groupBackButton
     signal backRequested()
-    LayoutMirroring.enabled: controller.uiLanguage === "fa"
+    LayoutMirroring.enabled: rightToLeft
     LayoutMirroring.childrenInherit: true
 
     function uiText(key) { return Strings.InterfaceStrings.text(controller.uiLanguage, key) }
@@ -69,13 +70,13 @@ FocusScope {
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.heading
                 font.bold: true
-                horizontalAlignment: root.controller.uiLanguage === "fa"
+                horizontalAlignment: root.rightToLeft
                     ? Text.AlignRight : Text.AlignLeft
             }
             HeaderActionButton {
                 id: backButton
                 objectName: "settingsBackButton"
-                iconText: root.controller.uiLanguage === "fa"
+                iconText: root.rightToLeft
                     ? root.typography.iconForward : root.typography.iconBack
                 fontFamily: root.typography.iconFamily
                 fontSize: Style.font.heading
@@ -95,8 +96,8 @@ FocusScope {
             Layout.fillHeight: true
             contentWidth: availableWidth
             clip: true
-            leftPadding: root.controller.uiLanguage === "fa" ? scrollGutter : 0
-            rightPadding: root.controller.uiLanguage === "fa" ? 0 : scrollGutter
+            leftPadding: root.rightToLeft ? scrollGutter : 0
+            rightPadding: root.rightToLeft ? 0 : scrollGutter
             ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
             ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
@@ -110,7 +111,7 @@ FocusScope {
                     label: root.uiText("settings.interfaceLanguage")
                     foreground: root.foreground
                     fontFamily: root.fontFamily
-                    rightToLeft: root.controller.uiLanguage === "fa"
+                    rightToLeft: root.rightToLeft
                 }
 
                 Text {
@@ -124,7 +125,7 @@ FocusScope {
 
                 GridLayout {
                     width: parent.width
-                    columns: 2
+                    columns: 3
                     columnSpacing: Style.space(8)
                     Repeater {
                         model: Strings.InterfaceStrings.languages
@@ -132,7 +133,7 @@ FocusScope {
                             required property string modelData
                             Layout.fillWidth: true
                             Layout.preferredWidth: 1
-                            text: modelData === "fa" ? root.uiText("language.persian") : root.uiText("language.english")
+                            text: modelData === "fa" ? root.uiText("language.persian") : modelData === "ar" ? root.uiText("language.arabic") : root.uiText("language.english")
                             selected: root.controller.uiLanguage === modelData
                             onClicked: root.controller.setUiLanguage(modelData)
                         }
@@ -144,7 +145,7 @@ FocusScope {
                     label: root.uiText("settings.language")
                     foreground: root.foreground
                     fontFamily: root.fontFamily
-                    rightToLeft: root.controller.uiLanguage === "fa"
+                    rightToLeft: root.rightToLeft
                 }
 
                 GridLayout {
@@ -178,7 +179,7 @@ FocusScope {
                     label: root.uiText("settings.textShaping")
                     foreground: root.foreground
                     fontFamily: root.fontFamily
-                    rightToLeft: root.controller.uiLanguage === "fa"
+                    rightToLeft: root.rightToLeft
                 }
 
                 Ui.Toggle {
@@ -313,7 +314,7 @@ FocusScope {
                     label: root.uiText("settings.namedLigatures")
                     foreground: root.foreground
                     fontFamily: root.fontFamily
-                    rightToLeft: root.controller.uiLanguage === "fa"
+                    rightToLeft: root.rightToLeft
                 }
 
                 Text {
@@ -369,13 +370,13 @@ FocusScope {
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.heading
                 font.bold: true
-                horizontalAlignment: root.controller.uiLanguage === "fa"
+                horizontalAlignment: root.rightToLeft
                     ? Text.AlignRight : Text.AlignLeft
             }
             HeaderActionButton {
                 id: groupBackButton
                 objectName: "ligatureGroupBackButton"
-                iconText: root.controller.uiLanguage === "fa"
+                iconText: root.rightToLeft
                     ? root.typography.iconForward : root.typography.iconBack
                 fontFamily: root.typography.iconFamily
                 fontSize: Style.font.heading
@@ -416,9 +417,9 @@ FocusScope {
                 Ui.Toggle {
                     id: ligatureToggle
                     property bool pointerHovered: false
-                    x: root.controller.uiLanguage === "fa" ? ligatureList.scrollGutter : 0
+                    x: root.rightToLeft ? ligatureList.scrollGutter : 0
                     width: Math.max(0, parent.width - ligatureList.scrollGutter)
-                    LayoutMirroring.enabled: root.controller.uiLanguage === "fa"
+                    LayoutMirroring.enabled: root.rightToLeft
                     LayoutMirroring.childrenInherit: true
                     label: modelData.name
                     description: modelData.name === "RIAL SIGN" ? root.uiText("settings.rialDescription") : ""

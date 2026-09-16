@@ -39,6 +39,7 @@ FocusScope {
     property string shapingProfile: "standardPersianArabic"
     readonly property bool hebrewProfile: shapingProfile === "hebrew"
     property string uiLanguage: "en"
+    readonly property bool rightToLeft: uiLanguage === "fa" || uiLanguage === "ar"
     property int settingsRevision: 0
     property bool settingsReady: false
     property string page: "editor"
@@ -634,7 +635,7 @@ FocusScope {
             anchors.topMargin: Style.space(10)
             anchors.bottomMargin: Style.space(10)
             spacing: Style.space(12)
-            LayoutMirroring.enabled: root.uiLanguage === "fa"
+            LayoutMirroring.enabled: root.rightToLeft
             LayoutMirroring.childrenInherit: true
 
             Rectangle {
@@ -715,7 +716,7 @@ FocusScope {
             id: editorHeader
             Layout.fillWidth: true
             spacing: Style.space(6)
-            LayoutMirroring.enabled: root.uiLanguage === "fa"
+            LayoutMirroring.enabled: root.rightToLeft
             LayoutMirroring.childrenInherit: true
 
             LetterBadge {
@@ -852,9 +853,9 @@ FocusScope {
             contentWidth: availableWidth
             contentHeight: formColumn.height
             clip: true
-            leftPadding: root.uiLanguage === "fa" ? scrollGutter : 0
-            rightPadding: root.uiLanguage === "fa" ? 0 : scrollGutter
-            LayoutMirroring.enabled: root.uiLanguage === "fa"
+            leftPadding: root.rightToLeft ? scrollGutter : 0
+            rightPadding: root.rightToLeft ? 0 : scrollGutter
+            LayoutMirroring.enabled: root.rightToLeft
             LayoutMirroring.childrenInherit: true
             Controls.ScrollBar.horizontal.policy: Controls.ScrollBar.AlwaysOff
             Controls.ScrollBar.vertical.policy: Controls.ScrollBar.AsNeeded
@@ -969,7 +970,7 @@ FocusScope {
                             pasteHandler: root.pastePlainText
                             fontFamily: root.fontFamily
                             foreground: root.foreground
-                            rightToLeft: root.uiLanguage === "fa"
+                            rightToLeft: root.rightToLeft
                         }
 
                         MouseArea {
@@ -1012,7 +1013,7 @@ FocusScope {
                     Layout.preferredHeight: implicitHeight
                     Layout.maximumHeight: implicitHeight
                     spacing: Style.space(8)
-                    layoutDirection: root.uiLanguage === "fa" ? Qt.RightToLeft : Qt.LeftToRight
+                    layoutDirection: root.rightToLeft ? Qt.RightToLeft : Qt.LeftToRight
                     LayoutMirroring.enabled: false
                     LayoutMirroring.childrenInherit: false
 
@@ -1023,7 +1024,7 @@ FocusScope {
 
                         ModeCard {
                             Layout.fillWidth: true
-                            LayoutMirroring.enabled: root.uiLanguage === "fa"
+                            LayoutMirroring.enabled: root.rightToLeft
                             LayoutMirroring.childrenInherit: true
                             objectName: "unicodeButton"
                             title: root.uiText("mode.unicode")
@@ -1033,7 +1034,7 @@ FocusScope {
                         }
                         ModeCard {
                             Layout.fillWidth: true
-                            LayoutMirroring.enabled: root.uiLanguage === "fa"
+                            LayoutMirroring.enabled: root.rightToLeft
                             LayoutMirroring.childrenInherit: true
                             objectName: "compatibilityButton"
                             title: root.uiText("mode.compatibility")

@@ -1539,7 +1539,7 @@ var ReshaperSettings = (function () {
     result.exportSettings = sanitizeExportSettings(value.exportSettings);
     return result;
   }
-  function sanitizeUiLanguage(value) { return value === "fa" ? "fa" : "en"; }
+  function sanitizeUiLanguage(value) { return value === "fa" || value === "ar" ? value : "en"; }
   function profileForLanguage(language) { return language === "Kurdish" ? "kurdishUrdu" : "standardPersianArabic"; }
   function profileLanguage(metadata, profile) {
     for (var index = 0; index < metadata.shapingProfiles.length; index++) {

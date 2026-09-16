@@ -37,9 +37,10 @@ FocusScope {
     readonly property string selectedFontPath: activeMode === "compatibility" ? compatibilityFontPath : unicodeFontPath
     readonly property bool pickerActive: pickerKind !== ""
     readonly property bool exportBusy: preparingExport || exportLoader.active || pickerActive
+    readonly property bool rightToLeft: controller && (controller.uiLanguage === "fa" || controller.uiLanguage === "ar")
     readonly property Item focusItem: backButton
     signal backRequested()
-    LayoutMirroring.enabled: controller && controller.uiLanguage === "fa"
+    LayoutMirroring.enabled: rightToLeft
     LayoutMirroring.childrenInherit: true
 
     function uiText(key) { return Strings.InterfaceStrings.text(controller ? controller.uiLanguage : "en", key) }
@@ -410,7 +411,7 @@ FocusScope {
             HeaderActionButton {
                 id: backButton
                 objectName: "exportBackButton"
-                iconText: root.controller && root.controller.uiLanguage === "fa"
+                iconText: root.rightToLeft
                     ? root.typography.iconForward : root.typography.iconBack
                 fontFamily: root.typography ? root.typography.iconFamily : ""
                 fontSize: Style.font.heading
@@ -431,8 +432,8 @@ FocusScope {
             Layout.fillHeight: true
             contentWidth: availableWidth
             clip: true
-            leftPadding: root.controller && root.controller.uiLanguage === "fa" ? scrollGutter : 0
-            rightPadding: root.controller && root.controller.uiLanguage === "fa" ? 0 : scrollGutter
+            leftPadding: root.rightToLeft ? scrollGutter : 0
+            rightPadding: root.rightToLeft ? 0 : scrollGutter
             ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
             ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
@@ -463,7 +464,7 @@ FocusScope {
                             label: root.uiText("export.mode")
                             foreground: root.controller ? root.controller.foreground : Color.foreground
                             fontFamily: root.typography ? root.typography.family : ""
-                            rightToLeft: root.controller && root.controller.uiLanguage === "fa"
+                            rightToLeft: root.rightToLeft
                         }
 
                         GridLayout {
@@ -494,7 +495,7 @@ FocusScope {
                             label: root.uiText("export.font")
                             foreground: root.controller ? root.controller.foreground : Color.foreground
                             fontFamily: root.typography ? root.typography.family : ""
-                            rightToLeft: root.controller && root.controller.uiLanguage === "fa"
+                            rightToLeft: root.rightToLeft
                         }
 
                         RowLayout {
@@ -557,7 +558,7 @@ FocusScope {
                                     label: root.uiText("export.fontSize")
                                     foreground: root.controller ? root.controller.foreground : Color.foreground
                                     fontFamily: root.typography ? root.typography.family : ""
-                                    rightToLeft: root.controller && root.controller.uiLanguage === "fa"
+                                    rightToLeft: root.rightToLeft
                                 }
                                 NumberField { id: fontSizeField; Layout.fillWidth: true; minimumValue: 0.01; maximumValue: Limits.ResourceLimits.values.maxFontSize; text: "48"; onEditingFinished: root.saveSettings() }
                             }
@@ -570,7 +571,7 @@ FocusScope {
                                     label: root.uiText("export.lineSpacing")
                                     foreground: root.controller ? root.controller.foreground : Color.foreground
                                     fontFamily: root.typography ? root.typography.family : ""
-                                    rightToLeft: root.controller && root.controller.uiLanguage === "fa"
+                                    rightToLeft: root.rightToLeft
                                 }
                                 NumberField { id: lineSpacingField; Layout.fillWidth: true; minimumValue: 0.01; maximumValue: Limits.ResourceLimits.values.maxLineSpacing; text: "1.2"; onEditingFinished: root.saveSettings() }
                             }
@@ -581,7 +582,7 @@ FocusScope {
                             label: root.uiText("export.alignment")
                             foreground: root.controller ? root.controller.foreground : Color.foreground
                             fontFamily: root.typography ? root.typography.family : ""
-                            rightToLeft: root.controller && root.controller.uiLanguage === "fa"
+                            rightToLeft: root.rightToLeft
                         }
 
                         GridLayout {
@@ -610,12 +611,12 @@ FocusScope {
                             columnSpacing: Style.space(8)
                             rowSpacing: Style.space(8)
 
-                            SectionHeading { label: root.uiText("export.width"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
+                            SectionHeading { label: root.uiText("export.width"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.rightToLeft }
                             NumberField { id: widthField; Layout.fillWidth: true; minimumValue: 0.01; text: "800"; enabled: !root.automaticWidth; onEditingFinished: root.saveSettings() }
                             RowLayout {
                                 Layout.alignment: Qt.AlignVCenter
                                 spacing: Style.space(6)
-                                layoutDirection: root.controller && root.controller.uiLanguage === "fa" ? Qt.RightToLeft : Qt.LeftToRight
+                                layoutDirection: root.rightToLeft ? Qt.RightToLeft : Qt.LeftToRight
 
                                 Ui.ToggleSwitch {
                                     id: automaticWidthToggle
@@ -638,12 +639,12 @@ FocusScope {
                                 }
                             }
 
-                            SectionHeading { label: root.uiText("export.height"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
+                            SectionHeading { label: root.uiText("export.height"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.rightToLeft }
                             NumberField { id: heightField; Layout.fillWidth: true; minimumValue: 0.01; text: "300"; enabled: !root.automaticHeight; onEditingFinished: root.saveSettings() }
                             RowLayout {
                                 Layout.alignment: Qt.AlignVCenter
                                 spacing: Style.space(6)
-                                layoutDirection: root.controller && root.controller.uiLanguage === "fa" ? Qt.RightToLeft : Qt.LeftToRight
+                                layoutDirection: root.rightToLeft ? Qt.RightToLeft : Qt.LeftToRight
 
                                 Ui.ToggleSwitch {
                                     id: automaticHeightToggle
@@ -677,25 +678,25 @@ FocusScope {
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 Layout.preferredWidth: 0
-                                SectionHeading { Layout.fillWidth: true; label: root.uiText("export.padding"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
+                                SectionHeading { Layout.fillWidth: true; label: root.uiText("export.padding"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.rightToLeft }
                                 NumberField { id: paddingField; Layout.fillWidth: true; maximumValue: Limits.ResourceLimits.values.maxPadding; text: "16"; onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 Layout.preferredWidth: 0
-                                SectionHeading { Layout.fillWidth: true; label: root.uiText("export.precision"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
+                                SectionHeading { Layout.fillWidth: true; label: root.uiText("export.precision"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.rightToLeft }
                                 NumberField { id: precisionField; Layout.fillWidth: true; maximumValue: 8; decimalPlaces: 0; text: "3"; onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 Layout.preferredWidth: 0
-                                SectionHeading { Layout.fillWidth: true; label: root.uiText("export.fontIndex"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
+                                SectionHeading { Layout.fillWidth: true; label: root.uiText("export.fontIndex"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.rightToLeft }
                                 NumberField { id: fontIndexField; Layout.fillWidth: true; decimalPlaces: 0; allowEmpty: true; placeholderText: root.uiText("export.default"); onEditingFinished: root.saveSettings() }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 Layout.preferredWidth: 0
-                                SectionHeading { Layout.fillWidth: true; label: root.uiText("export.fill"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
+                                SectionHeading { Layout.fillWidth: true; label: root.uiText("export.fill"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.rightToLeft }
                                 ValueField {
                                     id: fillField
                                     Layout.fillWidth: true
@@ -711,7 +712,7 @@ FocusScope {
                             width: parent.width
                             visible: root.advancedExpanded
                             spacing: Style.space(4)
-                            SectionHeading { Layout.fillWidth: true; label: root.uiText("export.axes"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.controller && root.controller.uiLanguage === "fa" }
+                                SectionHeading { Layout.fillWidth: true; label: root.uiText("export.axes"); foreground: root.controller ? root.controller.foreground : Color.foreground; fontFamily: root.typography ? root.typography.family : ""; rightToLeft: root.rightToLeft }
                             ValueField { id: axesField; Layout.fillWidth: true; placeholderText: root.uiText("export.axesHint"); LayoutMirroring.enabled: false; onEditingFinished: root.saveSettings() }
                         }
                     }

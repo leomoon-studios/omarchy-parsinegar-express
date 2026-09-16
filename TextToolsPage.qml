@@ -12,9 +12,10 @@ FocusScope {
     required property Typography typography
     readonly property color foreground: controller.foreground
     readonly property string fontFamily: typography.family
+    readonly property bool rightToLeft: controller.uiLanguage === "fa" || controller.uiLanguage === "ar"
     readonly property Item focusItem: backButton
     signal backRequested()
-    LayoutMirroring.enabled: controller.uiLanguage === "fa"
+    LayoutMirroring.enabled: rightToLeft
     LayoutMirroring.childrenInherit: true
 
     function uiText(key) { return controller.uiText(key) }
@@ -43,13 +44,13 @@ FocusScope {
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.heading
                 font.bold: true
-                horizontalAlignment: root.controller.uiLanguage === "fa" ? Text.AlignRight : Text.AlignLeft
+                horizontalAlignment: root.rightToLeft ? Text.AlignRight : Text.AlignLeft
             }
 
             HeaderActionButton {
                 id: backButton
                 objectName: "textToolsBackButton"
-                iconText: root.controller.uiLanguage === "fa" ? root.typography.iconForward : root.typography.iconBack
+                iconText: root.rightToLeft ? root.typography.iconForward : root.typography.iconBack
                 fontFamily: root.typography.iconFamily
                 fontSize: Style.font.heading
                 size: Style.space(42)
@@ -68,8 +69,8 @@ FocusScope {
             Layout.fillHeight: true
             contentWidth: availableWidth
             clip: true
-            leftPadding: root.controller.uiLanguage === "fa" ? scrollGutter : 0
-            rightPadding: root.controller.uiLanguage === "fa" ? 0 : scrollGutter
+            leftPadding: root.rightToLeft ? scrollGutter : 0
+            rightPadding: root.rightToLeft ? 0 : scrollGutter
             ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
             ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
@@ -111,7 +112,7 @@ FocusScope {
                             label: root.uiText("tools.group." + modelData)
                             foreground: root.foreground
                             fontFamily: root.fontFamily
-                            rightToLeft: root.controller.uiLanguage === "fa"
+                            rightToLeft: root.rightToLeft
                         }
 
                         Repeater {

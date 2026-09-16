@@ -1,5 +1,5 @@
 // Copyright (c) 2026 LeoMoon Studios
-// Small, dependency-free interface dictionary for the English/Persian UI.
+// Small, dependency-free interface dictionary for the English, Persian, and Arabic UI.
 var InterfaceStrings = (function () {
   "use strict";
 
@@ -9,10 +9,10 @@ var InterfaceStrings = (function () {
       "help.title": "Help",
       "toggle.reverse": "Apply bidi visual ordering", "toggle.reverseDescription": "For applications that do not handle right-to-left layout",
       "toggle.video": "Special convert for VideoStudio Pro", "toggle.videoDescription": "Available in Compatibility mode",
-      "placeholder": "Enter your text…", "mode.unicode": "Unicode mode", "mode.unicodeDescription": "Standard Unicode presentation forms for applications that accept Unicode text.", "mode.compatibility": "Compatibility mode", "mode.compatibilityDescription": "Legacy Maryam/LMN character codes. Requires a compatible LMN font.",
+      "placeholder": "Enter your text…", "mode.unicode": "Unicode mode", "mode.unicodeDescription": "Prepares Unicode text for applications with incomplete text shaping.", "mode.compatibility": "Compatibility mode", "mode.compatibilityDescription": "Uses legacy Maryam/LMN-compatible fonts for older applications that do not support Unicode text.",
       "button.convert": "Convert", "button.settings": "Settings", "history.undo": "Undo", "history.redo": "Redo", "status.converting": "Converting and copying…", "status.converted": "Converted and copied.",
       "edit.cut": "Cut", "edit.copy": "Copy", "edit.paste": "Paste", "edit.delete": "Delete", "edit.selectAll": "Select all",
-      "tools.title": "Text tools", "tools.intro": "Enabled tools update the source text when you convert, then the updated text is converted and copied.", "tools.appliedStatus": "Enabled text tools were applied to the source.",
+      "tools.title": "Text tools", "tools.intro": "When you convert, enabled tools first update your source text. The updated text is then converted and copied.", "tools.appliedStatus": "Enabled text tools were applied to the source.",
       "tools.group.persian": "PERSIAN NORMALIZATION", "tools.group.cleanup": "WRITING CLEANUP", "tools.group.alternate": "ALTERNATE FORMS",
       "tools.arabicYehToPersian": "Arabic yeh to Persian yeh", "tools.arabicYehToPersianDescription": "Replace ي and ى with ی.",
       "tools.arabicKafToPersian": "Arabic kaf to Persian kaf", "tools.arabicKafToPersianDescription": "Replace ك with ک.",
@@ -40,7 +40,7 @@ var InterfaceStrings = (function () {
       "export.error.textTooLarge": "SVG export is limited to 50,000 characters.", "export.error.fontTooLarge": "The selected font exceeds the 50 MiB limit.", "export.error.svgTooLarge": "The generated SVG exceeds the 16 MiB limit.", "export.error.dimensions": "The generated SVG exceeds the supported dimensions.",
       "export.error.invalidPath": "Choose a valid local file path.",
       "status.textTooLarge": "Conversion is limited to 250,000 characters.", "status.failure": "Conversion failed: ", "status.settingsDirectory": "Could not create the settings directory.", "button.back": "Back", "settings.title": "Settings", "settings.interfaceLanguage": "INTERFACE LANGUAGE",
-      "settings.interfaceLanguageDescription": "Choose the language used by this interface.", "language.english": "English", "language.persian": "پارسی",
+      "settings.interfaceLanguageDescription": "Choose the language used by this interface.", "language.english": "English", "language.persian": "پارسی", "language.arabic": "العربية",
       "settings.language": "SHAPING PROFILE", "settings.textShaping": "TEXT SHAPING", "settings.namedLigatures": "NAMED LIGATURES",
       "settings.profileLabel.standardPersianArabic": "Persian/Arabic", "settings.profileLabel.kurdishUrdu": "Kurdish/Urdu", "settings.profileLabel.hebrew": "Hebrew",
       "settings.profileDescription.standardPersianArabic": "Uses standard Unicode letter forms for Persian and Arabic.",
@@ -64,10 +64,10 @@ var InterfaceStrings = (function () {
       "help.title": "راهنما",
       "toggle.reverse": "اعمال ترتیب نمایشی دوجهته", "toggle.reverseDescription": "برای برنامه‌هایی که چیدمان راست‌به‌چپ را پشتیبانی نمی‌کنند",
       "toggle.video": "تبدیل ویژه برای VideoStudio Pro", "toggle.videoDescription": "در حالت سازگاری در دسترس است",
-      "placeholder": "متن خود را وارد کنید…", "mode.unicode": "حالت یونیکد", "mode.unicodeDescription": "فرم‌های نمایشی استاندارد یونیکد برای برنامه‌هایی که متن یونیکد را می‌پذیرند.", "mode.compatibility": "حالت سازگاری", "mode.compatibilityDescription": "کدهای قدیمی مریم/LMN؛ به یک فونت سازگار با LMN نیاز دارد.",
+      "placeholder": "متن خود را وارد کنید…", "mode.unicode": "حالت یونیکد", "mode.unicodeDescription": "متن یونیکد را برای برنامه‌هایی با شکل‌دهی ناقص متن آماده می‌کند.", "mode.compatibility": "حالت سازگاری", "mode.compatibilityDescription": "برای برنامه‌های قدیمی که متن یونیکد را پشتیبانی نمی‌کنند، از فونت‌های قدیمی سازگار با مریم/LMN استفاده می‌کند.",
       "button.convert": "تبدیل", "button.settings": "تنظیمات", "history.undo": "واگردانی", "history.redo": "انجام دوباره", "status.converting": "در حال تبدیل و کپی…", "status.converted": "تبدیل و کپی شد.",
       "edit.cut": "برش", "edit.copy": "رونوشت", "edit.paste": "چسباندن", "edit.delete": "حذف", "edit.selectAll": "انتخاب همه",
-      "tools.title": "ابزارهای متن", "tools.intro": "ابزارهای فعال هنگام تبدیل، متن منبع را تغییر می‌دهند؛ سپس متنِ به‌روزشده تبدیل و کپی می‌شود.", "tools.appliedStatus": "ابزارهای فعال روی متن منبع اعمال شدند.",
+      "tools.title": "ابزارهای متن", "tools.intro": "هنگام تبدیل، ابزارهای فعال ابتدا متن مبدأ را به‌روزرسانی می‌کنند. سپس متنِ به‌روزشده تبدیل و کپی می‌شود.", "tools.appliedStatus": "ابزارهای فعال روی متن منبع اعمال شدند.",
       "tools.group.persian": "یکنواخت‌سازی پارسی", "tools.group.cleanup": "پاک‌سازی نوشتار", "tools.group.alternate": "صورت‌های جایگزین",
       "tools.arabicYehToPersian": "تبدیل یای عربی به یای پارسی", "tools.arabicYehToPersianDescription": "ي و ى را به ی تبدیل می‌کند.",
       "tools.arabicKafToPersian": "تبدیل کاف عربی به کاف پارسی", "tools.arabicKafToPersianDescription": "ك را به ک تبدیل می‌کند.",
@@ -95,7 +95,7 @@ var InterfaceStrings = (function () {
       "export.error.textTooLarge": "خروجی SVG به ۵۰٬۰۰۰ نویسه محدود است.", "export.error.fontTooLarge": "اندازهٔ فونت انتخاب‌شده از حد ۵۰ مگابایت بیشتر است.", "export.error.svgTooLarge": "اندازهٔ SVG ساخته‌شده از حد ۱۶ مگابایت بیشتر است.", "export.error.dimensions": "ابعاد SVG ساخته‌شده از محدودهٔ پشتیبانی‌شده بیشتر است.",
       "export.error.invalidPath": "یک مسیر محلی معتبر انتخاب کنید.",
       "status.textTooLarge": "تبدیل به ۲۵۰٬۰۰۰ نویسه محدود است.", "status.failure": "تبدیل ناموفق بود: ", "status.settingsDirectory": "ساخت پوشهٔ تنظیمات ممکن نشد.", "button.back": "بازگشت", "settings.title": "تنظیمات", "settings.interfaceLanguage": "زبان رابط",
-      "settings.interfaceLanguageDescription": "زبان نمایش متن‌ها و کنترل‌های این افزونه را انتخاب کنید.", "language.english": "English", "language.persian": "پارسی",
+      "settings.interfaceLanguageDescription": "زبان نمایش متن‌ها و کنترل‌های این افزونه را انتخاب کنید.", "language.english": "English", "language.persian": "پارسی", "language.arabic": "العربية",
       "settings.language": "نمایهٔ شکل‌دهی", "settings.textShaping": "شکل‌دهی متن", "settings.namedLigatures": "لیگچرهای نام‌دار",
       "settings.profileLabel.standardPersianArabic": "پارسی/عربی", "settings.profileLabel.kurdishUrdu": "کردی/اردو", "settings.profileLabel.hebrew": "عبری",
       "settings.profileDescription.standardPersianArabic": "از شکل‌های استاندارد یونیکد حروف برای پارسی و عربی استفاده می‌کند.",
@@ -113,11 +113,59 @@ var InterfaceStrings = (function () {
       "settings.reset": "بازنشانی پیش‌فرض‌های پارسی‌نگار", "settings.breadcrumb": "تنظیمات > ",
       "settings.group.sentences": "لیگچرهای عبارتی", "settings.group.words": "لیگچرهای واژه‌ای", "settings.group.letters": "لیگچرهای حرفی",
       "settings.rialDescription": "تبدیل ریال یا ريال به ﷼"
+    },
+    ar: {
+      "editor.title": "پارسی‌نگار اکسپرس", "help.title": "المساعدة",
+      "toggle.reverse": "تطبيق الترتيب المرئي ثنائي الاتجاه", "toggle.reverseDescription": "للتطبيقات التي لا تتعامل مع التخطيط من اليمين إلى اليسار",
+      "toggle.video": "تحويل خاص لـ VideoStudio Pro", "toggle.videoDescription": "متاح في وضع التوافق",
+      "placeholder": "أدخل النص…", "mode.unicode": "وضع Unicode", "mode.unicodeDescription": "يهيّئ نص Unicode للتطبيقات ذات تشكيل النص غير المكتمل.", "mode.compatibility": "وضع التوافق", "mode.compatibilityDescription": "يستخدم خطوط Maryam/LMN القديمة المتوافقة للتطبيقات القديمة التي لا تدعم نص Unicode.",
+      "button.convert": "تحويل", "button.settings": "الإعدادات", "history.undo": "تراجع", "history.redo": "إعادة", "status.converting": "جارٍ التحويل والنسخ…", "status.converted": "تم التحويل والنسخ.",
+      "edit.cut": "قص", "edit.copy": "نسخ", "edit.paste": "لصق", "edit.delete": "حذف", "edit.selectAll": "تحديد الكل",
+      "tools.title": "أدوات النص", "tools.intro": "عند التحويل، تحدّث الأدوات المفعّلة النص المصدر أولًا. ثم يُحوَّل النص المحدّث ويُنسخ.", "tools.appliedStatus": "تم تطبيق أدوات النص المفعّلة على النص المصدر.",
+      "tools.group.persian": "تطبيع الفارسية", "tools.group.cleanup": "تنظيف الكتابة", "tools.group.alternate": "أشكال بديلة",
+      "tools.arabicYehToPersian": "الياء العربية إلى الياء الفارسية", "tools.arabicYehToPersianDescription": "استبدال ي و ى بـ ی.",
+      "tools.arabicKafToPersian": "الكاف العربية إلى الكاف الفارسية", "tools.arabicKafToPersianDescription": "استبدال ك بـ ک.",
+      "tools.normalizeHehYeh": "تطبيع هاء-ياء", "tools.normalizeHehYehDescription": "استخدام الصيغة القياسية هٔ.",
+      "tools.tehMarbutaToHeh": "التاء المربوطة إلى هاء", "tools.tehMarbutaToHehDescription": "استبدال ة بـ ه.",
+      "tools.alefFathatan": "تصحيح الألف مع تنوين الفتح", "tools.alefFathatanDescription": "استبدال ا\" بـ اً.",
+      "tools.persianDigits": "تحويل إلى الأرقام الفارسية", "tools.persianDigitsDescription": "تحويل الأرقام اللاتينية والهندية العربية وعلامات النسبة والفاصلة والعزل.",
+      "tools.persianQuotes": "تحويل إلى علامات الاقتباس الفارسية", "tools.persianQuotesDescription": "استخدام «…» للاقتباسات الفارسية.",
+      "tools.repairZwnj": "إصلاح ZWNJ", "tools.repairZwnjDescription": "تطبيع أحرف عدم الوصل ذات العرض الصفري في الصيغ الفارسية الشائعة.",
+      "tools.removeDiacritics": "إزالة الحركات", "tools.removeDiacriticsDescription": "إزالة علامات الحركات والتشكيل العربية.",
+      "tools.removeTatweel": "إزالة التطويل", "tools.removeTatweelDescription": "إزالة حرف المد العربي.",
+      "tools.persianYehToArabic": "الياء الفارسية إلى الياء العربية", "tools.persianYehToArabicDescription": "استبدال ی بـ ي.",
+      "tools.persianKafToArabic": "الكاف الفارسية إلى الكاف العربية", "tools.persianKafToArabicDescription": "استبدال ک بـ ك.",
+      "tools.legacyHehYeh": "استخدام هاء-ياء القديمة", "tools.legacyHehYehDescription": "استبدال هٔ بـ ه‌ی.",
+      "tools.englishDigits": "تحويل إلى الأرقام الإنجليزية", "tools.englishDigitsDescription": "تحويل الأرقام الفارسية والهندية العربية وعلامات النسبة والفاصلة والعزل.",
+      "tools.englishQuotes": "تحويل إلى علامات الاقتباس الإنجليزية", "tools.englishQuotesDescription": "استبدال « و » بعلامات اقتباس مزدوجة.",
+      "export.title": "تصدير SVG", "export.mode": "الوضع", "export.font": "الخط", "export.chooseFont": "اختر خطًا…", "export.bundledFont": "Vazirmatn (مضمّن)", "export.useBundledFont": "استخدام الخط المضمّن",
+      "export.fontRequired": "اختر خطًا متوافقًا مع Maryam", "export.fontSize": "حجم الخط", "export.moreOptions": "خيارات إضافية", "export.fewerOptions": "خيارات أقل",
+      "export.lineSpacing": "تباعد الأسطر", "export.alignment": "المحاذاة", "export.alignLeft": "يسار", "export.alignCenter": "وسط", "export.alignRight": "يمين",
+      "export.width": "العرض", "export.height": "الارتفاع", "export.padding": "الحشو", "export.auto": "تلقائي", "export.default": "افتراضي", "export.precision": "الدقة", "export.fontIndex": "فهرس الخط", "export.fill": "التعبئة", "export.axes": "محاور الخط المتغير", "export.axesHint": "قيم مفصولة بفواصل", "export.save": "حفظ SVG…",
+      "export.success": "تم حفظ منحنيات SVG.", "export.processing": "جارٍ إنشاء منحنيات SVG…", "export.error.noText": "أدخل نصًا قبل التصدير.", "export.error.fontRequired": "اختر خط TTF/OTF متوافقًا لهذا الوضع.",
+      "export.error.invalidOption": "تحقق من قيم حجم التصدير والتباعد.", "export.error.invalidFont": "تعذرت قراءة الخط المحدد.",
+      "export.error.missingGlyphs": "الخط المحدد يفتقد الحروف الرسومية المطلوبة:", "export.warning.missingGlyphs": "تحذير: حُفظ SVG باستخدام مخططات الحروف المفقودة في الخط لـ:", "export.error.bounds": "عرض SVG أو ارتفاعه صغير جدًا لهذا النص.",
+      "export.error.unsupportedGlyph": "يحتوي الخط المحدد على حرف رسومي لا يمكن تصديره كمنحنيات.", "export.error.save": "تعذر حفظ ملف SVG.", "export.error.picker": "تعذر فتح منتقي الملفات.", "export.error.generic": "فشل تصدير SVG.",
+      "export.error.textTooLarge": "يقتصر تصدير SVG على 50,000 حرف.", "export.error.fontTooLarge": "يتجاوز الخط المحدد حد 50 MiB.", "export.error.svgTooLarge": "يتجاوز SVG الناتج حد 16 MiB.", "export.error.dimensions": "يتجاوز SVG الناتج الأبعاد المدعومة.",
+      "export.error.invalidPath": "اختر مسار ملف محلي صالحًا.",
+      "status.textTooLarge": "يقتصر التحويل على 250,000 حرف.", "status.failure": "فشل التحويل: ", "status.settingsDirectory": "تعذر إنشاء مجلد الإعدادات.", "button.back": "رجوع", "settings.title": "الإعدادات", "settings.interfaceLanguage": "لغة الواجهة",
+      "settings.interfaceLanguageDescription": "اختر اللغة المستخدمة في هذه الواجهة.", "language.english": "English", "language.persian": "پارسی", "language.arabic": "العربية",
+      "settings.language": "ملف التشكيل", "settings.textShaping": "تشكيل النص", "settings.namedLigatures": "الروابط المسماة",
+      "settings.profileLabel.standardPersianArabic": "فارسي/عربي", "settings.profileLabel.kurdishUrdu": "كردي/أردو", "settings.profileLabel.hebrew": "عبرية",
+      "settings.profileDescription.standardPersianArabic": "يستخدم أشكال حروف Unicode القياسية للفارسية والعربية.",
+      "settings.profileDescription.kurdishUrdu": "يستخدم أشكال الحروف البديلة للكردية والأردية. تتطلب بعض الحروف الرسومية خطًا متوافقًا.",
+      "settings.profileDescription.hebrew": "يستخدم الترتيب المرئي ثنائي الاتجاه فقط. لا تتطلب العبرية تشكيلًا سياقيًا.",
+      "settings.hebrewNoticeTitle": "العبرية تستخدم الترتيب ثنائي الاتجاه فقط", "settings.hebrewNoticeDescription": "لا تنطبق خيارات التشكيل السياقي والروابط على العبرية. وضع التوافق غير متاح.",
+      "settings.deleteHarakat": "حذف الحركات", "settings.deleteHarakatDescription": "إزالة علامات الحركات والتشكيل", "settings.shiftHarakat": "تغيير موضع الحركات", "settings.shiftHarakatDescription": "نقل العلامات المتبقية للترتيب المرئي المعكوس",
+      "settings.deleteTatweel": "حذف التطويل", "settings.deleteTatweelDescription": "إزالة حرف المد العربي", "settings.supportZWJ": "دعم ZWJ", "settings.supportZWJDescription": "مراعاة تشكيل الموصل ذي العرض الصفري",
+      "settings.unshapedIsolated": "استخدام الحروف المعزولة غير المشكلة", "settings.unshapedIsolatedDescription": "الإبقاء على نقاط الرمز الأصلية للصيغ المعزولة",
+      "settings.supportLigatures": "تفعيل الروابط", "settings.supportLigaturesDescription": "المفتاح الرئيس لكل الروابط المسماة", "settings.fontNotice": "تتطلب هذه الروابط دعم الحروف الرسومية المطابق في الخط الذي يستخدمه التطبيق الهدف.",
+      "settings.reset": "إعادة ضبط إعدادات بارسي‌نگار الافتراضية", "settings.breadcrumb": "الإعدادات > ", "settings.group.sentences": "روابط الجمل", "settings.group.words": "روابط الكلمات", "settings.group.letters": "روابط الحروف", "settings.rialDescription": "تحويل ریال أو ريال إلى ﷼"
     }
   };
 
-  var languages = Object.freeze(["en", "fa"]);
-  function normalize(language) { return language === "fa" ? "fa" : "en"; }
+  var languages = Object.freeze(["en", "fa", "ar"]);
+  function normalize(language) { return language === "fa" || language === "ar" ? language : "en"; }
   function text(language, key) {
     var selected = values[normalize(language)];
     return Object.prototype.hasOwnProperty.call(selected, key) ? selected[key] : values.en[key] || key;

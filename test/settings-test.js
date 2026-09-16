@@ -20,11 +20,12 @@ assert.deepEqual(plain(metadata.shapingProfiles), [
 ]);
 assert.deepEqual(plain(metadata.ligatureGroups.map(group => group.ligatures.length)), [3, 9, 274]);
 assert.equal(metadata.ligatureGroups.flatMap(group => group.ligatures).length, 286);
-assert.deepEqual(Array.from(strings.languages), ['en', 'fa']);
+assert.deepEqual(Array.from(strings.languages), ['en', 'fa', 'ar']);
 assert.equal(strings.text('en', 'settings.title'), 'Settings');
 assert.equal(strings.text('fa', 'settings.title'), 'تنظیمات');
-assert.equal(strings.text('en', 'mode.unicodeDescription'), 'Standard Unicode presentation forms for applications that accept Unicode text.');
-assert.equal(strings.text('fa', 'mode.compatibilityDescription'), 'کدهای قدیمی مریم/LMN؛ به یک فونت سازگار با LMN نیاز دارد.');
+assert.equal(strings.text('ar', 'settings.title'), 'الإعدادات');
+assert.equal(strings.text('en', 'mode.unicodeDescription'), 'Prepares Unicode text for applications with incomplete text shaping.');
+assert.equal(strings.text('fa', 'mode.compatibilityDescription'), 'برای برنامه‌های قدیمی که متن یونیکد را پشتیبانی نمی‌کنند، از فونت‌های قدیمی سازگار با مریم/LMN استفاده می‌کند.');
 assert.equal(strings.text('en', 'settings.language'), 'SHAPING PROFILE');
 assert.equal(strings.text('fa', 'settings.language'), 'نمایهٔ شکل‌دهی');
 assert.equal(strings.text('en', 'settings.profileLabel.standardPersianArabic'), 'Persian/Arabic');
@@ -39,9 +40,11 @@ assert.ok(strings.text('en', 'settings.profileDescription.hebrew').includes('bid
 assert.ok(strings.text('fa', 'settings.profileDescription.hebrew').includes('عبری'));
 assert.equal(strings.text('en', 'toggle.reverse'), 'Apply bidi visual ordering');
 assert.equal(strings.text('fa', 'toggle.reverse'), 'اعمال ترتیب نمایشی دوجهته');
+assert.equal(strings.text('ar', 'toggle.reverse'), 'تطبيق الترتيب المرئي ثنائي الاتجاه');
 for (const key of ['history.undo', 'history.redo', 'tools.title', 'tools.intro', 'tools.appliedStatus', 'tools.arabicYehToPersian', 'tools.englishDigits']) {
     assert.notEqual(strings.text('en', key), key, key + ' English');
     assert.notEqual(strings.text('fa', key), key, key + ' Persian');
+    assert.notEqual(strings.text('ar', key), key, key + ' Arabic');
 }
 assert.equal(textTools.operations.length, 15);
 assert.equal(textTools.applyOne('يىك', 'arabicYehToPersian'), 'ییك');
@@ -154,6 +157,9 @@ assert.equal(settings.sanitizeAppState({ editorFontSize: 9 }).editorFontSize, 0)
 assert.equal(settings.sanitizeAppState({ editorFontSize: 49 }).editorFontSize, 0);
 const persianSerialized = settings.serialize(metadata, custom, 'fa');
 assert.equal(settings.parse(metadata, persianSerialized).uiLanguage, 'fa');
+const arabicSerialized = settings.serialize(metadata, custom, 'ar');
+assert.equal(settings.parse(metadata, arabicSerialized).uiLanguage, 'ar');
+assert.equal(settings.sanitizeUiLanguage('ar'), 'ar');
 const legacyArabic = settings.parse(metadata, JSON.stringify({ schemaVersion: 1, settings: { language: 'Arabic' } }));
 const legacyKurdish = settings.parse(metadata, JSON.stringify({ schemaVersion: 1, settings: { language: 'Kurdish' } }));
 assert.equal(legacyArabic.shapingProfile, 'standardPersianArabic');
