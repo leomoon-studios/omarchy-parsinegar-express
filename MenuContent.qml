@@ -42,7 +42,7 @@ FocusScope {
     property int settingsRevision: 0
     property bool settingsReady: false
     property string page: "editor"
-    implicitHeight: Style.space(500)
+    implicitHeight: Style.space(512)
     property bool busy: false
     property bool conversionInFlight: false
     property int conversionRequestId: 0

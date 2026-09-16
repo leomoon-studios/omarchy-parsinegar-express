@@ -56,7 +56,7 @@ assert.ok(menu.includes('component ModeCard: Item'));
 assert.equal((menu.match(/Ui\.Toggle\s*\{/g) || []).length, 0);
 assert.ok(!/Controls\.(?:Button|CheckBox)\s*\{/.test(menu));
 assert.ok(panel.includes('fittedContentWidth(Style.space(760))'));
-assert.ok(menu.includes('implicitHeight: Style.space(500)'));
+assert.ok(menu.includes('implicitHeight: Style.space(512)'));
 assert.doesNotMatch(menu, /implicitHeight: page ===/);
 assert.ok(menu.includes('Quickshell.clipboardText = message.output'));
 assert.ok(menu.includes('textFormat: TextEdit.RichText'));
