@@ -3,10 +3,11 @@ const assert = require('assert').strict;
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const { loadInterfaceStrings } = require('./interface-strings-loader');
 
 const context = vm.createContext({});
 vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'TextTools.js'), 'utf8'), context, { filename: 'TextTools.js' });
-vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'InterfaceStrings.js'), 'utf8'), context, { filename: 'InterfaceStrings.js' });
+loadInterfaceStrings(path.join(__dirname, '..'), context);
 vm.runInContext(fs.readFileSync(path.join(__dirname, 'text-tools-fixtures.js'), 'utf8'), context, { filename: 'text-tools-fixtures.js' });
 const tools = context.TextTools;
 const strings = context.InterfaceStrings;

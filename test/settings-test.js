@@ -3,10 +3,12 @@ const assert = require('assert').strict;
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const { loadInterfaceStrings } = require('./interface-strings-loader');
 const context = vm.createContext({});
-for (const file of ['../vendor/js-parsi-reshaper.js', '../ReshaperSettings.js', '../TextTools.js', '../InterfaceStrings.js']) {
+for (const file of ['../vendor/js-parsi-reshaper.js', '../ReshaperSettings.js', '../TextTools.js']) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, file), 'utf8'), context, { filename: file });
 }
+loadInterfaceStrings(path.join(__dirname, '..'), context);
 const settings = context.ReshaperSettings;
 const metadata = settings.metadata;
 const strings = context.InterfaceStrings;
@@ -21,6 +23,8 @@ assert.deepEqual(plain(metadata.shapingProfiles), [
 assert.deepEqual(plain(metadata.ligatureGroups.map(group => group.ligatures.length)), [3, 9, 274]);
 assert.equal(metadata.ligatureGroups.flatMap(group => group.ligatures).length, 286);
 assert.deepEqual(Array.from(strings.languages), ['en', 'fa', 'ar']);
+assert.deepEqual(Object.keys(context.PersianStrings.values).sort(), Object.keys(context.EnglishStrings.values).sort());
+assert.deepEqual(Object.keys(context.ArabicStrings.values).sort(), Object.keys(context.EnglishStrings.values).sort());
 assert.equal(strings.text('en', 'settings.title'), 'Settings');
 assert.equal(strings.text('fa', 'settings.title'), 'تنظیمات');
 assert.equal(strings.text('ar', 'settings.title'), 'الإعدادات');

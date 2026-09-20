@@ -247,7 +247,7 @@ for (const source of [panel, read('Typography.qml'), read('LetterBadge.qml'), he
     assert.ok(!/\b(?:Timer|Process|FileView)\s*\{|Quickshell\.exec/.test(source));
 }
 for (const source of [menu, settings]) assert.ok(!/\bTimer\s*\{|Quickshell\.exec/.test(source));
-for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'SourceHistory.js', 'TextTools.js', 'InterfaceStrings.js', 'ResourceLimits.js', 'LocalPath.js', 'BusySpinner.qml', 'StatusMessage.qml', 'HeaderActionButton.qml', 'SectionHeading.qml', 'SettingsContent.qml', 'TextToolsPage.qml', 'HelpPage.qml', 'TextEditorContextMenu.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
+for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'SourceHistory.js', 'TextTools.js', 'InterfaceStrings.js', 'i18n/English.js', 'i18n/Persian.js', 'i18n/Arabic.js', 'ResourceLimits.js', 'LocalPath.js', 'BusySpinner.qml', 'StatusMessage.qml', 'HeaderActionButton.qml', 'SectionHeading.qml', 'SettingsContent.qml', 'TextToolsPage.qml', 'HelpPage.qml', 'TextEditorContextMenu.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
     assert.ok(fs.statSync(path.join(root, file)).isFile(), file);
 }
 const curveController = read('SvgCurveExportController.qml');
