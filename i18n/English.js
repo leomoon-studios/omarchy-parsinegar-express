@@ -3,6 +3,7 @@
 // Copyright (c) 2026 LeoMoon Studios
 var values = Object.freeze({
   "editor.title": "ParsiNegar Express",
+  "app.subtitle": "Text tools for Persian, Arabic, Urdu, Kurdish, and Hebrew.",
   "help.title": "Help",
   "toggle.reverse": "Apply bidi visual ordering",
   "toggle.reverseDescription": "For applications that do not handle right-to-left layout",
@@ -15,6 +16,7 @@ var values = Object.freeze({
   "mode.compatibilityDescription": "Uses legacy Maryam/LMN-compatible fonts for older applications that do not support Unicode text.",
   "button.convert": "Convert",
   "button.settings": "Settings",
+  "button.donate": "Donate",
   "history.undo": "Undo",
   "history.redo": "Redo",
   "status.converting": "Converting and copying…",

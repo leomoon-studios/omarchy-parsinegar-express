@@ -3,6 +3,7 @@
 // Copyright (c) 2026 LeoMoon Studios
 var values = Object.freeze({
   "editor.title": "پارسی‌نگار اکسپرس",
+  "app.subtitle": "أدوات النص للفارسية والعربية والأردية والكردية والعبرية.",
   "help.title": "المساعدة",
   "toggle.reverse": "تطبيق الترتيب المرئي ثنائي الاتجاه",
   "toggle.reverseDescription": "للتطبيقات التي لا تتعامل مع التخطيط من اليمين إلى اليسار",
@@ -15,6 +16,7 @@ var values = Object.freeze({
   "mode.compatibilityDescription": "يستخدم خطوط Maryam/LMN القديمة المتوافقة للتطبيقات القديمة التي لا تدعم نص Unicode.",
   "button.convert": "تحويل",
   "button.settings": "الإعدادات",
+  "button.donate": "تبرّع",
   "history.undo": "تراجع",
   "history.redo": "إعادة",
   "status.converting": "جارٍ التحويل والنسخ…",

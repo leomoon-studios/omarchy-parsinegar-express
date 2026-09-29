@@ -28,6 +28,9 @@ assert.deepEqual(Object.keys(context.ArabicStrings.values).sort(), Object.keys(c
 assert.equal(strings.text('en', 'settings.title'), 'Settings');
 assert.equal(strings.text('fa', 'settings.title'), 'تنظیمات');
 assert.equal(strings.text('ar', 'settings.title'), 'الإعدادات');
+assert.equal(strings.text('en', 'app.subtitle'), 'Text tools for Persian, Arabic, Urdu, Kurdish, and Hebrew.');
+assert.equal(strings.text('fa', 'app.subtitle'), 'ابزارهای متن پارسی، عربی، اردو، کردی و عبری');
+assert.equal(strings.text('ar', 'app.subtitle'), 'أدوات النص للفارسية والعربية والأردية والكردية والعبرية.');
 assert.equal(strings.text('en', 'mode.unicodeDescription'), 'Prepares Unicode text for applications with incomplete text shaping.');
 assert.equal(strings.text('fa', 'mode.compatibilityDescription'), 'برای برنامه‌های قدیمی که متن یونیکد را پشتیبانی نمی‌کنند، از فونت‌های قدیمی سازگار با مریم/LMN استفاده می‌کند.');
 assert.equal(strings.text('en', 'settings.language'), 'SHAPING PROFILE');

@@ -3,6 +3,7 @@
 // Copyright (c) 2026 LeoMoon Studios
 var values = Object.freeze({
   "editor.title": "پارسی‌نگار اکسپرس",
+  "app.subtitle": "ابزارهای متن پارسی، عربی، اردو، کردی و عبری",
   "help.title": "راهنما",
   "toggle.reverse": "اعمال ترتیب نمایشی دوجهته",
   "toggle.reverseDescription": "برای برنامه‌هایی که چیدمان راست‌به‌چپ را پشتیبانی نمی‌کنند",
@@ -15,6 +16,7 @@ var values = Object.freeze({
   "mode.compatibilityDescription": "برای برنامه‌های قدیمی که متن یونیکد را پشتیبانی نمی‌کنند، از فونت‌های قدیمی سازگار با مریم/LMN استفاده می‌کند.",
   "button.convert": "تبدیل",
   "button.settings": "تنظیمات",
+  "button.donate": "حمایت مالی",
   "history.undo": "واگردانی",
   "history.redo": "انجام دوباره",
   "status.converting": "در حال تبدیل و کپی…",

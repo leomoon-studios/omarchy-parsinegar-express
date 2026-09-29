@@ -729,14 +729,32 @@ FocusScope {
                 Layout.alignment: Qt.AlignVCenter
             }
 
-            Text {
+            ColumnLayout {
                 Layout.fillWidth: true
-                text: root.uiText("editor.title")
-                color: root.foreground
-                font.family: root.fontFamily
-                font.pixelSize: Style.font.heading
-                font.bold: true
-                elide: Text.ElideRight
+                Layout.minimumWidth: 0
+                spacing: Style.space(2)
+
+                Text {
+                    Layout.fillWidth: true
+                    text: root.uiText("editor.title")
+                    color: root.foreground
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.heading
+                    font.bold: true
+                    horizontalAlignment: Text.AlignLeft
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    objectName: "editorSubtitle"
+                    Layout.fillWidth: true
+                    text: root.uiText("app.subtitle")
+                    color: Color.muted
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.caption
+                    horizontalAlignment: Text.AlignLeft
+                    elide: Text.ElideRight
+                }
             }
 
             HeaderActionButton {
@@ -840,6 +858,25 @@ FocusScope {
                 onClicked: {
                     pointerHovered = false
                     root.openHelp()
+                }
+            }
+
+            HeaderActionButton {
+                id: donateHeaderButton
+                objectName: "donateButton"
+                readonly property url donationUrl: "https://www.paypal.com/donate?hosted_button_id=TYDVJHYA9VYKN"
+                iconText: root.typography ? root.typography.iconDonate : "\ue87d"
+                fontFamily: root.iconFontFamily
+                fontSize: Style.font.heading
+                size: Style.space(42)
+                foreground: "#ef4444"
+                hoverColor: foreground
+                toolTipText: root.uiText("button.donate")
+                toolTipFontFamily: root.fontFamily
+                Accessible.name: root.uiText("button.donate")
+                onClicked: {
+                    pointerHovered = false
+                    Qt.openUrlExternally(donationUrl)
                 }
             }
         }

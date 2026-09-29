@@ -26,6 +26,7 @@ QtObject {
     readonly property string iconUndo: "\ue166"
     readonly property string iconRedo: "\ue15a"
     readonly property string iconHelp: "\ue8fd"
+    readonly property string iconDonate: "\ue87d"
     readonly property string iconRefresh: "\ue5d5"
     readonly property string errorMessage: failed ? "Unable to load the bundled Vazirmatn font." : ""
     signal loadFailed(string message)
