@@ -6,6 +6,8 @@ var FontCatalog = (function () {
     var maxLineLength = 64 * 1024;
     var maxOutputLength = 8 * 1024 * 1024;
     var maxRecords = 20000;
+    var unicodeSample = "The quick brown fox jumps over the lazy dog · روباه قهوه‌ای سریع از روی سگ تنبل می‌پرد · 0123456789 · ۰۱۲۳۴۵۶۷۸۹";
+    var compatibilitySample = "0123456789 joQÂ¶ ®L¹U ªw Á»n pH ÍÄow ÁH½¼¿¤ ½IM»n";
 
     function fail(message) {
         var error = new Error(message);
@@ -51,6 +53,54 @@ var FontCatalog = (function () {
         if (state.remainder.length > maxLineLength) fail("Font catalog record is too long");
     }
 
+    function charsetRanges(charset) {
+        var tokens = charset.split(/\s+/);
+        var ranges = [];
+        for (var i = 0; i < tokens.length; i++) {
+            var match = /^([0-9a-fA-F]+)(?:-([0-9a-fA-F]+))?$/.exec(tokens[i]);
+            if (!match) continue;
+            var first = parseInt(match[1], 16);
+            var last = match[2] ? parseInt(match[2], 16) : first;
+            if (first <= last && last <= 0x10ffff) ranges.push([first, last]);
+        }
+        ranges.sort(function (left, right) { return left[0] - right[0]; });
+        return ranges;
+    }
+
+    function supports(ranges, codepoint) {
+        var low = 0;
+        var high = ranges.length - 1;
+        while (low <= high) {
+            var middle = (low + high) >> 1;
+            if (codepoint < ranges[middle][0]) high = middle - 1;
+            else if (codepoint > ranges[middle][1]) low = middle + 1;
+            else return true;
+        }
+        return false;
+    }
+
+    function previewWithRanges(ranges, sample) {
+        var result = "";
+        for (var i = 0; i < sample.length; i++) {
+            var codepoint = sample.charCodeAt(i);
+            if (codepoint >= 0xd800 && codepoint <= 0xdbff && i + 1 < sample.length) {
+                var low = sample.charCodeAt(i + 1);
+                if (low >= 0xdc00 && low <= 0xdfff) {
+                    codepoint = 0x10000 + ((codepoint - 0xd800) << 10) + low - 0xdc00;
+                    i++;
+                }
+            }
+            var character = String.fromCodePoint(codepoint);
+            result += /\s/.test(character) || codepoint >= 0x200b && codepoint <= 0x200f ||
+                supports(ranges, codepoint) ? character : "□";
+        }
+        return result;
+    }
+
+    function previewWithoutFallback(charset, sample) {
+        return previewWithRanges(charsetRanges(charset), sample);
+    }
+
     function finish(state) {
         if (state.remainder !== "") parseLine(state, state.remainder);
         state.remainder = "";
@@ -63,6 +113,7 @@ var FontCatalog = (function () {
             if (seenPaths[entry.path] || seenFaces[face]) continue;
             seenPaths[entry.path] = true;
             seenFaces[face] = true;
+            var ranges = charsetRanges(entry.charset);
             result.push({
                 key: entry.path,
                 path: entry.path,
@@ -71,6 +122,8 @@ var FontCatalog = (function () {
                 display: !entry.style || entry.style.toLowerCase() === "regular"
                     ? entry.family : entry.family + " - " + entry.style,
                 charset: entry.charset,
+                unicodePreview: previewWithRanges(ranges, unicodeSample),
+                compatibilityPreview: previewWithRanges(ranges, compatibilitySample),
                 bundled: false
             });
         }
@@ -89,7 +142,8 @@ var FontCatalog = (function () {
         var result = [];
         if (mode === "unicode") result.push({
             key: bundledPath, path: bundledPath, family: bundledFamily,
-            style: "", display: bundledDisplay, charset: "", bundled: true
+            style: "", display: bundledDisplay, charset: "", unicodePreview: unicodeSample,
+            compatibilityPreview: compatibilitySample, bundled: true
         });
         for (var i = 0; i < entries.length; i++) {
             if (isLegacy(entries[i]) === (mode === "compatibility")) result.push(entries[i]);
@@ -103,9 +157,11 @@ var FontCatalog = (function () {
             if (entries[i].path === path) return entries[i];
         }
         var name = path.substring(path.lastIndexOf("/") + 1);
-        return { key: path, path: path, family: "", style: "", display: name, charset: "", custom: true };
+        return { key: path, path: path, family: "", style: "", display: name, charset: "",
+            unicodePreview: "", compatibilityPreview: "", custom: true };
     }
 
     return Object.freeze({ create: create, append: append, finish: finish, forMode: forMode,
-        selectedEntry: selectedEntry, isLegacy: isLegacy });
+        selectedEntry: selectedEntry, isLegacy: isLegacy, previewWithoutFallback: previewWithoutFallback,
+        unicodeSample: unicodeSample, compatibilitySample: compatibilitySample });
 }());

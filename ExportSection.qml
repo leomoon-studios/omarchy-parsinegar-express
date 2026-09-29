@@ -29,14 +29,13 @@ FocusScope {
     property string pendingText: ""
     property string pendingDestination: ""
     property var pendingOptions: ({})
-    property string pickerKind: ""
+    property bool pickerActive: false
     property string pickerOutput: ""
     property bool pickerExited: false
     property bool pickerOutputFinished: false
     property int pickerExitCode: -1
     readonly property string activeMode: host ? host.conversionMode : "unicode"
     readonly property string selectedFontPath: activeMode === "compatibility" ? compatibilityFontPath : unicodeFontPath
-    readonly property bool pickerActive: pickerKind !== ""
     readonly property bool exportBusy: preparingExport || exportLoader.active || pickerActive
     readonly property bool rightToLeft: controller && (controller.uiLanguage === "fa" || controller.uiLanguage === "ar")
     readonly property Item focusItem: backButton
@@ -50,20 +49,13 @@ FocusScope {
         exportStatusError = isError === true
         exportStatusWarning = isWarning === true
     }
-    function selectedFontLabel() {
-        if (selectedFontPath === "") return uiText("export.fontRequired")
-        if (activeMode === "unicode" && Paths.LocalPath.absolute(selectedFontPath) === Paths.LocalPath.absolute(bundledUnicodeFontPath))
-            return uiText("export.bundledFont")
-        if (fontCatalogLoader.item) {
-            var entry = Catalog.FontCatalog.selectedEntry(currentFontEntries(), selectedFontPath)
-            if (entry) return entry.display
-        }
-        return Paths.LocalPath.fileName(selectedFontPath)
-    }
     function currentFontEntries() {
         var installed = fontCatalogLoader.item ? fontCatalogLoader.item.entries : []
-        return Catalog.FontCatalog.forMode(installed, activeMode, bundledUnicodeFontPath,
+        var entries = Catalog.FontCatalog.forMode(installed, activeMode, bundledUnicodeFontPath,
             typography ? typography.family : "Vazirmatn", uiText("export.bundledFont"))
+        var selected = Catalog.FontCatalog.selectedEntry(entries, selectedFontPath)
+        if (selected && selected.custom) entries.push(selected)
+        return entries
     }
     function refreshFontCatalog() {
         if (fontCatalogLoader.item) fontCatalogLoader.item.refresh()
@@ -203,26 +195,17 @@ FocusScope {
         var value = Paths.LocalPath.absolute(path)
         return value.toLowerCase().lastIndexOf(".svg") === value.length - 4 ? value : value + ".svg"
     }
-    function openPicker(kind) {
+    function openPicker() {
         if (pickerActive) return
-        var command
-        if (kind === "font") {
-            command = ["omarchy", "file", "select", "--title", uiText("export.chooseFont"), "--extensions", "ttf otf ttc"]
-        } else {
-            command = ["/usr/bin/zenity", "--file-selection", "--save",
-                "--title=" + uiText("export.save"),
-                "--filename=" + Quickshell.env("HOME") + "/parsinegar.svg",
-                "--file-filter=SVG files | *.svg"]
-        }
-        startPickerProcess(kind, command)
-    }
-    function startPickerProcess(kind, command) {
-        pickerKind = kind
         pickerOutput = ""
         pickerExited = false
         pickerOutputFinished = false
         pickerExitCode = -1
-        picker.command = command
+        picker.command = ["/usr/bin/zenity", "--file-selection", "--save",
+            "--title=" + uiText("export.save"),
+            "--filename=" + Quickshell.env("HOME") + "/parsinegar.svg",
+            "--file-filter=SVG files | *.svg"]
+        pickerActive = true
         setHostPickerActive(true)
         picker.running = true
     }
@@ -237,20 +220,13 @@ FocusScope {
     }
     function finishPickerIfReady() {
         if (!pickerExited || !pickerOutputFinished || !pickerActive) return
-        var kind = pickerKind
         var output = Paths.LocalPath.fromPickerOutput(pickerOutput)
         var exitCode = pickerExitCode
-        pickerKind = ""
+        pickerActive = false
         if (exitCode === 0 && output !== "") {
             try {
                 output = Paths.LocalPath.absolute(output)
-                if (kind === "font") {
-                    setHostPickerActive(false)
-                    if (activeMode === "compatibility") compatibilityFontPath = output
-                    else unicodeFontPath = output
-                    saveSettings()
-                    setStatus("", false)
-                } else continueExport(svgPath(output))
+                continueExport(svgPath(output))
             } catch (error) {
                 setHostPickerActive(false)
                 setStatus(uiText("export.error.invalidPath"), true)
@@ -296,7 +272,7 @@ FocusScope {
                 ? "export.error.textTooLarge" : "export.error.invalidOption"), true)
             return
         }
-        openPicker("destination")
+        openPicker()
     }
     function beginExport() {
         try {
@@ -521,33 +497,37 @@ FocusScope {
                         RowLayout {
                             width: parent.width
                             spacing: Style.space(8)
-                            Text {
+                            FontSelector {
+                                id: fontSelector
+                                objectName: "exportFontSelector"
                                 Layout.fillWidth: true
-                                text: root.selectedFontPath === "" ? root.uiText("export.fontRequired") : root.selectedFontLabel()
-                                color: root.selectedFontPath === "" ? Color.urgent : (root.controller ? root.controller.foreground : Color.foreground)
-                                font.family: root.typography ? root.typography.family : ""
-                                font.pixelSize: Style.font.body
-                                elide: Text.ElideMiddle
-                                textFormat: Text.PlainText
+                                fonts: root.currentFontEntries()
+                                selectedKey: root.selectedFontPath
+                                uiFontFamily: root.typography ? root.typography.family : ""
+                                placeholderText: root.uiText("export.searchFonts")
+                                emptyText: root.uiText("export.noSearchResults")
+                                previewUnavailableText: root.uiText("export.customFontPreview")
+                                enabled: !root.exportBusy && fonts.length > 0 &&
+                                    (root.activeMode === "unicode" ||
+                                    (fontCatalogLoader.item && fontCatalogLoader.item.ready))
+                                onFontSelected: function(entry) {
+                                    if (root.activeMode === "compatibility") root.compatibilityFontPath = entry.path
+                                    else root.unicodeFontPath = entry.path
+                                    root.saveSettings()
+                                    root.setStatus("", false)
+                                }
                             }
-                            ActionButton {
-                                text: root.uiText("export.chooseFont")
-                                enabled: !root.exportBusy
-                                onClicked: root.openPicker("font")
-                            }
-                            ActionButton {
-                                text: root.uiText("export.refreshFonts")
+                            HeaderActionButton {
+                                objectName: "refreshExportFontsButton"
+                                iconText: root.typography.iconRefresh
+                                fontFamily: root.typography.iconFamily
+                                fontSize: Style.font.heading
+                                size: Style.space(44)
+                                toolTipText: root.uiText("export.refreshFonts")
+                                toolTipFontFamily: root.typography.family
+                                Accessible.name: root.uiText("export.refreshFonts")
                                 enabled: !root.exportBusy && fontCatalogLoader.item && !fontCatalogLoader.item.scanning
                                 onClicked: root.refreshFontCatalog()
-                            }
-                            ActionButton {
-                                visible: root.activeMode === "unicode" && Paths.LocalPath.absolute(root.unicodeFontPath) !== Paths.LocalPath.absolute(root.bundledUnicodeFontPath)
-                                text: root.uiText("export.useBundledFont")
-                                enabled: !root.exportBusy
-                                onClicked: {
-                                    root.unicodeFontPath = root.bundledUnicodeFontPath
-                                    root.saveSettings()
-                                }
                             }
                         }
                         Text {
