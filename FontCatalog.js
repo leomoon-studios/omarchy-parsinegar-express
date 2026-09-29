@@ -6,6 +6,8 @@ var FontCatalog = (function () {
     var maxLineLength = 64 * 1024;
     var maxOutputLength = 8 * 1024 * 1024;
     var maxRecords = 20000;
+    var englishSample = "The quick brown fox jumps over the lazy dog · 0123456789";
+    var persianSample = "روباه قهوه‌ای سریع از روی سگ تنبل می‌پرد · ۰۱۲۳۴۵۶۷۸۹";
     var unicodeSample = "The quick brown fox jumps over the lazy dog · روباه قهوه‌ای سریع از روی سگ تنبل می‌پرد · 0123456789 · ۰۱۲۳۴۵۶۷۸۹";
     var compatibilitySample = "0123456789 joQÂ¶ ®L¹U ªw Á»n pH ÍÄow ÁH½¼¿¤ ½IM»n";
 
@@ -123,6 +125,8 @@ var FontCatalog = (function () {
                     ? entry.family : entry.family + " - " + entry.style,
                 charset: entry.charset,
                 unicodePreview: previewWithRanges(ranges, unicodeSample),
+                englishPreview: previewWithRanges(ranges, englishSample),
+                persianPreview: previewWithRanges(ranges, persianSample),
                 compatibilityPreview: previewWithRanges(ranges, compatibilitySample),
                 bundled: false
             });
@@ -143,6 +147,7 @@ var FontCatalog = (function () {
         if (mode === "unicode") result.push({
             key: bundledPath, path: bundledPath, family: bundledFamily,
             style: "", display: bundledDisplay, charset: "", unicodePreview: unicodeSample,
+            englishPreview: englishSample, persianPreview: persianSample,
             compatibilityPreview: compatibilitySample, bundled: true
         });
         for (var i = 0; i < entries.length; i++) {

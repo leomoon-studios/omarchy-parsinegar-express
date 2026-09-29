@@ -11,6 +11,7 @@ Control {
     property string placeholderText: ""
     property string emptyText: ""
     property string previewUnavailableText: ""
+    property string mode: "unicode"
     property string uiFontFamily: ""
     property var filteredFonts: []
     property bool updatingText: false
@@ -170,9 +171,10 @@ Control {
                 id: fontDelegate
                 required property var modelData
                 required property int index
+                readonly property bool twoLinePreview: control.mode === "unicode" && !modelData.custom
                 x: 0
                 width: resultList.width - resultList.gutter
-                height: Style.space(46)
+                height: Style.space(twoLinePreview ? 58 : 46)
                 highlighted: ListView.isCurrentItem
                 hoverEnabled: true
                 onHoveredChanged: if (hovered) resultList.currentIndex = index
@@ -187,6 +189,7 @@ Control {
                 contentItem: Row {
                     spacing: Style.space(8)
                     layoutDirection: Qt.LeftToRight
+                    LayoutMirroring.enabled: false
 
                     Text {
                         width: Math.max(0, fontDelegate.availableWidth * 0.34 - Style.space(8))
@@ -200,21 +203,56 @@ Control {
                         elide: Text.ElideRight
                     }
 
-                    Text {
+                    Item {
                         width: Math.max(0, fontDelegate.availableWidth * 0.66 - Style.space(8))
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: fontDelegate.modelData.custom ? control.previewUnavailableText
-                            : (fontDelegate.modelData.family.indexOf("F_") === 0 ||
-                               fontDelegate.modelData.family.indexOf("LMN ") === 0)
-                                ? fontDelegate.modelData.compatibilityPreview
-                                : fontDelegate.modelData.unicodePreview
-                        textFormat: Text.PlainText
-                        font.family: fontDelegate.modelData.custom ? control.uiFontFamily : fontDelegate.modelData.family
-                        font.styleName: fontDelegate.modelData.style
-                        font.pixelSize: Style.font.body
-                        color: Color.muted
-                        horizontalAlignment: Text.AlignRight
-                        elide: Text.ElideRight
+                        height: fontDelegate.availableHeight
+                        LayoutMirroring.enabled: false
+                        LayoutMirroring.childrenInherit: false
+
+                        Column {
+                            width: parent.width
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: Style.space(2)
+                            visible: fontDelegate.twoLinePreview
+
+                            Text {
+                                width: parent.width
+                                text: fontDelegate.modelData.englishPreview || ""
+                                textFormat: Text.PlainText
+                                font.family: fontDelegate.modelData.family
+                                font.styleName: fontDelegate.modelData.style
+                                font.pixelSize: Style.font.body
+                                color: Color.muted
+                                horizontalAlignment: Text.AlignLeft
+                                elide: Text.ElideRight
+                            }
+                            Text {
+                                width: parent.width
+                                text: fontDelegate.modelData.persianPreview || ""
+                                textFormat: Text.PlainText
+                                font.family: fontDelegate.modelData.family
+                                font.styleName: fontDelegate.modelData.style
+                                font.pixelSize: Style.font.body
+                                color: Color.muted
+                                horizontalAlignment: Text.AlignRight
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        Text {
+                            width: parent.width
+                            anchors.verticalCenter: parent.verticalCenter
+                            visible: !fontDelegate.twoLinePreview
+                            text: fontDelegate.modelData.custom ? control.previewUnavailableText
+                                : fontDelegate.modelData.compatibilityPreview
+                            textFormat: Text.PlainText
+                            font.family: fontDelegate.modelData.custom ? control.uiFontFamily : fontDelegate.modelData.family
+                            font.styleName: fontDelegate.modelData.style
+                            font.pixelSize: Style.font.body
+                            color: Color.muted
+                            horizontalAlignment: Text.AlignRight
+                            elide: Text.ElideRight
+                        }
                     }
                 }
             }

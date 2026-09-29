@@ -526,6 +526,7 @@ FocusScope {
                                 objectName: "exportFontSelector"
                                 Layout.fillWidth: true
                                 fonts: root.currentFontEntries()
+                                mode: root.activeMode
                                 selectedKey: root.selectedFontPath
                                 uiFontFamily: root.typography ? root.typography.family : ""
                                 placeholderText: root.uiText("export.searchFonts")
