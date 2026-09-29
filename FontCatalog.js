@@ -27,7 +27,7 @@ var FontCatalog = (function () {
         if (fields.length !== 4) return;
         var path = fields[0];
         if (path.charAt(0) !== "/" || /[\x00-\x1f]/.test(path) || /(?:^|\/)\.\.?(?:\/|$)/.test(path) ||
-            !/\.(?:ttf|otf|ttc)$/i.test(path)) return;
+            !/\.(?:ttf|otf)$/i.test(path)) return;
         var family = fields[1].split(",")[0].trim();
         var style = fields[2].split(",")[0].trim();
         if (!family || family.length > 256 || style.length > 256 || /[\x00-\x1f]/.test(family + style)) return;

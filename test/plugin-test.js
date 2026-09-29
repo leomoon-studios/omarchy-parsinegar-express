@@ -247,22 +247,21 @@ for (const source of [panel, read('Typography.qml'), read('LetterBadge.qml'), he
     assert.ok(!/\b(?:Timer|Process|FileView)\s*\{|Quickshell\.exec/.test(source));
 }
 for (const source of [menu, settings]) assert.ok(!/\bTimer\s*\{|Quickshell\.exec/.test(source));
-for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'SourceHistory.js', 'TextTools.js', 'InterfaceStrings.js', 'i18n/English.js', 'i18n/Persian.js', 'i18n/Arabic.js', 'ResourceLimits.js', 'LocalPath.js', 'BusySpinner.qml', 'StatusMessage.qml', 'HeaderActionButton.qml', 'SectionHeading.qml', 'SettingsContent.qml', 'TextToolsPage.qml', 'HelpPage.qml', 'TextEditorContextMenu.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
+for (const file of ['LibraryAdapter.js', 'ConversionWorker.js', 'ParsiNegar.js', 'ReshaperSettings.js', 'SourceHistory.js', 'TextTools.js', 'InterfaceStrings.js', 'i18n/English.js', 'i18n/Persian.js', 'i18n/Arabic.js', 'ResourceLimits.js', 'LocalPath.js', 'FontPreflight.js', 'FontPreflight.qml', 'FontRead.sh', 'BusySpinner.qml', 'StatusMessage.qml', 'HeaderActionButton.qml', 'SectionHeading.qml', 'SettingsContent.qml', 'TextToolsPage.qml', 'HelpPage.qml', 'TextEditorContextMenu.qml', 'ExportSection.qml', 'SvgCurveExporter.js', 'SvgCurveAdapter.js', 'SvgCurveExportController.qml', 'SvgCurveWorker.js', 'vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'vendor/typr.js', 'vendor/typr/LICENSE', 'assets/fonts/Vazirmatn[wght].ttf']) {
     assert.ok(fs.statSync(path.join(root, file)).isFile(), file);
 }
 const curveController = read('SvgCurveExportController.qml');
-assert.equal((curveController.match(/\bFileView\s*\{/g) || []).length, 2);
-assert.ok(curveController.includes('preload: true'));
-assert.ok(curveController.includes('blockLoading: false'));
-assert.ok(curveController.includes('watchChanges: false'));
+assert.equal((curveController.match(/\bFileView\s*\{/g) || []).length, 1);
+assert.equal((curveController.match(/\bProcess\s*\{/g) || []).length, 1);
+assert.ok(curveController.includes('FontRead.sh'));
 assert.ok(curveController.includes('function exportTo('));
-assert.ok(curveController.includes('Limits.ResourceLimits.assertFontBytes(data)'));
+assert.ok(curveController.includes('Limits.ResourceLimits.assertFontBytes(fontByteView)'));
 assert.ok(curveController.includes('import "LocalPath.js" as Paths'));
 assert.ok(curveController.includes('source: "SvgCurveWorker.js"'));
 assert.ok(curveController.includes('curveWorker.sendMessage'));
 assert.ok(curveController.includes('signal exported(string path, var warnings)'));
 assert.equal((curveController.match(/\bWorkerScript\s*\{/g) || []).length, 1);
-assert.doesNotMatch(curveController, /\b(?:Timer|Process|Connections)\s*\{|Quickshell\.exec|setInterval|setTimeout|fetch\s*\(/);
+assert.doesNotMatch(curveController, /\b(?:Timer|Connections)\s*\{|Quickshell\.exec|setInterval|setTimeout|fetch\s*\(/);
 const exportSection = read('ExportSection.qml');
 assert.match(exportSection, /component NumberField: TextField[\s\S]*validator: DoubleValidator/);
 assert.match(exportSection, /readonly property bool validNumber/);

@@ -15,11 +15,16 @@ Item {
     property string errorMessage: ""
     property string outputPath: ""
     property string pendingText: ""
+    property string pendingFontPath: ""
     property var exportWarnings: []
     property var pendingOptions: ({})
     property var fontByteView: null
     property int fontByteOffset: 0
     property int requestId: 0
+    property string fontReadOutput: ""
+    property bool fontReadOutputFinished: false
+    property bool fontReadExited: false
+    property int fontReadExitCode: -1
     readonly property url bundledUnicodeFont: Qt.resolvedUrl("assets/fonts/Vazirmatn[wght].ttf")
 
     signal exported(string path, var warnings)
@@ -37,7 +42,8 @@ Item {
             pendingText = text
             pendingOptions = options
             requestId++
-            fontFile.path = Paths.LocalPath.absolute(fontPath)
+            pendingFontPath = Paths.LocalPath.absolute(fontPath)
+            fontPreflight.check(pendingFontPath)
             return true
         } catch (error) {
             failExport(error.code, error.message || error, error.details || [])
@@ -46,12 +52,14 @@ Item {
     }
 
     function failExport(code, message, details) {
-        fontFile.path = ""
+        fontReader.running = false
         outputFile.path = ""
         pendingText = ""
+        pendingFontPath = ""
         pendingOptions = ({})
         fontByteView = null
         fontByteOffset = 0
+        fontReadOutput = ""
         exportWarnings = []
         busy = false
         errorCode = String(code || "EXPORT_FAILED")
@@ -59,12 +67,40 @@ Item {
         failed(errorCode, errorMessage, details || [])
     }
 
-    function prepareFontBytes() {
+    function beginBoundedFontRead(path) {
         if (!busy) return
+        fontReadOutput = ""
+        fontReadOutputFinished = false
+        fontReadExited = false
+        fontReadExitCode = -1
+        fontReader.command = ["/usr/bin/bash",
+            Paths.LocalPath.absolute(String(Qt.resolvedUrl("FontRead.sh"))), path]
+        fontReader.running = true
+    }
+
+    function prepareFontBytes() {
+        if (!busy || !fontReadOutputFinished || !fontReadExited) return
         try {
-            var data = fontFile.data()
-            Limits.ResourceLimits.assertFontBytes(data)
-            fontByteView = new Uint8Array(data)
+            if (fontReadExitCode !== 0)
+                throw { code: fontReadExitCode === 2 ? "FONT_TOO_LARGE" : "INVALID_FONT",
+                    message: "Font validation or bounded read failed." }
+            var encoded = fontReadOutput
+            fontReadOutput = ""
+            if (encoded.length > 4 * Math.ceil((Limits.ResourceLimits.values.maxFontBytes + 1) / 3))
+                throw { code: "FONT_TOO_LARGE", message: "Font exceeds the supported size." }
+            var decoded = Qt.atob(encoded)
+            if (typeof decoded === "string") {
+                fontByteView = new Uint8Array(decoded.length)
+                for (var byteIndex = 0; byteIndex < decoded.length; byteIndex++)
+                    fontByteView[byteIndex] = decoded.charCodeAt(byteIndex)
+            } else fontByteView = new Uint8Array(decoded)
+            Limits.ResourceLimits.assertFontBytes(fontByteView)
+            if (fontByteView.length < 4 || !(
+                fontByteView[0] === 0 && fontByteView[1] === 1 &&
+                fontByteView[2] === 0 && fontByteView[3] === 0) && !(
+                fontByteView[0] === 0x4f && fontByteView[1] === 0x54 &&
+                fontByteView[2] === 0x54 && fontByteView[3] === 0x4f))
+                throw { code: "INVALID_FONT", message: "The selected file is not TrueType or OpenType." }
             fontByteOffset = 0
             curveWorker.sendMessage({
                 action: "begin",
@@ -95,7 +131,6 @@ Item {
             return
         }
         fontByteView = null
-        fontFile.path = ""
     }
 
     function finishWorker(message) {
@@ -122,13 +157,31 @@ Item {
         onMessage: function(message) { root.finishWorker(message) }
     }
 
-    FileView {
-        id: fontFile
-        preload: true
-        watchChanges: false
-        blockLoading: false
-        onLoaded: root.prepareFontBytes()
-        onLoadFailed: function(error) { root.failExport("INVALID_FONT", String(error), []) }
+    FontPreflight {
+        id: fontPreflight
+        onChecked: function(path, code) {
+            if (!root.busy || path !== root.pendingFontPath) return
+            if (code !== "") root.failExport(code, "Font validation failed", [])
+            else root.beginBoundedFontRead(path)
+        }
+    }
+
+    Process {
+        id: fontReader
+        running: false
+        stdout: StdioCollector {
+            waitForEnd: true
+            onStreamFinished: {
+                root.fontReadOutput = typeof text === "string" ? text : ""
+                root.fontReadOutputFinished = true
+                root.prepareFontBytes()
+            }
+        }
+        onExited: function(exitCode) {
+            root.fontReadExitCode = exitCode
+            root.fontReadExited = true
+            root.prepareFontBytes()
+        }
     }
 
     FileView {

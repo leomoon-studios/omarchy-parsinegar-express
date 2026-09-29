@@ -23,6 +23,10 @@ FocusScope {
     property string exportStatusText: ""
     property bool exportStatusError: false
     property bool exportStatusWarning: false
+    property string fontValidationCode: ""
+    property string validatedFontSelection: ""
+    property string pendingValidationPath: ""
+    property string pendingValidationSelection: ""
     readonly property string bundledUnicodeFontPath: String(Qt.resolvedUrl("assets/fonts/Vazirmatn[wght].ttf"))
     property string unicodeFontPath: bundledUnicodeFontPath
     property string compatibilityFontPath: ""
@@ -36,6 +40,9 @@ FocusScope {
     property int pickerExitCode: -1
     readonly property string activeMode: host ? host.conversionMode : "unicode"
     readonly property string selectedFontPath: activeMode === "compatibility" ? compatibilityFontPath : unicodeFontPath
+    readonly property bool selectedFontReady: selectedFontPath !== "" &&
+        validatedFontSelection === selectedFontPath && fontValidationCode === "" &&
+        !fontPreflight.checking && fontPreflight.queuedPath === ""
     readonly property bool exportBusy: preparingExport || exportLoader.active || pickerActive
     readonly property bool rightToLeft: controller && (controller.uiLanguage === "fa" || controller.uiLanguage === "ar")
     readonly property Item focusItem: backButton
@@ -60,6 +67,20 @@ FocusScope {
     function refreshFontCatalog() {
         if (fontCatalogLoader.item) fontCatalogLoader.item.refresh()
     }
+    function validateSelectedFont() {
+        validatedFontSelection = ""
+        pendingValidationSelection = selectedFontPath
+        fontValidationCode = ""
+        try { pendingValidationPath = Paths.LocalPath.absolute(selectedFontPath) }
+        catch (error) {
+            pendingValidationPath = ""
+            fontValidationCode = "INVALID_FONT"
+            setStatus(uiText("export.error.invalidFont"), true)
+            return
+        }
+        fontPreflight.check(pendingValidationPath)
+    }
+    onSelectedFontPathChanged: if (visible) validateSelectedFont()
     function positiveValue(field, fallback, allowEmpty) {
         var value = String(field.text).trim()
         if (allowEmpty && value === "") return undefined
@@ -252,6 +273,7 @@ FocusScope {
         if (visible) {
             fontCatalogLoader.active = true
             if (fontCatalogLoader.item) fontCatalogLoader.item.pageActive = true
+            validateSelectedFont()
         } else if (fontCatalogLoader.item) fontCatalogLoader.item.pageActive = false
     }
     function chooseDestination() {
@@ -259,8 +281,10 @@ FocusScope {
             setStatus(uiText("export.error.noText"), true)
             return
         }
-        if (selectedFontPath === "") {
-            setStatus(uiText("export.error.fontRequired"), true)
+        if (!selectedFontReady) {
+            setStatus(uiText(fontValidationCode === "FONT_TOO_LARGE"
+                ? "export.error.fontTooLarge" : fontValidationCode === "INVALID_FONT"
+                ? "export.error.invalidFont" : "export.error.fontRequired"), true)
             return
         }
         try {
@@ -514,7 +538,6 @@ FocusScope {
                                     if (root.activeMode === "compatibility") root.compatibilityFontPath = entry.path
                                     else root.unicodeFontPath = entry.path
                                     root.saveSettings()
-                                    root.setStatus("", false)
                                 }
                             }
                             HeaderActionButton {
@@ -743,7 +766,7 @@ FocusScope {
                 PrimaryAction {
                     width: parent.width
                     label: root.uiText("export.save")
-                    enabled: !root.exportBusy && root.controller && root.controller.sourceText.length > 0
+                    enabled: !root.exportBusy && root.selectedFontReady && root.controller && root.controller.sourceText.length > 0
                     onClicked: root.chooseDestination()
                 }
             }
@@ -784,6 +807,20 @@ FocusScope {
             root.pickerExited = true
             root.pickerExitCode = exitCode
             root.finishPickerIfReady()
+        }
+    }
+
+    FontPreflight {
+        id: fontPreflight
+        onChecked: function(path, code) {
+            if (path !== root.pendingValidationPath ||
+                root.pendingValidationSelection !== root.selectedFontPath) return
+            root.fontValidationCode = code
+            root.validatedFontSelection = root.selectedFontPath
+            if (code !== "") {
+                root.setStatus(root.uiText(code === "FONT_TOO_LARGE"
+                    ? "export.error.fontTooLarge" : "export.error.invalidFont"), true)
+            } else if (root.exportStatusError) root.setStatus("", false)
         }
     }
 

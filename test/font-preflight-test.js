@@ -1,0 +1,51 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const vm = require('node:vm');
+const { spawnSync } = require('node:child_process');
+
+const root = path.join(__dirname, '..');
+const context = vm.createContext({ Number, Object });
+vm.runInContext(fs.readFileSync(path.join(root, 'FontPreflight.js'), 'utf8'), context);
+const checks = context.FontPreflight;
+const maximum = 5 * 1024 * 1024;
+
+assert.equal(checks.statCode('81a4 5242880\n', 0, maximum), '');
+assert.equal(checks.statCode('81a4 5242881\n', 0, maximum), 'FONT_TOO_LARGE');
+assert.equal(checks.statCode('41ed 100\n', 0, maximum), 'INVALID_FONT');
+assert.equal(checks.statCode('81a4 3\n', 0, maximum), 'INVALID_FONT');
+assert.equal(checks.statCode('garbage', 0, maximum), 'INVALID_FONT');
+assert.equal(checks.statCode('81a4 1\n', 1, maximum), 'INVALID_FONT');
+assert.equal(checks.headerCode(' 00 01 00 00\n', 0), '');
+assert.equal(checks.headerCode(' 4f 54 54 4f\n', 0), '');
+assert.equal(checks.headerCode(' 74 74 63 66\n', 0), 'INVALID_FONT');
+assert.equal(checks.headerCode(' 00 01 00 00\n', 1), 'INVALID_FONT');
+
+const fontPath = path.join(root, 'assets/fonts/Vazirmatn[wght].ttf');
+const stat = spawnSync('/usr/bin/stat', ['-Lc', '%f %s', '--', fontPath], { encoding: 'utf8' });
+const header = spawnSync('/usr/bin/od', ['-An', '-tx1', '-N4', '--', fontPath], { encoding: 'utf8' });
+assert.equal(checks.statCode(stat.stdout, stat.status, maximum), '');
+assert.equal(checks.headerCode(header.stdout, header.status), '');
+const bounded = spawnSync('/usr/bin/bash', [path.join(root, 'FontRead.sh'), fontPath], { encoding: 'utf8' });
+assert.equal(bounded.status, 0);
+assert.deepEqual(Buffer.from(bounded.stdout, 'base64'), fs.readFileSync(fontPath));
+const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'parsinegar-font-'));
+const oversizedPath = path.join(temporaryDirectory, 'oversized.ttf');
+fs.writeFileSync(oversizedPath, Buffer.from([0, 1, 0, 0]));
+fs.truncateSync(oversizedPath, maximum + 1);
+const oversized = spawnSync('/usr/bin/bash', [path.join(root, 'FontRead.sh'), oversizedPath], { encoding: 'utf8' });
+assert.equal(oversized.status, 2);
+assert.equal(oversized.stdout, '');
+fs.unlinkSync(oversizedPath);
+fs.rmdirSync(temporaryDirectory);
+
+const controller = fs.readFileSync(path.join(root, 'SvgCurveExportController.qml'), 'utf8');
+const exportSection = fs.readFileSync(path.join(root, 'ExportSection.qml'), 'utf8');
+assert.match(controller, /fontPreflight\.check\(pendingFontPath\)/);
+assert.match(controller, /else root\.beginBoundedFontRead\(path\)/);
+assert.doesNotMatch(controller, /fontFile\.data\(\)/);
+assert.match(exportSection, /onVisibleChanged:[\s\S]*validateSelectedFont\(\)/);
+assert.match(exportSection, /enabled: !root\.exportBusy && root\.selectedFontReady/);
+assert.match(exportSection, /"export\.error\.fontTooLarge"/);
+console.log('Font preflight checks passed');
