@@ -8,6 +8,7 @@ import qs.Commons
 import "InterfaceStrings.js" as Strings
 import "ResourceLimits.js" as Limits
 import "LocalPath.js" as Paths
+import "FontCatalog.js" as Catalog
 
 FocusScope {
     id: root
@@ -50,9 +51,22 @@ FocusScope {
         exportStatusWarning = isWarning === true
     }
     function selectedFontLabel() {
+        if (selectedFontPath === "") return uiText("export.fontRequired")
         if (activeMode === "unicode" && Paths.LocalPath.absolute(selectedFontPath) === Paths.LocalPath.absolute(bundledUnicodeFontPath))
             return uiText("export.bundledFont")
+        if (fontCatalogLoader.item) {
+            var entry = Catalog.FontCatalog.selectedEntry(currentFontEntries(), selectedFontPath)
+            if (entry) return entry.display
+        }
         return Paths.LocalPath.fileName(selectedFontPath)
+    }
+    function currentFontEntries() {
+        var installed = fontCatalogLoader.item ? fontCatalogLoader.item.entries : []
+        return Catalog.FontCatalog.forMode(installed, activeMode, bundledUnicodeFontPath,
+            typography ? typography.family : "Vazirmatn", uiText("export.bundledFont"))
+    }
+    function refreshFontCatalog() {
+        if (fontCatalogLoader.item) fontCatalogLoader.item.refresh()
     }
     function positiveValue(field, fallback, allowEmpty) {
         var value = String(field.text).trim()
@@ -258,6 +272,12 @@ FocusScope {
         saveSettings()
     }
     function focusPage() { backButton.forceActiveFocus() }
+    onVisibleChanged: {
+        if (visible) {
+            fontCatalogLoader.active = true
+            if (fontCatalogLoader.item) fontCatalogLoader.item.pageActive = true
+        } else if (fontCatalogLoader.item) fontCatalogLoader.item.pageActive = false
+    }
     function chooseDestination() {
         if (!controller || controller.sourceText.length === 0) {
             setStatus(uiText("export.error.noText"), true)
@@ -516,6 +536,11 @@ FocusScope {
                                 onClicked: root.openPicker("font")
                             }
                             ActionButton {
+                                text: root.uiText("export.refreshFonts")
+                                enabled: !root.exportBusy && fontCatalogLoader.item && !fontCatalogLoader.item.scanning
+                                onClicked: root.refreshFontCatalog()
+                            }
+                            ActionButton {
                                 visible: root.activeMode === "unicode" && Paths.LocalPath.absolute(root.unicodeFontPath) !== Paths.LocalPath.absolute(root.bundledUnicodeFontPath)
                                 text: root.uiText("export.useBundledFont")
                                 enabled: !root.exportBusy
@@ -524,6 +549,23 @@ FocusScope {
                                     root.saveSettings()
                                 }
                             }
+                        }
+                        Text {
+                            width: parent.width
+                            visible: fontCatalogLoader.item && (fontCatalogLoader.item.scanning ||
+                                fontCatalogLoader.item.error !== "" ||
+                                (fontCatalogLoader.item.ready && root.currentFontEntries().length === 0))
+                            text: !fontCatalogLoader.item ? "" : fontCatalogLoader.item.scanning
+                                ? root.uiText("export.loadingFonts")
+                                : fontCatalogLoader.item.error !== ""
+                                    ? root.uiText("export.fontCatalogError") + " " + fontCatalogLoader.item.error
+                                    : root.uiText(root.activeMode === "compatibility"
+                                        ? "export.noCompatibilityFonts" : "export.noFonts")
+                            textFormat: Text.PlainText
+                            wrapMode: Text.Wrap
+                            color: fontCatalogLoader.item && fontCatalogLoader.item.error !== "" ? Color.urgent : Color.muted
+                            font.family: root.typography ? root.typography.family : ""
+                            font.pixelSize: Style.font.caption
                         }
                     }
                 }
@@ -769,6 +811,13 @@ FocusScope {
         target: root.controller
         function onExportConversionReady(output) { root.continueAfterConversion(output) }
         function onExportConversionFailed(code, message) { root.reportError(code, message, []) }
+    }
+
+    Loader {
+        id: fontCatalogLoader
+        active: false
+        source: "InstalledFontCatalog.qml"
+        onLoaded: item.pageActive = root.visible
     }
 
     Loader {
