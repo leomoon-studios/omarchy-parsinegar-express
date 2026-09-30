@@ -28,6 +28,9 @@ assert.deepEqual(Object.keys(context.ArabicStrings.values).sort(), Object.keys(c
 assert.equal(strings.text('en', 'settings.title'), 'Settings');
 assert.equal(strings.text('fa', 'settings.title'), 'تنظیمات');
 assert.equal(strings.text('ar', 'settings.title'), 'الإعدادات');
+assert.equal(strings.text('en', 'status.ready'), 'Ready');
+assert.equal(strings.text('fa', 'status.ready'), 'آماده');
+assert.equal(strings.text('ar', 'status.ready'), 'جاهز');
 assert.equal(strings.text('en', 'app.subtitle'), 'Text tools for Persian, Arabic, Urdu, Kurdish, and Hebrew.');
 assert.equal(strings.text('fa', 'app.subtitle'), 'ابزارهای متن پارسی، عربی، اردو، کردی و عبری');
 assert.equal(strings.text('ar', 'app.subtitle'), 'أدوات النص للفارسية والعربية والأردية والكردية والعبرية.');

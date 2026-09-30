@@ -11,13 +11,16 @@ Rectangle {
     required property bool busy
     required property string fontFamily
     required property color foreground
-    readonly property color statusColor: error ? Color.urgent
+    property string idleMessage: ""
+    readonly property bool idle: !busy && message === "" && idleMessage !== ""
+    readonly property string displayMessage: idle ? idleMessage : message
+    readonly property color statusColor: idle ? Color.muted : error ? Color.urgent
         : warning || busy ? Color.accent : "#4fb783"
 
-    visible: busy || message !== ""
+    visible: busy || message !== "" || idleMessage !== ""
     implicitHeight: Style.space(32)
-    color: Util.alpha(statusColor, 0.12)
-    border.color: Util.alpha(statusColor, 0.48)
+    color: idle ? Util.alpha(foreground, 0.03) : Util.alpha(statusColor, 0.12)
+    border.color: idle ? Util.alpha(foreground, 0.25) : Util.alpha(statusColor, 0.48)
     border.width: Math.max(1, Style.normalBorderWidth)
     radius: 0
 
@@ -35,7 +38,7 @@ Rectangle {
 
         Text {
             Layout.fillWidth: true
-            text: root.message
+            text: root.displayMessage
             textFormat: Text.PlainText
             font.family: root.fontFamily
             font.pixelSize: Style.font.caption

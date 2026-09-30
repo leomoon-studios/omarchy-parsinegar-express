@@ -21,6 +21,7 @@ var values = Object.freeze({
   "history.redo": "Redo",
   "status.converting": "Converting and copying…",
   "status.converted": "Converted and copied.",
+  "status.ready": "Ready",
   "edit.cut": "Cut",
   "edit.copy": "Copy",
   "edit.paste": "Paste",

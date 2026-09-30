@@ -783,6 +783,7 @@ FocusScope {
             StatusMessage {
                 objectName: "exportStatus"
                 anchors.fill: parent
+                idleMessage: root.uiText("status.ready")
                 message: root.exportStatusText
                 error: root.exportStatusError
                 warning: root.exportStatusWarning

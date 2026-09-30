@@ -21,6 +21,7 @@ var values = Object.freeze({
   "history.redo": "انجام دوباره",
   "status.converting": "در حال تبدیل و کپی…",
   "status.converted": "تبدیل و کپی شد.",
+  "status.ready": "آماده",
   "edit.cut": "برش",
   "edit.copy": "رونوشت",
   "edit.paste": "چسباندن",

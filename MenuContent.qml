@@ -1105,6 +1105,7 @@ FocusScope {
                     StatusMessage {
                         objectName: "conversionStatus"
                         anchors.fill: parent
+                        idleMessage: root.uiText("status.ready")
                         message: root.statusText
                         error: root.statusError
                         warning: root.statusWarning
