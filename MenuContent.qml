@@ -749,7 +749,7 @@ FocusScope {
                     objectName: "editorSubtitle"
                     Layout.fillWidth: true
                     text: root.uiText("app.subtitle")
-                    color: Color.muted
+                    color: root.foreground
                     font.family: root.fontFamily
                     font.pixelSize: Style.font.caption
                     horizontalAlignment: Text.AlignLeft

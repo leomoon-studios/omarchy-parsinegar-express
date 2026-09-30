@@ -14,7 +14,7 @@ Rectangle {
     property string idleMessage: ""
     readonly property bool idle: !busy && message === "" && idleMessage !== ""
     readonly property string displayMessage: idle ? idleMessage : message
-    readonly property color statusColor: idle ? Color.muted : error ? Color.urgent
+    readonly property color statusColor: idle ? foreground : error ? Color.urgent
         : warning || busy ? Color.accent : "#4fb783"
 
     visible: busy || message !== "" || idleMessage !== ""

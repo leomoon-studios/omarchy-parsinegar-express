@@ -767,7 +767,7 @@ FocusScope {
                 PrimaryAction {
                     width: parent.width
                     label: root.uiText("export.save")
-                    enabled: !root.exportBusy && root.selectedFontReady && root.controller && root.controller.sourceText.length > 0
+                    enabled: !root.exportBusy && root.selectedFontReady && root.controller
                     onClicked: root.chooseDestination()
                 }
             }
