@@ -54,5 +54,5 @@ assert.match(menu, /function redoSourceEdit\(\)[\s\S]*History\.SourceHistory\.re
 assert.doesNotMatch(menu, /textToolsUndoText|undoTextTools/);
 assert.match(read('ConversionWorker.js'), /WorkerScript\.onMessage[\s\S]*ParsiNegar\.convert[\s\S]*WorkerScript\.sendMessage/);
 assert.match(read('SvgCurveWorker.js'), /WorkerScript\.onMessage/);
-assert.match(read('SvgCurveWorker.js'), /SvgCurveExporter\.exportSvg[\s\S]*WorkerScript\.sendMessage/);
+assert.match(read('SvgCurveWorker.js'), /SvgCurveExporter\.inspectAndExport[\s\S]*WorkerScript\.sendMessage/);
 console.log('Lifecycle source and action checks passed');

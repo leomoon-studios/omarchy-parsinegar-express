@@ -71,6 +71,20 @@ const inspection = context.SvgCurveExporter.inspect(unicodeText, vazirmatn, {}, 
 assert.equal(inspection.font.family, 'Vazirmatn');
 assert.equal(inspection.font.style, 'Regular', 'a variable font must default to its declared default instance');
 assert.equal(inspection.missingGlyphs.length, 0);
+let combinedParseCount = 0;
+const countingSafeTypr = {
+    parse(typr, data) {
+        combinedParseCount++;
+        return context.SafeTypr.parse(typr, data);
+    }
+};
+const combined = context.SvgCurveExporter.inspectAndExport(unicodeText, vazirmatn, {
+    fontSize: 48, lineSpacing: 1.5, alignment: 'left',
+    bounds: { width: 600, height: 300, padding: 20 }, fill: '#171717'
+}, context.Typr, limits, countingSafeTypr);
+assert.equal(combinedParseCount, 1, 'inspection and SVG generation must share one guarded parse');
+assert.equal(combined.svg, left, 'combined export must match the existing SVG output');
+assert.equal(JSON.stringify(combined.inspection), JSON.stringify(inspection), 'combined inspection must match the existing result');
 const explicitRegular = context.SvgCurveExporter.exportSvg(unicodeText, vazirmatn, {
     fontIndex: 3, fontSize: 48, lineSpacing: 1.5, alignment: 'left',
     bounds: { width: 600, height: 300, padding: 20 }, fill: '#171717'
@@ -123,6 +137,23 @@ function ottoWithCff(cff) {
     return font;
 }
 
+function malformedFormat12Font() {
+    const font = Buffer.alloc(56);
+    font.writeUInt32BE(0x00010000, 0);
+    font.writeUInt16BE(1, 4);
+    font.write('cmap', 12, 'ascii');
+    font.writeUInt32BE(28, 20);
+    font.writeUInt32BE(28, 24);
+    font.writeUInt16BE(1, 30);
+    font.writeUInt16BE(3, 32);
+    font.writeUInt16BE(10, 34);
+    font.writeUInt32BE(12, 36);
+    font.writeUInt16BE(12, 40);
+    font.writeUInt32BE(16, 44);
+    font.writeUInt32BE(0x04000000, 52);
+    return font;
+}
+
 const cffHeader = Buffer.from([1, 0, 4, 1]);
 const validName = Buffer.from([0, 1, 1, 1, 2, 65]);
 const validTopDict = Buffer.from([0, 1, 1, 1, 2, 139]);
@@ -135,7 +166,10 @@ const malformedIndexes = [
     ['out-of-table offset', Buffer.from([0, 1, 1, 1, 32, 65])],
     ['maximum 32-bit offset', Buffer.from([0, 1, 4, 0, 0, 0, 1, 255, 255, 255, 255])]
 ];
-const malformedFonts = [['zero-length CFF table', ottoWithCff(Buffer.alloc(0))]];
+const malformedFonts = [
+    ['zero-length CFF table', ottoWithCff(Buffer.alloc(0))],
+    ['cmap format 12: oversized group count', malformedFormat12Font()]
+];
 for (const position of [0, 1]) {
     const indexes = cffIndexes.slice();
     indexes[position] = emptyIndex;
@@ -151,7 +185,7 @@ for (let position = 0; position < cffIndexes.length; position++) {
     }
 }
 for (const [label, font] of malformedFonts) {
-    for (const action of ['inspect', 'exportSvg']) {
+    for (const action of ['inspect', 'exportSvg', 'inspectAndExport']) {
         assert.throws(
             () => context.SvgCurveExporter[action]('پ', font, {}, context.Typr, limits, context.SafeTypr),
             error => error.code === 'INVALID_FONT',

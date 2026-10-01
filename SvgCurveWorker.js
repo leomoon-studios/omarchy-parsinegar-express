@@ -21,19 +21,16 @@ function finish(message) {
     try {
         var bytes = new Uint8Array(currentJob.fontBytes);
         ResourceLimits.assertFontBytes(bytes);
-        var warnings = SvgCurveExporter.inspect(
-            currentJob.text, bytes, currentJob.options, Typr, ResourceLimits, SafeTypr
-        ).missingGlyphs;
-        var svg = SvgCurveExporter.exportSvg(
+        var result = SvgCurveExporter.inspectAndExport(
             currentJob.text, bytes, currentJob.options, Typr, ResourceLimits, SafeTypr
         );
-        ResourceLimits.assertSvgSize(svg);
+        ResourceLimits.assertSvgSize(result.svg);
         currentJob = null;
         WorkerScript.sendMessage({
             id: message.id,
             ok: true,
-            svg: svg,
-            warnings: warnings
+            svg: result.svg,
+            warnings: result.inspection.missingGlyphs
         });
     } catch (error) { fail(message, error); }
 }

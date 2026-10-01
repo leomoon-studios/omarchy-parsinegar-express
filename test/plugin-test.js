@@ -277,6 +277,7 @@ assert.ok(curveController.includes('source: "SvgCurveWorker.js"'));
 assert.ok(curveController.includes('curveWorker.sendMessage'));
 assert.ok(curveController.includes('signal exported(string path, var warnings)'));
 assert.ok(read('SvgCurveWorker.js').includes('Qt.include("SafeTypr.js")'));
+assert.ok(read('SvgCurveWorker.js').includes('SvgCurveExporter.inspectAndExport('));
 assert.ok(read('SvgCurveAdapter.js').includes('.import "SafeTypr.js" as Safety'));
 assert.equal((curveController.match(/\bWorkerScript\s*\{/g) || []).length, 1);
 assert.doesNotMatch(curveController, /\b(?:Timer|Connections)\s*\{|Quickshell\.exec|setInterval|setTimeout|fetch\s*\(/);
