@@ -112,19 +112,61 @@ assert.throws(
     error => error.code === 'MISSING_ENGINE',
     'SVG inspection must not parse fonts without SafeTypr'
 );
-const maliciousOtto = Buffer.alloc(43);
-maliciousOtto.write('OTTO', 0, 'ascii');
-maliciousOtto.writeUInt16BE(1, 4);
-maliciousOtto.write('CFF ', 12, 'ascii');
-maliciousOtto.writeUInt32BE(28, 20);
-maliciousOtto.writeUInt32BE(15, 24);
-Buffer.from([1, 0, 4, 1, 0, 1, 4, 0, 0, 0, 1, 255, 255, 255, 255]).copy(maliciousOtto, 28);
-for (const action of ['inspect', 'exportSvg']) {
-    assert.throws(
-        () => context.SvgCurveExporter[action]('پ', maliciousOtto, {}, context.Typr, limits, context.SafeTypr),
-        error => error.code === 'INVALID_FONT',
-        'malformed CFF offsets must fail before Typr parses them'
-    );
+function ottoWithCff(cff) {
+    const font = Buffer.alloc(28 + cff.length);
+    font.write('OTTO', 0, 'ascii');
+    font.writeUInt16BE(1, 4);
+    font.write('CFF ', 12, 'ascii');
+    font.writeUInt32BE(28, 20);
+    font.writeUInt32BE(cff.length, 24);
+    cff.copy(font, 28);
+    return font;
+}
+
+const cffHeader = Buffer.from([1, 0, 4, 1]);
+const validName = Buffer.from([0, 1, 1, 1, 2, 65]);
+const validTopDict = Buffer.from([0, 1, 1, 1, 2, 139]);
+const emptyIndex = Buffer.from([0, 0]);
+const cffIndexes = [validName, validTopDict, emptyIndex, emptyIndex];
+const malformedIndexes = [
+    ['zero first offset', Buffer.from([0, 1, 1, 0, 1, 65])],
+    ['reversed offsets', Buffer.from([0, 1, 1, 2, 1, 65])],
+    ['truncated offset array', Buffer.from([0, 1, 4, 0, 0, 0, 1])],
+    ['out-of-table offset', Buffer.from([0, 1, 1, 1, 32, 65])],
+    ['maximum 32-bit offset', Buffer.from([0, 1, 4, 0, 0, 0, 1, 255, 255, 255, 255])]
+];
+const malformedFonts = [['zero-length CFF table', ottoWithCff(Buffer.alloc(0))]];
+for (const position of [0, 1]) {
+    const indexes = cffIndexes.slice();
+    indexes[position] = emptyIndex;
+    malformedFonts.push([`${position === 0 ? 'Name' : 'Top DICT'} INDEX: zero entries`,
+        ottoWithCff(Buffer.concat([cffHeader, ...indexes]))]);
+}
+for (let position = 0; position < cffIndexes.length; position++) {
+    for (const [label, malformed] of malformedIndexes) {
+        const indexes = cffIndexes.slice();
+        indexes[position] = malformed;
+        malformedFonts.push([`${['Name', 'Top DICT', 'String', 'Global Subr'][position]} INDEX: ${label}`,
+            ottoWithCff(Buffer.concat([cffHeader, ...indexes]))]);
+    }
+}
+for (const [label, font] of malformedFonts) {
+    for (const action of ['inspect', 'exportSvg']) {
+        assert.throws(
+            () => context.SvgCurveExporter[action]('پ', font, {}, context.Typr, limits, context.SafeTypr),
+            error => error.code === 'INVALID_FONT',
+            `${label} must fail before Typr parses it during ${action}`
+        );
+    }
+}
+
+const otfFixture = process.env.SAFE_TYPR_OTF_FIXTURE || '/usr/share/fonts/gsfonts/NimbusSans-Regular.otf';
+if (fs.existsSync(otfFixture)) {
+    const otf = bytes(otfFixture);
+    assert.equal(context.SvgCurveExporter.inspect('A', otf, {}, context.Typr, limits, context.SafeTypr).missingGlyphs.length, 0);
+    assertCurveOnly(exportWith('A', otf));
+} else {
+    console.log('OpenType/CFF outline fixture skipped; set SAFE_TYPR_OTF_FIXTURE to an OTF font');
 }
 
 const alternateFontPath = '/usr/share/fonts/noto/NotoSansArabic-Regular.ttf';

@@ -28,6 +28,8 @@ Text Tools update the source text immediately before conversion. They include Pe
 
 Use **Export SVG** to create editable, font-specific vector curves from converted text. Unicode export starts with bundled Vazirmatn. Compatibility export requires selecting a Maryam-compatible font. The exporter reports missing glyphs and can save warnings separately from the editor conversion status.
 
+SVG export accepts TrueType and OpenType/CFF fonts up to 5 MiB. Before the unchanged bundled Typr.js parser runs, application-owned `SafeTypr.js` checks the font table directory, CFF INDEX offsets, and parser byte-read ranges. A malformed font is rejected as `INVALID_FONT` without saving an SVG. These checks target out-of-bounds and oversized reads, but they are not a complete font-format validator or a substitute for using fonts from trusted sources.
+
 ### Settings and privacy
 
 Settings provides the interface language, shaping profiles, applicable text-shaping and named-ligature options, and the persistent editor text size. Hold `Ctrl` while scrolling over the editor to change its text size from 10 to 48 pixels.
