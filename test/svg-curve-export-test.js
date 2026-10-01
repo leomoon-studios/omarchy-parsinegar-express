@@ -7,7 +7,7 @@ const vm = require('vm');
 const root = path.join(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const context = vm.createContext({ TextDecoder, TextEncoder });
-for (const file of ['vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'ParsiNegar.js', 'vendor/typr.js', 'ResourceLimits.js', 'SvgCurveExporter.js']) {
+for (const file of ['vendor/js-bidi.js', 'vendor/js-parsi-reshaper.js', 'ParsiNegar.js', 'vendor/typr.js', 'SafeTypr.js', 'ResourceLimits.js', 'SvgCurveExporter.js']) {
     vm.runInContext(read(file), context, { filename: file });
 }
 
@@ -30,7 +30,7 @@ function exportWith(text, font, alignment = 'left') {
         alignment,
         bounds: { width: 600, height: 300, padding: 20 },
         fill: '#171717'
-    }, context.Typr, context.ResourceLimits);
+    }, context.Typr, context.ResourceLimits, context.SafeTypr);
 }
 
 function transforms(svg) {
@@ -67,21 +67,21 @@ for (let i = 0; i < leftPositions.length; i++) {
     assert.ok(centerPositions[i].x < rightPositions[i].x);
 }
 
-const inspection = context.SvgCurveExporter.inspect(unicodeText, vazirmatn, {}, context.Typr, limits);
+const inspection = context.SvgCurveExporter.inspect(unicodeText, vazirmatn, {}, context.Typr, limits, context.SafeTypr);
 assert.equal(inspection.font.family, 'Vazirmatn');
 assert.equal(inspection.font.style, 'Regular', 'a variable font must default to its declared default instance');
 assert.equal(inspection.missingGlyphs.length, 0);
 const explicitRegular = context.SvgCurveExporter.exportSvg(unicodeText, vazirmatn, {
     fontIndex: 3, fontSize: 48, lineSpacing: 1.5, alignment: 'left',
     bounds: { width: 600, height: 300, padding: 20 }, fill: '#171717'
-}, context.Typr, limits);
+}, context.Typr, limits, context.SafeTypr);
 const explicitThin = context.SvgCurveExporter.exportSvg(unicodeText, vazirmatn, {
     fontIndex: 0, fontSize: 48, lineSpacing: 1.5, alignment: 'left',
     bounds: { width: 600, height: 300, padding: 20 }, fill: '#171717'
-}, context.Typr, limits);
+}, context.Typr, limits, context.SafeTypr);
 assert.equal(left, explicitRegular, 'the implicit variable-font instance must match Vazirmatn Regular');
 assert.notEqual(left, explicitThin, 'the implicit variable-font instance must not fall back to Vazirmatn Thin');
-const missingCombinedMarks = context.SvgCurveExporter.inspect('\uFC5E\uFC5F\uFC60\uFC61\uFC62', vazirmatn, {}, context.Typr, limits);
+const missingCombinedMarks = context.SvgCurveExporter.inspect('\uFC5E\uFC5F\uFC60\uFC61\uFC62', vazirmatn, {}, context.Typr, limits, context.SafeTypr);
 assert.deepEqual(Array.from(missingCombinedMarks.missingGlyphs, item => item.label),
     ['U+FC5E', 'U+FC5F', 'U+FC60', 'U+FC61', 'U+FC62']);
 
@@ -91,22 +91,41 @@ const hebrewText = context.ParsiNegar.convert(hebrewSource, 'unicode', {
 }, context.JsBidi, context.JsParsiReshaper);
 assert.equal(hebrewText, '123 םולש');
 assertCurveOnly(exportWith(hebrewText, vazirmatn));
-assert.ok(context.SvgCurveExporter.inspect(hebrewText, vazirmatn, {}, context.Typr, limits).missingGlyphs.length > 0,
+assert.ok(context.SvgCurveExporter.inspect(hebrewText, vazirmatn, {}, context.Typr, limits, context.SafeTypr).missingGlyphs.length > 0,
     'bundled Vazirmatn must report its missing Hebrew glyphs without blocking export');
 const hebrewFontPath = '/usr/share/fonts/TTF/OpenSans-Regular.ttf';
 if (fs.existsSync(hebrewFontPath)) {
     const hebrewFont = bytes(hebrewFontPath);
     assertCurveOnly(exportWith(hebrewText, hebrewFont));
-    assert.equal(context.SvgCurveExporter.inspect(hebrewText, hebrewFont, {}, context.Typr, limits).missingGlyphs.length, 0);
+    assert.equal(context.SvgCurveExporter.inspect(hebrewText, hebrewFont, {}, context.Typr, limits, context.SafeTypr).missingGlyphs.length, 0);
 }
 
 assertCurveOnly(exportWith(unicodeText + '🧬', vazirmatn));
-assert.deepEqual(Array.from(context.SvgCurveExporter.inspect(unicodeText + '🧬', vazirmatn, {}, context.Typr, limits).missingGlyphs,
+assert.deepEqual(Array.from(context.SvgCurveExporter.inspect(unicodeText + '🧬', vazirmatn, {}, context.Typr, limits, context.SafeTypr).missingGlyphs,
     item => item.label), ['U+1F9EC']);
 assert.throws(
-    () => context.SvgCurveExporter.exportSvg(unicodeText, vazirmatn, { bounds: { width: 10, height: 10 } }, context.Typr, limits),
+    () => context.SvgCurveExporter.exportSvg(unicodeText, vazirmatn, { bounds: { width: 10, height: 10 } }, context.Typr, limits, context.SafeTypr),
     error => error.code === 'BOUNDS_TOO_SMALL'
 );
+assert.throws(
+    () => context.SvgCurveExporter.inspect('پ', vazirmatn, {}, context.Typr, limits),
+    error => error.code === 'MISSING_ENGINE',
+    'SVG inspection must not parse fonts without SafeTypr'
+);
+const maliciousOtto = Buffer.alloc(43);
+maliciousOtto.write('OTTO', 0, 'ascii');
+maliciousOtto.writeUInt16BE(1, 4);
+maliciousOtto.write('CFF ', 12, 'ascii');
+maliciousOtto.writeUInt32BE(28, 20);
+maliciousOtto.writeUInt32BE(15, 24);
+Buffer.from([1, 0, 4, 1, 0, 1, 4, 0, 0, 0, 1, 255, 255, 255, 255]).copy(maliciousOtto, 28);
+for (const action of ['inspect', 'exportSvg']) {
+    assert.throws(
+        () => context.SvgCurveExporter[action]('پ', maliciousOtto, {}, context.Typr, limits, context.SafeTypr),
+        error => error.code === 'INVALID_FONT',
+        'malformed CFF offsets must fail before Typr parses them'
+    );
+}
 
 const alternateFontPath = '/usr/share/fonts/noto/NotoSansArabic-Regular.ttf';
 if (fs.existsSync(alternateFontPath)) {
@@ -121,7 +140,7 @@ if (fs.existsSync(maryamFontPath)) {
     const compatibilityText = convert(source, 'compatibility');
     const compatibility = exportWith(compatibilityText, bytes(maryamFontPath), 'right');
     assertCurveOnly(compatibility);
-    assert.equal(context.SvgCurveExporter.inspect(compatibilityText, bytes(maryamFontPath), {}, context.Typr, limits).missingGlyphs.length, 0);
+    assert.equal(context.SvgCurveExporter.inspect(compatibilityText, bytes(maryamFontPath), {}, context.Typr, limits, context.SafeTypr).missingGlyphs.length, 0);
     assert.notEqual(compatibility, left);
 } else {
     console.log('Compatibility outline fixture skipped; set PARSINEGAR_MARYAM_TEST_FONT to an LMN-compatible TTF/OTF file');

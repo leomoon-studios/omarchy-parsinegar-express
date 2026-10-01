@@ -1,5 +1,6 @@
 // Font parsing and SVG outline generation run outside the QML scene/UI thread.
 Qt.include("vendor/typr.js");
+Qt.include("SafeTypr.js");
 Qt.include("ResourceLimits.js");
 Qt.include("SvgCurveExporter.js");
 
@@ -21,10 +22,10 @@ function finish(message) {
         var bytes = new Uint8Array(currentJob.fontBytes);
         ResourceLimits.assertFontBytes(bytes);
         var warnings = SvgCurveExporter.inspect(
-            currentJob.text, bytes, currentJob.options, Typr, ResourceLimits
+            currentJob.text, bytes, currentJob.options, Typr, ResourceLimits, SafeTypr
         ).missingGlyphs;
         var svg = SvgCurveExporter.exportSvg(
-            currentJob.text, bytes, currentJob.options, Typr, ResourceLimits
+            currentJob.text, bytes, currentJob.options, Typr, ResourceLimits, SafeTypr
         );
         ResourceLimits.assertSvgSize(svg);
         currentJob = null;

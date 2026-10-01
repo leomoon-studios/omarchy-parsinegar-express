@@ -7,7 +7,7 @@ const vm = require('vm');
 const root = path.join(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const context = vm.createContext({ TextDecoder, TextEncoder });
-for (const file of ['vendor/typr.js', 'vendor/js-parsi-reshaper.js', 'ResourceLimits.js', 'LocalPath.js', 'ReshaperSettings.js', 'SvgCurveExporter.js']) {
+for (const file of ['vendor/typr.js', 'SafeTypr.js', 'vendor/js-parsi-reshaper.js', 'ResourceLimits.js', 'LocalPath.js', 'ReshaperSettings.js', 'SvgCurveExporter.js']) {
     vm.runInContext(read(file), context, { filename: file });
 }
 const limits = context.ResourceLimits;
@@ -16,9 +16,9 @@ const exporter = context.SvgCurveExporter;
 const fontBuffer = fs.readFileSync(path.join(root, 'assets/fonts/Vazirmatn[wght].ttf'));
 const font = new Uint8Array(fontBuffer.buffer.slice(fontBuffer.byteOffset, fontBuffer.byteOffset + fontBuffer.byteLength));
 
-assert.match(exporter.exportSvg('پ', font, undefined, context.Typr, limits), /<svg /);
+assert.match(exporter.exportSvg('پ', font, undefined, context.Typr, limits, context.SafeTypr), /<svg /);
 for (const options of [null, false, true, 0, 1, 'options', [], new Date(), new String('options')]) {
-    assert.throws(() => exporter.exportSvg('پ', font, options, context.Typr, limits), error => error.code === 'INVALID_OPTION');
+    assert.throws(() => exporter.exportSvg('پ', font, options, context.Typr, limits, context.SafeTypr), error => error.code === 'INVALID_OPTION');
 }
 for (const options of [
     { unknown: true }, { bounds: null }, { bounds: [] }, { bounds: { unknown: 1 } },
@@ -26,13 +26,13 @@ for (const options of [
     { fill: null }, { precision: null }, { fontIndex: null }, { fontIndex: '0' },
     { axes: null }, { axes: {} }, { axes: [] }, { axes: ['400'] }, { axes: [Infinity] }, { axes: [400, 500] }
 ]) {
-    assert.throws(() => exporter.exportSvg('پ', font, options, context.Typr, limits), error => error.code === 'INVALID_OPTION');
+    assert.throws(() => exporter.exportSvg('پ', font, options, context.Typr, limits, context.SafeTypr), error => error.code === 'INVALID_OPTION');
 }
-assert.match(exporter.exportSvg('پ', font, { axes: [400] }, context.Typr, limits), /<svg /);
+assert.match(exporter.exportSvg('پ', font, { axes: [400] }, context.Typr, limits, context.SafeTypr), /<svg /);
 const payload = '\"><script>alert(1)</script>&';
-assert.throws(() => exporter.exportSvg('پ', font, { fill: payload }, context.Typr, limits),
+assert.throws(() => exporter.exportSvg('پ', font, { fill: payload }, context.Typr, limits, context.SafeTypr),
     error => error.code === 'INVALID_OPTION');
-assert.match(exporter.exportSvg('پ', font, { fill: '#12345678' }, context.Typr, limits),
+assert.match(exporter.exportSvg('پ', font, { fill: '#12345678' }, context.Typr, limits, context.SafeTypr),
     /fill="#12345678"/);
 
 for (const invalid of [null, undefined, '', 'relative.svg', 'https://example.com/a.svg', 'file://example.com/a.svg', 'file:///tmp/bad%ZZ.svg', 'file:///tmp/%00.svg', '/tmp/bad\0.svg', '/tmp/../outside.svg', 'file:///tmp/%2e%2e/outside.svg']) {

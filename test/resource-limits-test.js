@@ -6,7 +6,7 @@ const vm = require('vm');
 
 const root = path.join(__dirname, '..');
 const context = vm.createContext({ TextDecoder, TextEncoder });
-for (const file of ['vendor/typr.js', 'ResourceLimits.js', 'SvgCurveExporter.js']) {
+for (const file of ['vendor/typr.js', 'SafeTypr.js', 'ResourceLimits.js', 'SvgCurveExporter.js']) {
     vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
 }
 
@@ -28,11 +28,11 @@ assert.ok(Date.now() - began < 100, 'oversized text must be rejected before conv
 
 assert.equal(limits.assertTextLength('پ'.repeat(values.maxSvgTextLength), values.maxSvgTextLength, 'EXPORT_TEXT_TOO_LARGE').length,
     values.maxSvgTextLength);
-assert.throws(() => exporter.inspect('پ'.repeat(values.maxSvgTextLength + 1), font, {}, context.Typr, limits),
+assert.throws(() => exporter.inspect('پ'.repeat(values.maxSvgTextLength + 1), font, {}, context.Typr, limits, context.SafeTypr),
     error => error.code === 'EXPORT_TEXT_TOO_LARGE');
 assert.throws(() => limits.assertFontBytes({ byteLength: values.maxFontBytes + 1 }), error => error.code === 'FONT_TOO_LARGE');
 for (const malformed of [new Uint8Array(0), new Uint8Array([0, 1, 2, 3])]) {
-    assert.throws(() => exporter.inspect('پ', malformed, {}, context.Typr, limits), error => error.code === 'INVALID_FONT');
+    assert.throws(() => exporter.inspect('پ', malformed, {}, context.Typr, limits, context.SafeTypr), error => error.code === 'INVALID_FONT');
 }
 
 const validMaximums = {
@@ -40,7 +40,7 @@ const validMaximums = {
     lineSpacing: values.maxLineSpacing,
     bounds: { width: values.maxDimension, height: values.maxDimension, padding: values.maxPadding }
 };
-assert.match(exporter.exportSvg('پ\nپ', font, validMaximums, context.Typr, limits), /<svg /);
+assert.match(exporter.exportSvg('پ\nپ', font, validMaximums, context.Typr, limits, context.SafeTypr), /<svg /);
 for (const options of [
     { fontSize: values.maxFontSize + 1 },
     { lineSpacing: values.maxLineSpacing + 1 },
@@ -49,11 +49,11 @@ for (const options of [
     { bounds: { padding: values.maxPadding + 1 } },
     { fontSize: Number.MAX_VALUE }
 ]) {
-    assert.throws(() => exporter.exportSvg('پ', font, options, context.Typr, limits), error => error.code === 'INVALID_OPTION');
+    assert.throws(() => exporter.exportSvg('پ', font, options, context.Typr, limits, context.SafeTypr), error => error.code === 'INVALID_OPTION');
 }
 
 const tallText = Array(1001).fill('پ').join('\n');
-const tallSvg = exporter.exportSvg(tallText, font, {}, context.Typr, limits);
+const tallSvg = exporter.exportSvg(tallText, font, {}, context.Typr, limits, context.SafeTypr);
 assert.equal((tallSvg.match(/<path /g) || []).length, 1001, 'large multiline input below the limit must export');
 
 const tinyOutputLimits = {
@@ -69,7 +69,7 @@ const tinyOutputLimits = {
         return svg;
     }
 };
-assert.throws(() => exporter.exportSvg('پارسی نگار', font, {}, context.Typr, tinyOutputLimits),
+assert.throws(() => exporter.exportSvg('پارسی نگار', font, {}, context.Typr, tinyOutputLimits, context.SafeTypr),
     error => error.code === 'SVG_TOO_LARGE');
 assert.equal(limits.utf8ByteLength('ASCII پارسی 🧬'), Buffer.byteLength('ASCII پارسی 🧬', 'utf8'));
 
