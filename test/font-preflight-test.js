@@ -27,16 +27,16 @@ const stat = spawnSync('/usr/bin/stat', ['-Lc', '%f %s', '--', fontPath], { enco
 const header = spawnSync('/usr/bin/od', ['-An', '-tx1', '-N4', '--', fontPath], { encoding: 'utf8' });
 assert.equal(checks.statCode(stat.stdout, stat.status, maximum), '');
 assert.equal(checks.headerCode(header.stdout, header.status), '');
-const bounded = spawnSync('/usr/bin/bash', [path.join(root, 'FontRead.sh'), fontPath], { encoding: 'utf8' });
+const bounded = spawnSync('/usr/bin/bash', [path.join(root, 'FontRead.sh'), fontPath]);
 assert.equal(bounded.status, 0);
-assert.deepEqual(Buffer.from(bounded.stdout, 'base64'), fs.readFileSync(fontPath));
+assert.deepEqual(bounded.stdout, fs.readFileSync(fontPath));
 const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'parsinegar-font-'));
 const oversizedPath = path.join(temporaryDirectory, 'oversized.ttf');
 fs.writeFileSync(oversizedPath, Buffer.from([0, 1, 0, 0]));
 fs.truncateSync(oversizedPath, maximum + 1);
-const oversized = spawnSync('/usr/bin/bash', [path.join(root, 'FontRead.sh'), oversizedPath], { encoding: 'utf8' });
+const oversized = spawnSync('/usr/bin/bash', [path.join(root, 'FontRead.sh'), oversizedPath]);
 assert.equal(oversized.status, 2);
-assert.equal(oversized.stdout, '');
+assert.equal(oversized.stdout.length, 0);
 fs.unlinkSync(oversizedPath);
 fs.rmdirSync(temporaryDirectory);
 
@@ -44,6 +44,8 @@ const controller = fs.readFileSync(path.join(root, 'SvgCurveExportController.qml
 const exportSection = fs.readFileSync(path.join(root, 'ExportSection.qml'), 'utf8');
 assert.match(controller, /fontPreflight\.check\(pendingFontPath\)/);
 assert.match(controller, /else root\.beginBoundedFontRead\(path\)/);
+assert.match(controller, /root\.fontReadOutput = this\.data/);
+assert.doesNotMatch(controller, /Qt\.atob\(/);
 assert.doesNotMatch(controller, /fontFile\.data\(\)/);
 assert.match(exportSection, /onVisibleChanged:[\s\S]*validateSelectedFont\(\)/);
 assert.match(exportSection, /enabled: !root\.exportBusy && root\.selectedFontReady/);

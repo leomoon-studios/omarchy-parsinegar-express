@@ -16,4 +16,5 @@ if [[ $font_header != 00010000 && $font_header != 4f54544f ]]; then
 fi
 
 # Even if the file grows after stat, this process reads at most 5 MiB plus one byte.
-head -c 5242881 -- "$font_path" | base64 -w0
+# Keep font bytes binary; decoding them as text corrupts non-UTF-8 data.
+head -c 5242881 -- "$font_path"

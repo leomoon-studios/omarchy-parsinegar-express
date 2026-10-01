@@ -21,7 +21,7 @@ Item {
     property var fontByteView: null
     property int fontByteOffset: 0
     property int requestId: 0
-    property string fontReadOutput: ""
+    property var fontReadOutput: null
     property bool fontReadOutputFinished: false
     property bool fontReadExited: false
     property int fontReadExitCode: -1
@@ -59,7 +59,7 @@ Item {
         pendingOptions = ({})
         fontByteView = null
         fontByteOffset = 0
-        fontReadOutput = ""
+        fontReadOutput = null
         exportWarnings = []
         busy = false
         errorCode = String(code || "EXPORT_FAILED")
@@ -69,7 +69,7 @@ Item {
 
     function beginBoundedFontRead(path) {
         if (!busy) return
-        fontReadOutput = ""
+        fontReadOutput = null
         fontReadOutputFinished = false
         fontReadExited = false
         fontReadExitCode = -1
@@ -84,16 +84,13 @@ Item {
             if (fontReadExitCode !== 0)
                 throw { code: fontReadExitCode === 2 ? "FONT_TOO_LARGE" : "INVALID_FONT",
                     message: "Font validation or bounded read failed." }
-            var encoded = fontReadOutput
-            fontReadOutput = ""
-            if (encoded.length > 4 * Math.ceil((Limits.ResourceLimits.values.maxFontBytes + 1) / 3))
+            var raw = fontReadOutput
+            fontReadOutput = null
+            if (!raw || typeof raw.byteLength !== "number")
+                throw { code: "INVALID_FONT", message: "The selected font could not be read." }
+            if (raw.byteLength > Limits.ResourceLimits.values.maxFontBytes)
                 throw { code: "FONT_TOO_LARGE", message: "Font exceeds the supported size." }
-            var decoded = Qt.atob(encoded)
-            if (typeof decoded === "string") {
-                fontByteView = new Uint8Array(decoded.length)
-                for (var byteIndex = 0; byteIndex < decoded.length; byteIndex++)
-                    fontByteView[byteIndex] = decoded.charCodeAt(byteIndex)
-            } else fontByteView = new Uint8Array(decoded)
+            fontByteView = new Uint8Array(raw)
             Limits.ResourceLimits.assertFontBytes(fontByteView)
             if (fontByteView.length < 4 || !(
                 fontByteView[0] === 0 && fontByteView[1] === 1 &&
@@ -172,7 +169,7 @@ Item {
         stdout: StdioCollector {
             waitForEnd: true
             onStreamFinished: {
-                root.fontReadOutput = typeof text === "string" ? text : ""
+                root.fontReadOutput = this.data
                 root.fontReadOutputFinished = true
                 root.prepareFontBytes()
             }
