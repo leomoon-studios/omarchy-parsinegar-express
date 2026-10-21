@@ -165,6 +165,8 @@ assert.deepEqual(plain(settings.parse(metadata, appStateSerialized).appState), {
 });
 assert.equal(settings.sanitizeAppState({ editorFontSize: 9 }).editorFontSize, 0);
 assert.equal(settings.sanitizeAppState({ editorFontSize: 49 }).editorFontSize, 0);
+assert.equal(settings.sanitizeAppState({ exportSettings: { unicodeFontStyle: 'Bold' } }).exportSettings.unicodeFontStyle, 'Bold');
+assert.equal(settings.sanitizeAppState({ exportSettings: { unicodeFontStyle: 7 } }).exportSettings.unicodeFontStyle, '');
 const persianSerialized = settings.serialize(metadata, custom, 'fa');
 assert.equal(settings.parse(metadata, persianSerialized).uiLanguage, 'fa');
 const arabicSerialized = settings.serialize(metadata, custom, 'ar');

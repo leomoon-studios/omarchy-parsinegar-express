@@ -75,7 +75,7 @@ var SvgCurveExporter = (function () {
         return bestIndex;
     }
 
-    function parseFont(bytes, fontIndex, typr, safeTypr) {
+    function parseFont(bytes, fontIndex, fontStyle, typr, safeTypr) {
         if (!typr || typeof typr.parse !== "function" || !typr.U)
             fail("MISSING_ENGINE", "A loaded Typr.js API is required");
         if (!safeTypr || typeof safeTypr.parse !== "function")
@@ -84,6 +84,19 @@ var SvgCurveExporter = (function () {
         try { fonts = safeTypr.parse(typr, fontBuffer(bytes)); }
         catch (error) { fail("INVALID_FONT", "The selected font could not be read: " + error); }
         var selectedIndex = fontIndex === null ? defaultFontIndex(fonts || []) : fontIndex;
+        if (fontIndex === null && fontStyle) {
+            selectedIndex = -1;
+            for (var index = 0; index < fonts.length; index++) {
+                var candidate = fonts[index];
+                if (candidate.fvar && candidate.name &&
+                    String(candidate.name.fontSubfamily || "").toLowerCase() === fontStyle.toLowerCase()) {
+                    selectedIndex = index;
+                    break;
+                }
+            }
+            if (selectedIndex < 0)
+                fail("INVALID_FONT", "The selected variable-font style is unavailable");
+        }
         if (!fonts || !fonts.length || !fonts[selectedIndex])
             fail("INVALID_FONT_INDEX", "The selected font does not contain font index " + selectedIndex);
         var font = fonts[selectedIndex];
@@ -161,7 +174,7 @@ var SvgCurveExporter = (function () {
     function normalizedOptions(options, limits) {
         if (options === undefined) options = {};
         plainObject(options, "options");
-        knownProperties(options, ["fontSize", "lineSpacing", "alignment", "bounds", "fill", "precision", "fontIndex", "axes"], "options");
+        knownProperties(options, ["fontSize", "lineSpacing", "alignment", "bounds", "fill", "precision", "fontIndex", "fontStyle", "axes"], "options");
         var bounds = options.bounds === undefined ? {} : plainObject(options.bounds, "bounds");
         knownProperties(bounds, ["width", "height", "padding"], "bounds");
         var alignment = options.alignment === undefined ? "left" : options.alignment;
@@ -177,6 +190,9 @@ var SvgCurveExporter = (function () {
         if (options.fontIndex !== undefined && (typeof options.fontIndex !== "number" || !isFinite(options.fontIndex) ||
             options.fontIndex < 0 || Math.floor(options.fontIndex) !== options.fontIndex))
             fail("INVALID_OPTION", "fontIndex must be a non-negative integer");
+        if (options.fontStyle !== undefined && (typeof options.fontStyle !== "string" || !options.fontStyle ||
+            options.fontStyle.length > 256 || /[\x00-\x1f]/.test(options.fontStyle)))
+            fail("INVALID_OPTION", "fontStyle must be a named variable-font style");
         var axes = options.axes;
         if (axes !== undefined) {
             if (!Array.isArray(axes) || axes.length === 0 || axes.length > 32)
@@ -197,6 +213,7 @@ var SvgCurveExporter = (function () {
             fill: options.fill === undefined ? "#000000" : options.fill,
             precision: precision,
             fontIndex: options.fontIndex === undefined ? null : options.fontIndex,
+            fontStyle: options.fontStyle || "",
             axes: axes
         };
     }
@@ -228,7 +245,7 @@ var SvgCurveExporter = (function () {
         limits.assertFontBytes(bytes);
         var normalized = normalizedOptions(options, limits);
         try {
-            var font = parseFont(bytes, normalized.fontIndex, typr, safeTypr);
+            var font = parseFont(bytes, normalized.fontIndex, normalized.fontStyle, typr, safeTypr);
             validateAxes(font, normalized.axes);
             return { font: fontIdentity(font), missingGlyphs: missingGlyphs(font, text, typr) };
         } catch (error) {
@@ -243,7 +260,7 @@ var SvgCurveExporter = (function () {
         limits.assertFontBytes(bytes);
         var normalized = normalizedOptions(options, limits);
         try {
-            var font = parseFont(bytes, normalized.fontIndex, typr, safeTypr);
+            var font = parseFont(bytes, normalized.fontIndex, normalized.fontStyle, typr, safeTypr);
             validateAxes(font, normalized.axes);
             return exportWithFont(text, font, normalized, typr, limits);
         } catch (error) {
@@ -258,7 +275,7 @@ var SvgCurveExporter = (function () {
         limits.assertFontBytes(bytes);
         var normalized = normalizedOptions(options, limits);
         try {
-            var font = parseFont(bytes, normalized.fontIndex, typr, safeTypr);
+            var font = parseFont(bytes, normalized.fontIndex, normalized.fontStyle, typr, safeTypr);
             validateAxes(font, normalized.axes);
             var inspection = { font: fontIdentity(font), missingGlyphs: missingGlyphs(font, text, typr) };
             return { inspection: inspection, svg: exportWithFont(text, font, normalized, typr, limits) };

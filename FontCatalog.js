@@ -106,21 +106,32 @@ var FontCatalog = (function () {
     function finish(state) {
         if (state.remainder !== "") parseLine(state, state.remainder);
         state.remainder = "";
-        var seenPaths = Object.create(null);
+        var stylesByPath = Object.create(null);
+        for (var pathIndex = 0; pathIndex < state.entries.length; pathIndex++) {
+            var record = state.entries[pathIndex];
+            if (!stylesByPath[record.path]) stylesByPath[record.path] = Object.create(null);
+            if (record.style) stylesByPath[record.path][record.style.toLowerCase()] = true;
+        }
+        var seenKeys = Object.create(null);
         var seenFaces = Object.create(null);
         var result = [];
         for (var i = 0; i < state.entries.length; i++) {
             var entry = state.entries[i];
+            var variableInstance = Object.keys(stylesByPath[entry.path]).length > 1;
+            if (variableInstance && !entry.style) continue;
+            var key = variableInstance ? entry.path + "\n" + entry.style : entry.path;
             var face = entry.family.toLowerCase() + "\n" + entry.style.toLowerCase();
-            if (seenPaths[entry.path] || seenFaces[face]) continue;
-            seenPaths[entry.path] = true;
+            if (seenKeys[key] || seenFaces[face]) continue;
+            seenKeys[key] = true;
             seenFaces[face] = true;
             var ranges = charsetRanges(entry.charset);
             result.push({
-                key: entry.path,
+                key: key,
                 path: entry.path,
                 family: entry.family,
                 style: entry.style,
+                variableInstance: variableInstance,
+                defaultInstance: variableInstance && entry.style.toLowerCase() === "regular",
                 display: !entry.style || entry.style.toLowerCase() === "regular"
                     ? entry.family : entry.family + " - " + entry.style,
                 charset: entry.charset,
@@ -150,17 +161,32 @@ var FontCatalog = (function () {
             englishPreview: englishSample, persianPreview: persianSample,
             compatibilityPreview: compatibilitySample, bundled: true
         });
+        var compatibilityPaths = Object.create(null);
         for (var i = 0; i < entries.length; i++) {
-            if (isLegacy(entries[i]) === (mode === "compatibility")) result.push(entries[i]);
+            var entry = entries[i];
+            if (isLegacy(entry) !== (mode === "compatibility")) continue;
+            if (mode === "compatibility" && entry.variableInstance) {
+                if (compatibilityPaths[entry.path] !== undefined) {
+                    if (entry.defaultInstance)
+                        result[compatibilityPaths[entry.path]] = Object.assign({}, entry, { key: entry.path });
+                    continue;
+                }
+                compatibilityPaths[entry.path] = result.length;
+                result.push(Object.assign({}, entry, { key: entry.path }));
+            } else result.push(entry);
         }
         return result;
     }
 
-    function selectedEntry(entries, path) {
+    function selectedEntry(entries, path, style) {
         if (!path) return null;
+        var fallback = null;
         for (var i = 0; i < entries.length; i++) {
-            if (entries[i].path === path) return entries[i];
+            if (entries[i].path !== path) continue;
+            if (style && entries[i].style === style) return entries[i];
+            if (!fallback || entries[i].defaultInstance) fallback = entries[i];
         }
+        if (fallback) return fallback;
         var name = path.substring(path.lastIndexOf("/") + 1);
         return { key: path, path: path, family: "", style: "", display: name, charset: "",
             unicodePreview: "", compatibilityPreview: "", custom: true };

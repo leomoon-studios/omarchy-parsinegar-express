@@ -37,6 +37,22 @@ assert.equal(catalog.selectedEntry(unicode, '/custom/My Font.ttf').display, 'My 
 assert.equal(catalog.selectedEntry(unicode, '/custom/My Font.ttf').custom, true);
 assert.equal(catalog.selectedEntry(unicode, '/custom/My Font.ttf').unicodePreview, '');
 
+const variable = catalog.create();
+catalog.append(variable, '/fonts/Pinar-VF.ttf\tPinar-VF\tBold\t20-7e 600-6ff\n' +
+    '/fonts/Pinar-VF.ttf\tPinar-VF\tLight\t20-7e 600-6ff\n' +
+    '/fonts/Pinar-VF.ttf\tPinar-VF\t\t20-7e 600-6ff\n' +
+    '/fonts/Pinar-VF.ttf\tPinar-VF\tBold\t20-7e 600-6ff\n');
+const variableEntries = catalog.finish(variable);
+assert.equal(variableEntries.length, 2);
+assert.deepEqual(Array.from(variableEntries, entry => entry.style), ['Bold', 'Light']);
+assert.deepEqual(Array.from(variableEntries, entry => entry.key), [
+    '/fonts/Pinar-VF.ttf\nBold', '/fonts/Pinar-VF.ttf\nLight'
+]);
+assert.ok(variableEntries.every(entry => entry.variableInstance));
+assert.equal(catalog.selectedEntry(variableEntries, '/fonts/Pinar-VF.ttf', 'Light').style, 'Light');
+assert.equal(catalog.selectedEntry(variableEntries, '/fonts/Pinar-VF.ttf', 'Bold').style, 'Bold');
+assert.equal(catalog.selectedEntry(variableEntries, '/fonts/Pinar-VF.ttf', 'Missing').style, 'Bold');
+
 const oversized = catalog.create();
 assert.throws(() => catalog.append(oversized, 'x'.repeat(64 * 1024 + 1)), /record is too long/);
 const excessive = catalog.create();

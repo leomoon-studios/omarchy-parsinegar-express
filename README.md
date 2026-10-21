@@ -1,5 +1,7 @@
 # Omarchy ParsiNegar Express
 
+**Language:** English | [پارسی](README.fa.md)
+
 An Omarchy 4 shell plugin by LeoMoon Studios that prepares Persian, Arabic, Kurdish, Urdu, and Hebrew text for applications with incomplete shaping or bidirectional-text support.
 
 ## What it does
@@ -26,7 +28,7 @@ Text Tools update the source text immediately before conversion. They include Pe
 
 ### Export SVG
 
-Use **Export SVG** to create editable, font-specific vector curves from converted text. Unicode export starts with bundled Vazirmatn. Compatibility export requires selecting a Maryam-compatible font. The exporter reports missing glyphs and can save warnings separately from the editor conversion status.
+Use **Export SVG** to create editable, font-specific vector curves from converted text. Unicode export starts with bundled Vazirmatn and lists the named styles of installed variable fonts separately. Choosing a style uses that instance for the SVG curves. Compatibility export requires selecting a Maryam-compatible font. The exporter reports missing glyphs and can save warnings separately from the editor conversion status.
 
 SVG export accepts TrueType and OpenType/CFF fonts up to 5 MiB. Before the unchanged bundled Typr.js parser runs, application-owned `SafeTypr.js` checks the font table directory, CFF INDEX offsets, cmap format-12 group counts, and parser byte-read ranges. A malformed font is rejected as `INVALID_FONT` without saving an SVG. These checks target out-of-bounds and oversized reads or allocations, but they are not a complete font-format validator or a substitute for using fonts from trusted sources.
 

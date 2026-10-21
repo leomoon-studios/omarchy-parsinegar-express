@@ -1505,7 +1505,7 @@ var ReshaperSettings = (function () {
       editorFontSize: 0,
       exportSettings: {
         advancedExpanded: false, automaticWidth: true, automaticHeight: true,
-        unicodeFontPath: "", compatibilityFontPath: "", alignment: "right",
+        unicodeFontPath: "", unicodeFontStyle: "", compatibilityFontPath: "", alignment: "right",
         fontSize: "48", lineSpacing: "1.2", width: "800", height: "300",
         padding: "16", precision: "3", fontIndex: "", fill: "#000000", axes: ""
       }
@@ -1522,7 +1522,7 @@ var ReshaperSettings = (function () {
       if (typeof value[name] === "boolean") result[name] = value[name];
     });
     if (["left", "center", "right"].indexOf(value.alignment) !== -1) result.alignment = value.alignment;
-    ["unicodeFontPath", "compatibilityFontPath", "fontSize", "lineSpacing", "width", "height", "padding", "precision", "fontIndex", "fill", "axes"].forEach(function (name) {
+    ["unicodeFontPath", "unicodeFontStyle", "compatibilityFontPath", "fontSize", "lineSpacing", "width", "height", "padding", "precision", "fontIndex", "fill", "axes"].forEach(function (name) {
       result[name] = savedText(value[name], result[name]);
     });
     return result;

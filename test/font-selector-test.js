@@ -38,7 +38,7 @@ assert.match(selector, /twoLinePreview: control\.mode === "unicode" && !modelDat
 assert.match(selector, /text: fontDelegate\.modelData\.englishPreview/);
 assert.match(selector, /text: fontDelegate\.modelData\.persianPreview/);
 assert.match(selector, /visible: !fontDelegate\.twoLinePreview[\s\S]*compatibilityPreview/);
-assert.match(exportSection, /FontSelector\s*\{[\s\S]*selectedKey: root\.selectedFontPath/);
+assert.match(exportSection, /FontSelector\s*\{[\s\S]*selectedKey: root\.selectedFontKey/);
 assert.match(exportSection, /mode: root\.activeMode/);
 assert.match(exportSection, /onFontSelected: function\(entry\)/);
 assert.match(exportSection, /root\.saveSettings\(\)/);

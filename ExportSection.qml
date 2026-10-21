@@ -29,6 +29,7 @@ FocusScope {
     property string pendingValidationSelection: ""
     readonly property string bundledUnicodeFontPath: String(Qt.resolvedUrl("assets/fonts/Vazirmatn[wght].ttf"))
     property string unicodeFontPath: bundledUnicodeFontPath
+    property string unicodeFontStyle: ""
     property string compatibilityFontPath: ""
     property string pendingText: ""
     property string pendingDestination: ""
@@ -40,6 +41,11 @@ FocusScope {
     property int pickerExitCode: -1
     readonly property string activeMode: host ? host.conversionMode : "unicode"
     readonly property string selectedFontPath: activeMode === "compatibility" ? compatibilityFontPath : unicodeFontPath
+    readonly property string selectedFontKey: {
+        var entry = Catalog.FontCatalog.selectedEntry(currentFontEntries(), selectedFontPath,
+            activeMode === "unicode" ? unicodeFontStyle : "")
+        return entry ? entry.key : ""
+    }
     readonly property bool selectedFontReady: selectedFontPath !== "" &&
         validatedFontSelection === selectedFontPath && fontValidationCode === "" &&
         !fontPreflight.checking && fontPreflight.queuedPath === ""
@@ -60,7 +66,8 @@ FocusScope {
         var installed = fontCatalogLoader.item ? fontCatalogLoader.item.entries : []
         var entries = Catalog.FontCatalog.forMode(installed, activeMode, bundledUnicodeFontPath,
             typography ? typography.family : "Vazirmatn", uiText("export.bundledFont"))
-        var selected = Catalog.FontCatalog.selectedEntry(entries, selectedFontPath)
+        var selected = Catalog.FontCatalog.selectedEntry(entries, selectedFontPath,
+            activeMode === "unicode" ? unicodeFontStyle : "")
         if (selected && selected.custom) entries.push(selected)
         return entries
     }
@@ -135,6 +142,10 @@ FocusScope {
         var fontIndex = optionalNonNegativeInteger(fontIndexField)
         var axes = axesValue()
         if (fontIndex !== undefined) result.fontIndex = fontIndex
+        else if (activeMode === "unicode") {
+            var selected = Catalog.FontCatalog.selectedEntry(currentFontEntries(), selectedFontPath, unicodeFontStyle)
+            if (selected && selected.variableInstance) result.fontStyle = selected.style
+        }
         if (axes !== undefined) result.axes = axes
         var limits = Limits.ResourceLimits.values
         if (result.fontSize > limits.maxFontSize || result.lineSpacing > limits.maxLineSpacing ||
@@ -148,6 +159,7 @@ FocusScope {
         automaticWidth = settings.automaticWidth !== false
         automaticHeight = settings.automaticHeight !== false
         unicodeFontPath = settings.unicodeFontPath || bundledUnicodeFontPath
+        unicodeFontStyle = typeof settings.unicodeFontStyle === "string" ? settings.unicodeFontStyle : ""
         compatibilityFontPath = settings.compatibilityFontPath || ""
         alignment = ["left", "center", "right"].indexOf(settings.alignment) !== -1 ? settings.alignment : "right"
         fontSizeField.text = settings.fontSize === undefined ? "48" : settings.fontSize
@@ -167,6 +179,7 @@ FocusScope {
             automaticWidth: automaticWidth,
             automaticHeight: automaticHeight,
             unicodeFontPath: unicodeFontPath === bundledUnicodeFontPath ? "" : unicodeFontPath,
+            unicodeFontStyle: unicodeFontPath === bundledUnicodeFontPath ? "" : unicodeFontStyle,
             compatibilityFontPath: compatibilityFontPath,
             alignment: alignment,
             fontSize: fontSizeField.text,
@@ -527,7 +540,7 @@ FocusScope {
                                 Layout.fillWidth: true
                                 fonts: root.currentFontEntries()
                                 mode: root.activeMode
-                                selectedKey: root.selectedFontPath
+                                selectedKey: root.selectedFontKey
                                 uiFontFamily: root.typography ? root.typography.family : ""
                                 placeholderText: root.uiText("export.searchFonts")
                                 emptyText: root.uiText("export.noSearchResults")
@@ -537,7 +550,10 @@ FocusScope {
                                     (fontCatalogLoader.item && fontCatalogLoader.item.ready))
                                 onFontSelected: function(entry) {
                                     if (root.activeMode === "compatibility") root.compatibilityFontPath = entry.path
-                                    else root.unicodeFontPath = entry.path
+                                    else {
+                                        root.unicodeFontPath = entry.path
+                                        root.unicodeFontStyle = entry.variableInstance ? entry.style : ""
+                                    }
                                     root.saveSettings()
                                 }
                             }

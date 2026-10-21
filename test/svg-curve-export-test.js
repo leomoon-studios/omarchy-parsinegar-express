@@ -95,6 +95,15 @@ const explicitThin = context.SvgCurveExporter.exportSvg(unicodeText, vazirmatn, 
 }, context.Typr, limits, context.SafeTypr);
 assert.equal(left, explicitRegular, 'the implicit variable-font instance must match Vazirmatn Regular');
 assert.notEqual(left, explicitThin, 'the implicit variable-font instance must not fall back to Vazirmatn Thin');
+const namedThin = context.SvgCurveExporter.exportSvg(unicodeText, vazirmatn, {
+    fontStyle: 'Thin', fontSize: 48, lineSpacing: 1.5, alignment: 'left',
+    bounds: { width: 600, height: 300, padding: 20 }, fill: '#171717'
+}, context.Typr, limits, context.SafeTypr);
+assert.equal(namedThin, explicitThin, 'the selected named style must render its own outlines');
+assert.equal(context.SvgCurveExporter.inspect(unicodeText, vazirmatn, { fontStyle: 'Bold' },
+    context.Typr, limits, context.SafeTypr).font.style, 'Bold');
+assert.throws(() => context.SvgCurveExporter.inspect(unicodeText, vazirmatn, { fontStyle: 'Missing' },
+    context.Typr, limits, context.SafeTypr), error => error.code === 'INVALID_FONT');
 const missingCombinedMarks = context.SvgCurveExporter.inspect('\uFC5E\uFC5F\uFC60\uFC61\uFC62', vazirmatn, {}, context.Typr, limits, context.SafeTypr);
 assert.deepEqual(Array.from(missingCombinedMarks.missingGlyphs, item => item.label),
     ['U+FC5E', 'U+FC5F', 'U+FC60', 'U+FC61', 'U+FC62']);
